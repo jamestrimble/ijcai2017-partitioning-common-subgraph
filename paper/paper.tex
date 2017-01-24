@@ -5,6 +5,9 @@
 \usepackage{times}
 \usepackage{graphicx}
 
+\newcommand{\citet}[1]{\citeauthor{#1} \shortcite{#1}}
+\newcommand{\citep}[1]{\cite{#1}}
+
 \title{A Partitioning Algorithm for Maximum Common (Connected) Subgraphs\thanks{This work
 was supported by the Engineering and Physical Sciences Research Council [grant
 numbers EP/K503058/1 and EP/M508056/1]}}
@@ -23,12 +26,29 @@ j.trimble.1@research.gla.ac.uk}
 
 \section{Introduction}
 
+\citet{UpcomingAAAIPaper}
+
+\citet{DBLP:conf/cp/McCreeshNPS16}
+
+\citet{DBLP:conf/cp/NdiayeS11}
+
+\section{Results}
+
 \begin{figure*}[tb]
     \centering
     \includegraphics*{gen-graph-mcs.pdf}
     \caption{First plot is induced SIP instances, second plot is unlabelled
     undirected MCS instances.}\label{figure:runtimes}
 \end{figure*}
+
+\section{Connected}
+
+\section{Parallel}
+
+\section{Labelled and Directed Edges}
+
+James reckons that finding a match is so rare that it's more or less down to
+finding a maximum independent set, at least in the non-connected case.
 
 \bibliographystyle{named}
 \bibliography{paper}
