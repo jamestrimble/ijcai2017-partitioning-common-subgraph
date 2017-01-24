@@ -1,0 +1,21 @@
+SHELL := /bin/bash
+FILTER := -1
+MODULUS := 1
+CATTER := cat
+INSTANCES_FILE := mcsinstances.txt
+INSTANCES := $(shell cut -d' ' -f1 $(INSTANCES_FILE) | if [[ $(FILTER) == -1 ]] ; then cat ; else awk "(NR % $(MODULUS)) == ($(FILTER) % $(MODULUS))" ; fi | $(CATTER) )
+TIMEOUT := 1000
+ALGORITHMS := james-c
+STACK_SPACE := 10485760
+RESULTS := results
+
+all : $(foreach i, $(INSTANCES), $(foreach a, $(ALGORITHMS), $(RESULTS)/$(a)/$i.out ))
+
+define ALGORITHM_template
+$(RESULTS)/$(1)/%.out :
+	mkdir -p $(RESULTS)/$(1)
+	ulimit -s $$(STACK_SPACE) ; ../code/$(1)/mcsp --timeout $$(TIMEOUT) $$(shell grep "^`basename $$*` " < $(INSTANCES_FILE) | cut -d' ' -f2-3 ) > >(tee $$@ ) 2>&1
+endef
+
+$(foreach a,$(ALGORITHMS),$(eval $(call ALGORITHM_template,$(a))))
+
