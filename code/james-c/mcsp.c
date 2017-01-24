@@ -43,6 +43,8 @@ static void fail(char* msg) {
     exit(1);
 }
 
+clock_t start;
+
 /*******************************************************************************
                              Command-line arguments
 *******************************************************************************/
@@ -54,6 +56,7 @@ static struct argp_option options[] = {
     {"verbose", 'v', 0, 0, "Verbose output"},
     {"dimacs", 'd', 0, 0, "Read DIMACS format"},
     {"lad", 'l', 0, 0, "Read LAD format"},
+    {"timeout", 't', "TIMEOUT", 0, "Set timeout of TIMEOUT seconds"},
     {"connected", 'c', 0, 0, "Solve max common CONNECTED subgraph problem"},
     { 0 }
 };
@@ -64,6 +67,7 @@ static struct {
     bool connected;
     bool dimacs;
     bool lad;
+    int timeout;
     char *filename1;
     char *filename2;
     int arg_num;
@@ -75,6 +79,7 @@ void set_default_arguments() {
     arguments.connected = false;
     arguments.dimacs = false;
     arguments.lad = false;
+    arguments.timeout = 0;
     arguments.filename1 = NULL;
     arguments.filename2 = NULL;
     arguments.arg_num = 0;
@@ -100,6 +105,9 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         case 'c':
             arguments.connected = true;
+            break;
+        case 't':
+            arguments.timeout = atoi(arg);
             break;
         case ARGP_KEY_ARG:
             if (arguments.arg_num == 0) {
@@ -183,7 +191,7 @@ struct D {
     struct BidomainList *domains;
 };
 
-struct BidomainList preallocated_lists[MAX_N];
+struct BidomainList *preallocated_lists;
 
 int calc_bound(struct BidomainList *domains) {
     int bound = 0;
@@ -389,6 +397,11 @@ void solve(struct D d, int level) {
     if (arguments.verbose) show(d);
 
     stats.nodes++;
+    if (arguments.timeout && stats.nodes%100000==0 && 
+            (clock()-start)*1000/CLOCKS_PER_SEC > arguments.timeout*1000) {
+        arguments.timeout = -1;
+    }
+    if (arguments.timeout == -1) return;
 
     if (d.current->len > d.incumbent->len) {
         set_incumbent(d.current, d.incumbent);
@@ -526,6 +539,7 @@ int main(int argc, char** argv) {
 
     struct Graph* g0 = calloc(1, sizeof(*g0));
     struct Graph* g1 = calloc(1, sizeof(*g1));
+
     if (arguments.dimacs) {
 #ifdef LABELLED
         readGraph(arguments.filename1, g0, true);
@@ -554,7 +568,8 @@ int main(int argc, char** argv) {
 #endif
     }
 
-    clock_t start = clock();
+    start = clock();
+    preallocated_lists = malloc(g0->n * sizeof(struct BidomainList));
     calculate_all_degrees(g0);
     calculate_all_degrees(g1);
 
@@ -594,6 +609,9 @@ int main(int argc, char** argv) {
     if (!check_sol(g0, g1, &solution))
         fail("*** Error: Invalid solution\n");
 
+    if (arguments.timeout == -1)
+        printf("TIMEOUT\n");
+
     printf("Solution size %d\n", solution.len);
     INSERTION_SORT(struct VtxPair, solution.vals, solution.len,
             (solution.vals[j-1].v > solution.vals[j].v))
@@ -605,6 +623,7 @@ int main(int argc, char** argv) {
     printf("Nodes:                      %'15ld\n", stats.nodes);
     printf("CPU time (ms):              %15ld\n", time_elapsed * 1000 / CLOCKS_PER_SEC);
 
+    free(preallocated_lists);
     free(g0);
     free(g1);
     free(g0_sorted);
