@@ -3,6 +3,7 @@
 
 \usepackage{ijcai17}
 \usepackage{times}
+\usepackage{graphicx}
 
 \title{A Partitioning Algorithm for Maximum Common (Connected) Subgraphs\thanks{This work
 was supported by the Engineering and Physical Sciences Research Council [grant
@@ -22,7 +23,13 @@ j.trimble.1@research.gla.ac.uk}
 
 \section{Introduction}
 
-%% The file named.bst is a bibliography style file for BibTeX 0.99c
+\begin{figure*}[tb]
+    \centering
+    \includegraphics*{gen-graph-mcs.pdf}
+    \caption{First plot is induced SIP instances, second plot is unlabelled
+    undirected MCS instances.}\label{figure:runtimes}
+\end{figure*}
+
 \bibliographystyle{named}
 \bibliography{paper}
 

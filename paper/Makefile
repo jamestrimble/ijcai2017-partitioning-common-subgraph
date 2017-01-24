@@ -3,7 +3,7 @@ all : tables graphs
 
 TABLES =
 
-GRAPHS =
+GRAPHS = gen-graph-mcs.pdf
 
 tables : $(TABLES)
 
