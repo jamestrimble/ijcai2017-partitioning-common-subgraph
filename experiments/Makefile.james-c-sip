@@ -6,7 +6,7 @@ INSTANCES_FILE := sipinstances.txt
 INSTANCES := $(shell cut -d' ' -f1 $(INSTANCES_FILE) | if [[ $(FILTER) == -1 ]] ; then cat ; else awk "(NR % $(MODULUS)) == ($(FILTER) % $(MODULUS))" ; fi | $(CATTER) )
 TIMEOUT := 1000
 ALGORITHMS := james-c
-STACK_SPACE := 10485760
+STACK_SPACE := 104857600
 RESULTS := results
 
 all : $(foreach i, $(INSTANCES), $(foreach a, $(ALGORITHMS), $(RESULTS)/$(a)/$i.out ))

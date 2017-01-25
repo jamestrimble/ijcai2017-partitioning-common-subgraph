@@ -1,0 +1,25 @@
+SHELL := /bin/bash
+ALGORITHMS := james-c
+RESULTS := results
+INSTANCES := $(shell cut -d' ' -f1 sipinstances.txt )
+
+all : $(foreach f, $(ALGORITHMS), $(RESULTS)/sip-runtime-$(f).data )
+
+runtimes : $(foreach i, $(INSTANCES), $(foreach a, $(ALGORITHMS), $(RESULTS)/$(a)/$i.runtime ))
+
+define ALGORITHM_template
+$(RESULTS)/$(1)/%.runtime : $(RESULTS)/$(1)/%.out
+	grep '^CPU time' < $(RESULTS)/$(1)/$$*.out | cut -d: -f2 | sed -e 's,^ *,,' | tee $$@
+	[[ -s $$@ ]]
+endef
+
+$(RESULTS)/sip-runtime-%.data : runtimes
+	{ \
+	    echo instance family $$* ; \
+	    cat sipinstances.txt | while read i p t f ; do \
+	    echo $$i $$f $$(cat $(RESULTS)/$*/$$i.runtime ) ; \
+	    done ; \
+	} | tee $@
+
+$(foreach a,$(ALGORITHMS),$(eval $(call ALGORITHM_template,$(a))))
+
