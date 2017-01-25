@@ -58,6 +58,7 @@ static struct argp_option options[] = {
     {"lad", 'l', 0, 0, "Read LAD format"},
     {"timeout", 't', "TIMEOUT", 0, "Set timeout of TIMEOUT seconds"},
     {"connected", 'c', 0, 0, "Solve max common CONNECTED subgraph problem"},
+    {"big-first", 'b', 0, 0, "First try to find an induced subgraph isomorphism, then decrement the target size"},
     { 0 }
 };
 
@@ -65,6 +66,7 @@ static struct {
     bool quiet;
     bool verbose;
     bool connected;
+    bool big_first;
     bool dimacs;
     bool lad;
     int timeout;
@@ -77,6 +79,7 @@ void set_default_arguments() {
     arguments.quiet = false;
     arguments.verbose = false;
     arguments.connected = false;
+    arguments.big_first = false;
     arguments.dimacs = false;
     arguments.lad = false;
     arguments.timeout = 0;
@@ -99,6 +102,9 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         case 'q':
             arguments.quiet = true;
+            break;
+        case 'b':
+            arguments.big_first = true;
             break;
         case 'v':
             arguments.verbose = true;
@@ -189,6 +195,7 @@ struct D {
     struct VtxPairList *incumbent;
     struct VtxPairList *current;
     struct BidomainList *domains;
+    int matching_size_goal;
 };
 
 struct BidomainList *preallocated_lists;
@@ -408,7 +415,11 @@ void solve(struct D d, int level) {
         if (!arguments.quiet) printf("Incumbent size: %d\n", d.incumbent->len);
     }
 
-    if (d.current->len + calc_bound(d.domains) <= d.incumbent->len)
+    int bound = d.current->len + calc_bound(d.domains);
+    if (bound <= d.incumbent->len || bound < d.matching_size_goal)
+        return;
+
+    if (arguments.big_first && d.incumbent->len==d.matching_size_goal)
         return;
 
     struct Bidomain *bd = select_bidomain(d.domains, d.current->len);
@@ -425,6 +436,7 @@ void solve(struct D d, int level) {
 
     struct D new_d = d;
     new_d.domains = &preallocated_lists[level];
+    new_d.domains->len = 0;
 
     // Try assigning v to each vertex w in bd->right_vv, in turn
     bd->right_len--;
@@ -455,16 +467,11 @@ void sort_and_remove_dups(unsigned int *arr, int *len) {
     *len = j;
 }
 
-struct VtxPairList mcs(struct Graph *g0, struct Graph *g1) {
-    int incumbent_size = 0;
-    struct VtxPairList incumbent = {.len=incumbent_size};
+void build_domains_and_solve(struct Graph *g0, struct Graph *g1, struct VtxPairList *incumbent,
+        int matching_size_goal, unsigned int *all_labels, int all_labels_len)
+{
     struct BidomainList *domains = &preallocated_lists[0];
-
-    unsigned int all_labels[MAX_N*2];
-    int all_labels_len = 0;
-    for (int i=0; i<g0->n; i++) all_labels[all_labels_len++] = g0->label[i];
-    for (int i=0; i<g1->n; i++) all_labels[all_labels_len++] = g1->label[i];
-    sort_and_remove_dups(all_labels, &all_labels_len);
+    domains->len = 0;
 
     int left[MAX_N];  // the buffer of vertex indices for the left partitions
     int right[MAX_N];  // the buffer of vertex indices for the right partitions
@@ -496,10 +503,31 @@ struct VtxPairList mcs(struct Graph *g0, struct Graph *g1) {
         }
     }
 
-    struct D d = {.g0=g0, .g1=g1, .incumbent=&incumbent,
-           .current=&(struct VtxPairList){.len=0}, .domains=domains};
+    struct D d = {.g0=g0, .g1=g1, .incumbent=incumbent,
+            .current=&(struct VtxPairList){.len=0}, .domains=domains,
+            .matching_size_goal=matching_size_goal};
 
     solve(d, 1);
+}
+
+struct VtxPairList mcs(struct Graph *g0, struct Graph *g1) {
+    unsigned int all_labels[MAX_N*2];
+    int all_labels_len = 0;
+    for (int i=0; i<g0->n; i++) all_labels[all_labels_len++] = g0->label[i];
+    for (int i=0; i<g1->n; i++) all_labels[all_labels_len++] = g1->label[i];
+    sort_and_remove_dups(all_labels, &all_labels_len);
+
+    struct VtxPairList incumbent = {.len=0};
+
+    if (arguments.big_first) {
+        for (int k=0; k<g0->n; k++) {
+            int goal = g0->n - k;
+            build_domains_and_solve(g0, g1, &incumbent, goal, all_labels, all_labels_len);
+            if (incumbent.len == goal) break;
+        }
+    } else {
+        build_domains_and_solve(g0, g1, &incumbent, 1, all_labels, all_labels_len);
+    }
 
     return incumbent;
 }
