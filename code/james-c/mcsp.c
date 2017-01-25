@@ -289,7 +289,7 @@ void add_bidomain(struct BidomainList *bd_list, int *left_vv, int *right_vv,
     };
 }
 
-void filter_domains(struct BidomainList *d, struct BidomainList *new_d,
+void filter_domains_undirected(struct BidomainList *d, struct BidomainList *new_d,
         struct Graph *g0, struct Graph *g1, int v, int w)
 {
     new_d->len=0;
@@ -330,6 +330,54 @@ void filter_domains(struct BidomainList *d, struct BidomainList *new_d,
         }
 #endif
     }
+}
+
+int directed_labelled_partition(int *vv, int vv_len, int v, unsigned char (*adjmat)[MAX_N], unsigned int label) {
+    int i=0;
+    for (int j=0; j<vv_len; j++) {
+        int nonadj = (adjmat[v][vv[j]]<<CHAR_BIT | adjmat[vv[j]][v]) != label;
+        if (nonadj) {
+            swap(&vv[i], &vv[j]);
+            i++;
+        }
+    }
+    return i;
+}
+
+void filter_domains_directed(struct BidomainList *d, struct BidomainList *new_d,
+        struct Graph *g0, struct Graph *g1, int v, int w)
+{
+    new_d->len=0;
+    for (int j=0; j<d->len; j++) {
+        struct Bidomain *old_bd = &d->vals[j];
+        int left_len = old_bd->left_len;
+        int right_len = old_bd->right_len;
+        while (left_len && right_len) {
+            unsigned int label = (g0->adjmat[v][old_bd->left_vv[0]]<<CHAR_BIT) |
+                                  g0->adjmat[old_bd->left_vv[0]][v];
+            int left_len_no = directed_labelled_partition(old_bd->left_vv, left_len, v, g0->adjmat, label);
+            int right_len_no = directed_labelled_partition(old_bd->right_vv, right_len, w, g1->adjmat, label);
+            int left_len_yes = left_len - left_len_no;
+            int right_len_yes = right_len - right_len_no;
+            if (left_len_yes && right_len_yes) {
+                int *left_vv = old_bd->left_vv + left_len_no;
+                int *right_vv = old_bd->right_vv + right_len_no;
+                add_bidomain(new_d, left_vv, right_vv, left_len_yes, right_len_yes, true);
+            }
+            //printf("%d %d %d\n", left_len_no, left_len_yes, left_len);
+            left_len = left_len_no;
+            right_len = right_len_no;
+        }
+    }
+}
+
+void filter_domains(struct BidomainList *d, struct BidomainList *new_d,
+        struct Graph *g0, struct Graph *g1, int v, int w)
+{
+    if (arguments.directed)
+        filter_domains_directed(d, new_d, g0, g1, v, w);
+    else
+        filter_domains_undirected(d, new_d, g0, g1, v, w);
 }
 
 void remove_bidomain(struct BidomainList *list, struct Bidomain *b) {
@@ -573,16 +621,16 @@ int main(int argc, char** argv) {
 #endif
 
     if (arguments.dimacs) {
-        readGraph(arguments.filename1, g0, labelled);
-        readGraph(arguments.filename2, g1, labelled);
+        readGraph(arguments.filename1, g0, arguments.directed, labelled);
+        readGraph(arguments.filename2, g1, arguments.directed, labelled);
     } else if (arguments.lad) {
         if (labelled)
             fail("This program can't read LAD format with labels\n");
-        readLadGraph(arguments.filename1, g0);
-        readLadGraph(arguments.filename2, g1);
+        readLadGraph(arguments.filename1, g0, arguments.directed);
+        readLadGraph(arguments.filename2, g1, arguments.directed);
     } else {
-        readBinaryGraph(arguments.filename1, g0, labelled);
-        readBinaryGraph(arguments.filename2, g1, labelled);
+        readBinaryGraph(arguments.filename1, g0, arguments.directed, labelled);
+        readBinaryGraph(arguments.filename2, g1, arguments.directed, labelled);
     }
 
     start = clock();

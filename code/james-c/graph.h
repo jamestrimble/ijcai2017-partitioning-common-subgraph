@@ -18,12 +18,12 @@ struct Graph {
 };
 
 // Precondition: *g is already zeroed out
-void readGraph(char* filename, struct Graph* g, bool labelled);
+void readGraph(char* filename, struct Graph* g, bool directed, bool labelled);
 
 // Precondition: *g is already zeroed out
-void readBinaryGraph(char* filename, struct Graph* g, bool labelled);
+void readBinaryGraph(char* filename, struct Graph* g, bool directed, bool labelled);
 
 // Precondition: *g is already zeroed out
-void readLadGraph(char* filename, struct Graph* g);
+void readLadGraph(char* filename, struct Graph* g, bool directed);
 
 void induced_subgraph(struct Graph *g, struct Graph *subg, int *vv, int vv_len);

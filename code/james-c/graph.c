@@ -11,10 +11,11 @@ static void fail(char* msg) {
     exit(1);
 }
 
-void add_edge(struct Graph *g, int v, int w, unsigned char edge_val) {
+void add_edge(struct Graph *g, int v, int w, unsigned char edge_val, bool directed) {
     if (v != w) {
         g->adjmat[v][w] = edge_val;
-        g->adjmat[w][v] = edge_val;
+        if (!directed)
+            g->adjmat[w][v] = edge_val;
     } else if (edge_val != 1) {
         fail("Unexpected edge val != 1 on a loop\n");
     } else {
@@ -35,7 +36,7 @@ void induced_subgraph(struct Graph *g, struct Graph *subg, int *vv, int vv_len) 
 }
 
 // Precondition: *g is already zeroed out
-void readGraph(char* filename, struct Graph* g, bool labelled) {
+void readGraph(char* filename, struct Graph* g, bool directed, bool labelled) {
     FILE* f;
     
     if ((f=fopen(filename, "r"))==NULL)
@@ -64,7 +65,7 @@ void readGraph(char* filename, struct Graph* g, bool labelled) {
             case 'e':
                 if (sscanf(line, "e %d %d", &v, &w)!=2)
                     fail("Error reading a line beginning with e.\n");
-                add_edge(g, v-1, w-1, 1);
+                add_edge(g, v-1, w-1, 1, directed);
                 edges_read++;
                 break;
             case 'n':
@@ -83,7 +84,7 @@ void readGraph(char* filename, struct Graph* g, bool labelled) {
 }
 
 // Precondition: *g is already zeroed out
-void readLadGraph(char* filename, struct Graph* g) {
+void readLadGraph(char* filename, struct Graph* g, bool directed) {
     FILE* f;
     
     if ((f=fopen(filename, "r"))==NULL)
@@ -105,7 +106,7 @@ void readLadGraph(char* filename, struct Graph* g) {
         for (int j=0; j<edge_count; j++) {
             if (fscanf(f, "%d", &w) != 1)
                 fail("An edge was not read correctly.\n");
-            add_edge(g, i, w, 1);
+            add_edge(g, i, w, 1, directed);
         }
     }
 
@@ -120,7 +121,7 @@ int read_word(FILE *fp) {
 }
 
 // Precondition: *g is already zeroed out
-void readBinaryGraph(char* filename, struct Graph* g, bool labelled) {
+void readBinaryGraph(char* filename, struct Graph* g, bool directed, bool labelled) {
     FILE* f;
     
     if ((f=fopen(filename, "rb"))==NULL)
@@ -153,7 +154,7 @@ void readBinaryGraph(char* filename, struct Graph* g, bool labelled) {
         for (int j=0; j<len; j++) {
             int target = read_word(f);
             int label = (read_word(f) >> (16-k1)) + 1;
-            add_edge(g, i, target, labelled ? label : 1);
+            add_edge(g, i, target, labelled ? label : 1, directed);
         }
     }
     fclose(f);
