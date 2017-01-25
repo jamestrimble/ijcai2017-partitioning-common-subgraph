@@ -25,9 +25,10 @@ set format x '$10^{%T}$'
 set title "SIP Instances"
 
 plot \
-    "../experiments/aaai17-final-sip-gpgnode-results/runtime-mcis-fc-induced.data" u ($3*1000):($3>=1e3?1e-10:1) smooth cumulative w steps ti "FC" at end lc 2 dt '.', \
-    "../experiments/aaai17-final-sip-gpgnode-results/runtime-clique.data" u 3:($3>=1e6?1e-10:1) smooth cumulative w steps ti "Clique" at end lc 3 dt '.', \
-    "../experiments/aaai17-final-sip-gpgnode-results/runtime-sequentialix-d2-induced.data" u 3:($3>=1e6?1e-10:1) smooth cumulative w steps ti "$k\\downarrow$" at end lc 1 dt '.'
+    "../experiments/gpgnode-results/sip-runtime-james-c.data" u 3:($3>1e6?1e-10:1) smooth cumulative w steps ti "Trimble" at end lc 4, \
+    "../experiments/aaai17-final-sip-gpgnode-results/runtime-mcis-fc-induced.data" u ($3*1000):($3>=1e3?1e-10:1) smooth cumulative w steps ti "FC" at end lc 2, \
+    "../experiments/aaai17-final-sip-gpgnode-results/runtime-clique.data" u 3:($3>=1e6?1e-10:1) smooth cumulative w steps ti "Clique" at end lc 3, \
+    "../experiments/aaai17-final-sip-gpgnode-results/runtime-sequentialix-d2-induced.data" u 3:($3>=1e6?1e-10:1) smooth cumulative w steps ti "$k\\downarrow$" at end lc 1
 
 set xrange [1:1e6]
 set yrange [0:4110]
