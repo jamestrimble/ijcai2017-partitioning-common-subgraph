@@ -21,7 +21,7 @@ struct Graph {
 void readGraph(char* filename, struct Graph* g, bool labelled);
 
 // Precondition: *g is already zeroed out
-int readBinaryGraph(char* filename, struct Graph* g, bool labelled);
+void readBinaryGraph(char* filename, struct Graph* g, bool labelled);
 
 // Precondition: *g is already zeroed out
 void readLadGraph(char* filename, struct Graph* g);

@@ -120,8 +120,7 @@ int read_word(FILE *fp) {
 }
 
 // Precondition: *g is already zeroed out
-// returns max edge label
-int readBinaryGraph(char* filename, struct Graph* g, bool labelled) {
+void readBinaryGraph(char* filename, struct Graph* g, bool labelled) {
     FILE* f;
     
     if ((f=fopen(filename, "rb"))==NULL)
@@ -149,16 +148,13 @@ int readBinaryGraph(char* filename, struct Graph* g, bool labelled) {
             g->label[i] |= label;
     }
 
-    int max_label = 0;
     for (int i=0; i<nvertices; i++) {
         int len = read_word(f);
         for (int j=0; j<len; j++) {
             int target = read_word(f);
             int label = (read_word(f) >> (16-k1)) + 1;
-            max_label = label > max_label ? label : max_label;
             add_edge(g, i, target, labelled ? label : 1);
         }
     }
     fclose(f);
-    return max_label;
 }

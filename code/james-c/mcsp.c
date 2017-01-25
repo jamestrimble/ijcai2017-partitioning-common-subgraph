@@ -58,6 +58,7 @@ static struct argp_option options[] = {
     {"lad", 'l', 0, 0, "Read LAD format"},
     {"timeout", 't', "TIMEOUT", 0, "Set timeout of TIMEOUT seconds"},
     {"connected", 'c', 0, 0, "Solve max common CONNECTED subgraph problem"},
+    {"directed", 'r', 0, 0, "Solve max common CONNECTED subgraph problem"},
     {"big-first", 'b', 0, 0, "First try to find an induced subgraph isomorphism, then decrement the target size"},
     { 0 }
 };
@@ -66,6 +67,7 @@ static struct {
     bool quiet;
     bool verbose;
     bool connected;
+    bool directed;
     bool big_first;
     bool dimacs;
     bool lad;
@@ -79,6 +81,7 @@ void set_default_arguments() {
     arguments.quiet = false;
     arguments.verbose = false;
     arguments.connected = false;
+    arguments.directed = false;
     arguments.big_first = false;
     arguments.dimacs = false;
     arguments.lad = false;
@@ -110,7 +113,14 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
             arguments.verbose = true;
             break;
         case 'c':
+            if (arguments.directed)
+                fail("The connected and directed options cannot be used together.\n");
             arguments.connected = true;
+            break;
+        case 'r':
+            if (arguments.connected)
+                fail("The connected and directed options cannot be used together.\n");
+            arguments.directed = true;
             break;
         case 't':
             arguments.timeout = atoi(arg);
@@ -163,10 +173,6 @@ void calculate_all_degrees(struct Graph *g) {
 /*******************************************************************************
                                  MCS functions
 *******************************************************************************/
-
-#ifdef LABELLED
-static int max_label;
-#endif
 
 struct VtxPair {
     int v;
@@ -560,32 +566,23 @@ int main(int argc, char** argv) {
     struct Graph* g0 = calloc(1, sizeof(*g0));
     struct Graph* g1 = calloc(1, sizeof(*g1));
 
-    if (arguments.dimacs) {
 #ifdef LABELLED
-        readGraph(arguments.filename1, g0, true);
-        readGraph(arguments.filename2, g1, true);
-        max_label = 1;
+    bool labelled = true;
 #else
-        readGraph(arguments.filename1, g0, false);
-        readGraph(arguments.filename2, g1, false);
+    bool labelled = false;
 #endif
+
+    if (arguments.dimacs) {
+        readGraph(arguments.filename1, g0, labelled);
+        readGraph(arguments.filename2, g1, labelled);
     } else if (arguments.lad) {
-#ifdef LABELLED
-        fail("This program can't read LAD format with labels\n");
-#endif
+        if (labelled)
+            fail("This program can't read LAD format with labels\n");
         readLadGraph(arguments.filename1, g0);
         readLadGraph(arguments.filename2, g1);
     } else {
-#ifdef LABELLED
-        int maxlabel0 = readBinaryGraph(arguments.filename1, g0, true);
-        int maxlabel1 = readBinaryGraph(arguments.filename2, g1, true);
-        //printf("%d %d\n", maxlabel0, maxlabel1);
-        //TODO: could the next line have MIN instead of MAX for efficiency?
-        max_label = MAX(maxlabel0, maxlabel1);
-#else
-        readBinaryGraph(arguments.filename1, g0, false);
-        readBinaryGraph(arguments.filename2, g1, false);
-#endif
+        readBinaryGraph(arguments.filename1, g0, labelled);
+        readBinaryGraph(arguments.filename2, g1, labelled);
     }
 
     start = clock();
