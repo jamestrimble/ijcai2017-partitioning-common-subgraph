@@ -244,9 +244,6 @@ struct Bidomain *select_bidomain(struct BidomainList *domains, int current_match
 int partition(int *vv, int vv_len, unsigned char *adjrow) {
     int i=0;
     for (int j=0; j<vv_len; j++) {
-        // The following lines of code are intended to do the same as the following,
-        // but without branching:
-        //// if (adjrow[vv[j]]) { swap(&vv[i], &vv[j]); i++; }
 #ifdef LABELLED
         int adj = adjrow[vv[j]] != 0;
 #else
@@ -305,12 +302,10 @@ void filter_domains(struct BidomainList *d, struct BidomainList *new_d,
 #ifdef LABELLED
         int left_len = left_len_edge;
         int right_len = right_len_edge;
-        for (unsigned char i=1; i<max_label && left_len && right_len; i++) {
-            // TODO: try moving vertices to left instead of right
-            int left_len_no =
-                labelled_partition(old_bd->left_vv, left_len, g0->adjmat[v], i);
-            int right_len_no =
-                labelled_partition(old_bd->right_vv, right_len, g1->adjmat[w], i);
+        while (left_len && right_len) {
+            unsigned char label = g0->adjmat[v][old_bd->left_vv[0]];
+            int left_len_no = labelled_partition(old_bd->left_vv, left_len, g0->adjmat[v], label);
+            int right_len_no = labelled_partition(old_bd->right_vv, right_len, g1->adjmat[w], label);
             int left_len_yes = left_len - left_len_no;
             int right_len_yes = right_len - right_len_no;
             if (left_len_yes && right_len_yes) {
@@ -321,10 +316,6 @@ void filter_domains(struct BidomainList *d, struct BidomainList *new_d,
             //printf("%d %d %d\n", left_len_no, left_len_yes, left_len);
             left_len = left_len_no;
             right_len = right_len_no;
-        }
-        if (left_len && right_len) {
-            add_bidomain(new_d, old_bd->left_vv, old_bd->right_vv,
-                    left_len, right_len, true);
         }
 #else
         if (left_len_edge && right_len_edge) {
