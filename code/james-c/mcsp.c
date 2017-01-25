@@ -524,6 +524,7 @@ struct VtxPairList mcs(struct Graph *g0, struct Graph *g1) {
             int goal = g0->n - k;
             build_domains_and_solve(g0, g1, &incumbent, goal, all_labels, all_labels_len);
             if (incumbent.len == goal) break;
+            printf("Upper bound: %d\n", goal - 1);
         }
     } else {
         build_domains_and_solve(g0, g1, &incumbent, 1, all_labels, all_labels_len);
