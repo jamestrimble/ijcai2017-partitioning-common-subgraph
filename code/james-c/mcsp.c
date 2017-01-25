@@ -569,7 +569,7 @@ int main(int argc, char** argv) {
     }
 
     start = clock();
-    preallocated_lists = malloc(g0->n * sizeof(struct BidomainList));
+    preallocated_lists = malloc((g0->n+1) * sizeof(struct BidomainList));
     calculate_all_degrees(g0);
     calculate_all_degrees(g1);
 
