@@ -9,7 +9,8 @@ class Graph(object):
         return len(self.adjmat)
 
     def __repr__(self):
-        return ("\n".join("".join("1" if x else "0" for x in row) for row in self.adjmat)               + "\n" + "\n".join(self.labels))
+        return ("\n".join("".join("1" if x else "0" for x in row) for row in self.adjmat)
+                + "\n" + "\n".join(self.labels))
 
 def parse_vertex(vertex):
     """Takes a string like '0, Area(2):1' and returns a pair like
