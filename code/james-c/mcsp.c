@@ -613,8 +613,8 @@ bool check_sol(struct Graph *g0, struct Graph *g1, struct VtxPairList *solution)
         used_right[p0.w] = true;
         for (int j=i+1; j<solution->len; j++) {
             struct VtxPair p1 = solution->vals[j];
-            if (g0->adjmat[p0.v][p1.v] != g1->adjmat[p0.w][p1.w])
-                return false;
+            if (g0->adjmat[p0.v][p1.v] != g1->adjmat[p0.w][p1.w]) return false;
+            if (g0->adjmat[p1.v][p0.v] != g1->adjmat[p1.w][p0.w]) return false;
         }
     }
     return true;
