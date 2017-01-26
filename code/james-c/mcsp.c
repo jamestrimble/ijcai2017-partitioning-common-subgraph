@@ -578,6 +578,28 @@ struct VtxPairList mcs(struct Graph *g0, struct Graph *g1) {
     return incumbent;
 }
 
+// Count edges in the subgraph
+int count_edges(struct Graph *g0, struct Graph *g1, struct VtxPairList *solution) {
+    int count = 0;
+    for (int i=0; i<solution->len; i++) {
+        struct VtxPair p0 = solution->vals[i];
+        for (int j=i+1; j<solution->len; j++) {
+            struct VtxPair p1 = solution->vals[j];
+            if (g0->adjmat[p0.v][p1.v]) count++;
+            if (arguments.directed && g0->adjmat[p1.v][p0.v]) count++;
+        }
+    }
+//    for (int i=0; i<solution->len; i++) {
+//        struct VtxPair p0 = solution->vals[i];
+//        for (int j=0; j<solution->len; j++) {
+//            struct VtxPair p1 = solution->vals[j];
+//            printf("%s ", g0->adjmat[p0.v][p1.v]!=0 ? "1" : ".");
+//        }
+//        printf("\n");
+//    }
+    return count;
+}
+
 bool check_sol(struct Graph *g0, struct Graph *g1, struct VtxPairList *solution) {
     bool used_left[MAX_N];
     bool used_right[MAX_N];
@@ -678,6 +700,7 @@ int main(int argc, char** argv) {
         printf("TIMEOUT\n");
 
     printf("Solution size %d\n", solution.len);
+    printf("Number of edges in subgraph %d\n", count_edges(g0, g1, &solution));
     INSERTION_SORT(struct VtxPair, solution.vals, solution.len,
             (solution.vals[j-1].v > solution.vals[j].v))
     for (int i=0; i<solution.len; i++)
