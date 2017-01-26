@@ -165,8 +165,11 @@ void initialise_stats() {
 void calculate_all_degrees(struct Graph *g) {
     for (int v=0; v<g->n; v++) {
         g->degree[v] = 0;
-        for (int w=0; w<g->n; w++)
+        for (int w=0; w<g->n; w++) {
             g->degree[v] += (g->adjmat[v][w] != 0);
+            if (arguments.directed)
+                g->degree[v] += (g->adjmat[w][v] != 0);
+        }
     }
 }
 
