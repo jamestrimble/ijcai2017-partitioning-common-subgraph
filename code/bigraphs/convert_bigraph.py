@@ -68,6 +68,7 @@ def write_graph(g, label_name_to_number, filename):
 if __name__=="__main__":
     if len(sys.argv) != 5:
         print "Usage:", sys.argv[0], "IN-FILE-1 IN-FILE-2 OUT-FILE-1 OUT-FILE-2"
+        sys.exit(1)
     g0 = read_graph(sys.argv[1])
     g1 = read_graph(sys.argv[2])
     print g0
