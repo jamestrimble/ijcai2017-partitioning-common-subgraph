@@ -297,36 +297,37 @@ void filter_domains(struct BidomainList *d, struct BidomainList *new_d,
     new_d->len=0;
     for (int j=0; j<d->len; j++) {
         struct Bidomain *old_bd = &d->vals[j];
-        int left_len_edge = partition(old_bd->left_vv, old_bd->left_len, g0->adjmat[v]);
-        int right_len_edge = partition(old_bd->right_vv, old_bd->right_len, g1->adjmat[w]);
-        int left_len_noedge = old_bd->left_len - left_len_edge;
-        int right_len_noedge = old_bd->right_len - right_len_edge;
+        // After these two partitions, left_len and right_len are the lengths of the
+        // arrays of vertices with edges from v or w (int the directed case, edges
+        // either from or to v or w)
+        int left_len = partition(old_bd->left_vv, old_bd->left_len, g0->adjmat[v]);
+        int right_len = partition(old_bd->right_vv, old_bd->right_len, g1->adjmat[w]);
+        int left_len_noedge = old_bd->left_len - left_len;
+        int right_len_noedge = old_bd->right_len - right_len;
         if (left_len_noedge && right_len_noedge) {
-            int *left_vv = old_bd->left_vv + left_len_edge;
-            int *right_vv = old_bd->right_vv + right_len_edge;
-            add_bidomain(new_d, left_vv, right_vv, left_len_noedge, right_len_noedge,
-                    old_bd->is_adjacent);
+            add_bidomain(new_d, old_bd->left_vv+left_len, old_bd->right_vv+right_len,
+                    left_len_noedge, right_len_noedge, old_bd->is_adjacent);
         }
         if (multiway) {
-            int left_len = left_len_edge;
-            int right_len = right_len_edge;
             while (left_len && right_len) {
                 edge_label_t label = g0->adjmat[v][old_bd->left_vv[0]];
-                int left_len_no = labelled_partition(old_bd->left_vv, left_len, g0->adjmat[v], label);
-                int right_len_no = labelled_partition(old_bd->right_vv, right_len, g1->adjmat[w], label);
-                int left_len_yes = left_len - left_len_no;
-                int right_len_yes = right_len - right_len_no;
+                // These partitions move vertices whose edges have label 'label' to the end of
+                // the old_bd->left_vv and old_bd->right_vv arrays. left_len becomes the length
+                // of the remaining array; that is, the left part of old_bd->left_vv that
+                // contains vertices with other edge labels
+                int left_len_yes = left_len - labelled_partition(
+                        old_bd->left_vv, left_len, g0->adjmat[v], label);
+                int right_len_yes = right_len - labelled_partition(
+                        old_bd->right_vv, right_len, g1->adjmat[w], label);
+                left_len -= left_len_yes;
+                right_len -= right_len_yes;
                 if (left_len_yes && right_len_yes) {
-                    int *left_vv = old_bd->left_vv + left_len_no;
-                    int *right_vv = old_bd->right_vv + right_len_no;
-                    add_bidomain(new_d, left_vv, right_vv, left_len_yes, right_len_yes, true);
+                    add_bidomain(new_d, old_bd->left_vv+left_len, old_bd->right_vv+right_len,
+                            left_len_yes, right_len_yes, true);
                 }
-                //printf("%d %d %d\n", left_len_no, left_len_yes, left_len);
-                left_len = left_len_no;
-                right_len = right_len_no;
             }
-        } else if (left_len_edge && right_len_edge) {
-            add_bidomain(new_d, old_bd->left_vv, old_bd->right_vv, left_len_edge, right_len_edge, true);
+        } else if (left_len && right_len) {
+            add_bidomain(new_d, old_bd->left_vv, old_bd->right_vv, left_len, right_len, true);
         }
     }
 }
