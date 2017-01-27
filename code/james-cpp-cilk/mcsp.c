@@ -348,7 +348,8 @@ int main(int argc, char** argv) {
 
     vector<VtxPair> solution = mcs(&g0, &g1);
 
-    auto time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
+    auto stop = std::chrono::steady_clock::now();
+    auto time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
 
     if (!check_sol(&g0, &g1, solution))
         fail("*** Error: Invalid solution\n");
@@ -360,7 +361,6 @@ int main(int argc, char** argv) {
                 printf("(%d -> %d) ", solution[j].v, solution[j].w);
     printf("\n");
 
-    setlocale(LC_NUMERIC, "");
     cout << "Nodes:                      " << nodes << endl;
     cout << "CPU time (ms):              " << time_elapsed << endl;
 }
