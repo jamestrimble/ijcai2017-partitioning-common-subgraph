@@ -3,11 +3,6 @@
 #include <limits.h>
 #include <stdbool.h>
 
-typedef unsigned long long ULL;
-
-#define BYTES_PER_WORD sizeof(ULL)
-#define BITS_PER_WORD (CHAR_BIT * BYTES_PER_WORD)
-
 #define BITS_PER_UNSIGNED_INT (CHAR_BIT * sizeof(unsigned int))
 
 struct Graph {
