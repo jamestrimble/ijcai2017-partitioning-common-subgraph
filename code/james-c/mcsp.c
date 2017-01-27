@@ -398,6 +398,12 @@ int index_of_next_smallest(int *arr, int len, int w) {
     return idx;
 }
 
+struct BidomainList *get_preallocated_list(int level) {
+    struct BidomainList *list = &preallocated_lists[level];
+    list->len = 0;
+    return list;
+}
+
 void solve(struct D d, int level) {
 //    printf(" mcsp --- Nodes: %ld\n", stats.nodes);
     if (arguments.verbose) show(d);
@@ -434,8 +440,7 @@ void solve(struct D d, int level) {
     }
 
     struct D new_d = d;
-    new_d.domains = &preallocated_lists[level];
-    new_d.domains->len = 0;
+    new_d.domains = get_preallocated_list(level);
 
     // Try assigning v to each vertex w in bd->right_vv, in turn
     bd->right_len--;
@@ -473,8 +478,7 @@ void sort_and_remove_dups(unsigned int *arr, int *len) {
 void build_domains_and_solve(struct Graph *g0, struct Graph *g1, struct VtxPairList *incumbent,
         int matching_size_goal, unsigned int *all_labels, int all_labels_len)
 {
-    struct BidomainList *domains = &preallocated_lists[0];
-    domains->len = 0;
+    struct BidomainList *domains = get_preallocated_list(0);
 
     int left[MAX_N];  // the buffer of vertex indices for the left partitions
     int right[MAX_N];  // the buffer of vertex indices for the right partitions
