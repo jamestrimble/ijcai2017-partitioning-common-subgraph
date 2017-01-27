@@ -148,13 +148,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
                                      Stats
 *******************************************************************************/
 
-static struct {
-    long nodes;
-} stats;
-
-void initialise_stats() {
-    stats.nodes = 0;
-}
+static unsigned long long nodes = 0;
 
 /*******************************************************************************
                                 Graph functions
@@ -339,7 +333,7 @@ void remove_bidomain(struct BidomainList *list, struct Bidomain *b) {
 }
 
 void show(struct D d) {
-    printf("Nodes: %ld\n", stats.nodes);
+    printf("Nodes: %llu\n", nodes);
     printf("Length of current assignment: %d\n", d.current->len);
     printf("Current assignment:");
     for (int i=0; i<d.current->len; i++) {
@@ -400,8 +394,8 @@ void solve(struct D d, int level) {
 //    printf(" mcsp --- Nodes: %ld\n", stats.nodes);
     if (arguments.verbose) show(d);
 
-    stats.nodes++;
-    if (arguments.timeout && stats.nodes%100000==0 && 
+    nodes++;
+    if (arguments.timeout && nodes%100000==0 && 
             (clock()-start)*1000/CLOCKS_PER_SEC > arguments.timeout*1000) {
         arguments.timeout = -1;
     }
@@ -587,8 +581,6 @@ int main(int argc, char** argv) {
     set_default_arguments();
     argp_parse(&argp, argc, argv, 0, 0, 0);
 
-    initialise_stats();
-
     struct Graph* g0 = calloc(1, sizeof(*g0));
     struct Graph* g1 = calloc(1, sizeof(*g1));
 
@@ -664,7 +656,7 @@ int main(int argc, char** argv) {
     printf("\n");
 
     setlocale(LC_NUMERIC, "");
-    printf("Nodes:                      %'15ld\n", stats.nodes);
+    printf("Nodes:                      %'15llu\n", nodes);
     printf("CPU time (ms):              %15ld\n", time_elapsed * 1000 / CLOCKS_PER_SEC);
 
     free(preallocated_lists);
