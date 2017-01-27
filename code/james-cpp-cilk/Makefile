@@ -1,4 +1,6 @@
+CXX := g++
+CXXFLAGS := -O3 -march=native
 all: mcsp
 
 mcsp: mcsp.c graph.c graph.h
-	g++ -fcilkplus -pthread -O3 -march=native -Wall -std=c++11 -o mcsp graph.c mcsp.c
+	$(CXX) $(CXXFLAGS) -fcilkplus -pthread -Wall -std=c++11 -o mcsp graph.c mcsp.c
