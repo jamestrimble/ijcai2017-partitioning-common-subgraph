@@ -13,6 +13,7 @@
 #include <utility>
 #include <vector>
 #include <chrono>
+#include <atomic>
 
 #include <cilk/cilk.h>
 
@@ -108,7 +109,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
                                      Stats
 *******************************************************************************/
 
-static long nodes = 0;
+std::atomic<unsigned long long> nodes{ 0 };
 
 /*******************************************************************************
                                  MCS functions
@@ -150,30 +151,6 @@ bool check_sol(struct Graph *g0, struct Graph *g1, vector<VtxPair>& solution) {
         }
     }
     return true;
-}
-
-void show(const vector<VtxPair>& current, const vector<Bidomain> &domains,
-        const vector<int>& left, const vector<int>& right)
-{
-    printf("Nodes: %ld\n", nodes);
-    printf("Length of current assignment: %ld\n", current.size());
-    printf("Current assignment:");
-    for (unsigned int i=0; i<current.size(); i++) {
-        printf("  %d->%d", current[i].v, current[i].w);
-    }
-    printf("\n");
-    for (unsigned int i=0; i<domains.size(); i++) {
-        struct Bidomain bd = domains[i];
-        printf("Left  ");
-        for (int j=0; j<bd.left_len; j++)
-            printf("%d ", left[bd.l + j]);
-        printf("\n");
-        printf("Right  ");
-        for (int j=0; j<bd.right_len; j++)
-            printf("%d ", right[bd.r + j]);
-        printf("\n");
-    }
-    printf("\n\n");
 }
 
 int calc_bound(const vector<Bidomain>& domains) {
@@ -285,7 +262,6 @@ void solve(struct Graph *g0, struct Graph *g1, vector<VtxPair>& incumbent,
         const vector<VtxPair>& current, const vector<Bidomain> &domains,
         const vector<int>& left, const vector<int>& right, int level)
 {
-    if (arguments.verbose) show(current, domains, left, right);
     nodes++;
 
     if (current.size() > incumbent.size()) {
@@ -385,6 +361,6 @@ int main(int argc, char** argv) {
     printf("\n");
 
     setlocale(LC_NUMERIC, "");
-    printf("Nodes:                      %'15ld\n", nodes);
-    printf("CPU time (ms):              %15ld\n", time_elapsed);
+    cout << "Nodes:                      " << nodes << endl;
+    cout << "CPU time (ms):              " << time_elapsed << endl;
 }
