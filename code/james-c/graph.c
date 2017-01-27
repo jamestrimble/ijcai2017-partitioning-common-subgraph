@@ -11,11 +11,34 @@ static void fail(char* msg) {
     exit(1);
 }
 
-void add_edge(struct Graph *g, int v, int w, unsigned char edge_val, bool directed) {
+// Unlabelled, undirected: if there is an edge v-w, then adjmat[v][w]==adjmat[w][v]==1
+// Labelled, undirected:   if there is an edge v-w, then adjmat[v][w]==adjmat[w][v]==label
+// Unlabelled, directed:   if there is an edge v->w, then adjmat[v][w]&1 == (adjmat[w][v]>>1)&1 == 1
+// Labelled, directed:     if there is an edge v->w, then the least significant two bytes of adjmat[v][w]
+//                          and the most significant two bytes of adjmat[w][v] equal the label
+void add_edge(struct Graph *g, int v, int w, edge_label_t edge_val, bool directed) {
     if (v != w) {
-        g->adjmat[v][w] = edge_val;
-        if (!directed)
+#ifdef LABELLED
+        if (edge_val > 0xFFFFu)
+            fail("An edge label is too large.");
+        if (directed) {
+            if (g->adjmat[v][w] & 0xFFFFu)
+                fail("Duplicate edge.");
+            g->adjmat[v][w] |= edge_val;
+            g->adjmat[w][v] |= (edge_val << 16);
+        } else {
+            g->adjmat[v][w] = edge_val;
             g->adjmat[w][v] = edge_val;
+        }
+#else
+        if (directed) {
+            g->adjmat[v][w] |= 1;
+            g->adjmat[w][v] |= 2;
+        } else {
+            g->adjmat[v][w] = 1;
+            g->adjmat[w][v] = 1;
+        }
+#endif
     } else if (edge_val != 1) {
         fail("Unexpected edge val != 1 on a loop\n");
     } else {

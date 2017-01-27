@@ -5,10 +5,16 @@
 
 #define BITS_PER_UNSIGNED_INT (CHAR_BIT * sizeof(unsigned int))
 
+#ifdef LABELLED
+typedef unsigned int edge_label_t;
+#else
+typedef unsigned char edge_label_t;
+#endif
+
 struct Graph {
     int n;
     int degree[MAX_N];
-    unsigned char adjmat[MAX_N][MAX_N];
+    edge_label_t adjmat[MAX_N][MAX_N];
     unsigned int label[MAX_N];
 };
 

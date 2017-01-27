@@ -17,8 +17,6 @@ typedef unsigned long long ULL;
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
 
-#define DEG_SEQ_CHECK_SIZE_LIMIT 15
-
 #define INSERTION_SORT(type, arr, arr_len, swap_condition) do { \
     for (int i=1; i<arr_len; i++) {                             \
         for (int j=i; j>=1; j--) {                              \
@@ -166,10 +164,15 @@ void calculate_all_degrees(struct Graph *g) {
     for (int v=0; v<g->n; v++) {
         g->degree[v] = 0;
         for (int w=0; w<g->n; w++) {
-            g->degree[v] += (g->adjmat[v][w] != 0);
-            if (arguments.directed)
-                g->degree[v] += (g->adjmat[w][v] != 0);
+#ifdef LABELLED
+            if  (g->adjmat[v][w]&0xFFFFu) g->degree[v]++;
+            if  (g->adjmat[v][w]&0xFFFF0000u) g->degree[v]++; // inward edges, for directed case
+#else
+            if  (g->adjmat[v][w]&1) g->degree[v]++;
+            if  (g->adjmat[v][w]&2) g->degree[v]++;   // inward edges, for directed case
+#endif
         }
+//        printf("%d\n", g->degree[v]);
     }
 }
 
@@ -250,15 +253,10 @@ struct Bidomain *select_bidomain(struct BidomainList *domains, int current_match
 }
 
 // Returns length of left half of array
-int partition(int *vv, int vv_len, unsigned char *adjrow) {
+int partition(int *vv, int vv_len, edge_label_t *adjrow) {
     int i=0;
     for (int j=0; j<vv_len; j++) {
-#ifdef LABELLED
-        int adj = adjrow[vv[j]] != 0;
-#else
-        int adj = adjrow[vv[j]];
-#endif
-        if (adj) {
+        if (adjrow[vv[j]]) {
             swap(&vv[i], &vv[j]);
             i++;
         }
@@ -268,7 +266,7 @@ int partition(int *vv, int vv_len, unsigned char *adjrow) {
 
 // Swaps everything with an edge of the correct label to the end of vv
 // Returns length of left half of array
-int labelled_partition(int *vv, int vv_len, unsigned char *adjrow, unsigned char label) {
+int labelled_partition(int *vv, int vv_len, edge_label_t *adjrow, edge_label_t label) {
     int i=0;
     for (int j=0; j<vv_len; j++) {
         int nonadj = adjrow[vv[j]] != label;
@@ -292,8 +290,9 @@ void add_bidomain(struct BidomainList *bd_list, int *left_vv, int *right_vv,
     };
 }
 
-void filter_domains_undirected(struct BidomainList *d, struct BidomainList *new_d,
-        struct Graph *g0, struct Graph *g1, int v, int w)
+// multiway must be true iff we are solving a labelled or directed problem
+void filter_domains(struct BidomainList *d, struct BidomainList *new_d,
+        struct Graph *g0, struct Graph *g1, int v, int w, bool multiway)
 {
     new_d->len=0;
     for (int j=0; j<d->len; j++) {
@@ -308,79 +307,28 @@ void filter_domains_undirected(struct BidomainList *d, struct BidomainList *new_
             add_bidomain(new_d, left_vv, right_vv, left_len_noedge, right_len_noedge,
                     old_bd->is_adjacent);
         }
-#ifdef LABELLED
-        int left_len = left_len_edge;
-        int right_len = right_len_edge;
-        while (left_len && right_len) {
-            unsigned char label = g0->adjmat[v][old_bd->left_vv[0]];
-            int left_len_no = labelled_partition(old_bd->left_vv, left_len, g0->adjmat[v], label);
-            int right_len_no = labelled_partition(old_bd->right_vv, right_len, g1->adjmat[w], label);
-            int left_len_yes = left_len - left_len_no;
-            int right_len_yes = right_len - right_len_no;
-            if (left_len_yes && right_len_yes) {
-                int *left_vv = old_bd->left_vv + left_len_no;
-                int *right_vv = old_bd->right_vv + right_len_no;
-                add_bidomain(new_d, left_vv, right_vv, left_len_yes, right_len_yes, true);
+        if (multiway) {
+            int left_len = left_len_edge;
+            int right_len = right_len_edge;
+            while (left_len && right_len) {
+                edge_label_t label = g0->adjmat[v][old_bd->left_vv[0]];
+                int left_len_no = labelled_partition(old_bd->left_vv, left_len, g0->adjmat[v], label);
+                int right_len_no = labelled_partition(old_bd->right_vv, right_len, g1->adjmat[w], label);
+                int left_len_yes = left_len - left_len_no;
+                int right_len_yes = right_len - right_len_no;
+                if (left_len_yes && right_len_yes) {
+                    int *left_vv = old_bd->left_vv + left_len_no;
+                    int *right_vv = old_bd->right_vv + right_len_no;
+                    add_bidomain(new_d, left_vv, right_vv, left_len_yes, right_len_yes, true);
+                }
+                //printf("%d %d %d\n", left_len_no, left_len_yes, left_len);
+                left_len = left_len_no;
+                right_len = right_len_no;
             }
-            //printf("%d %d %d\n", left_len_no, left_len_yes, left_len);
-            left_len = left_len_no;
-            right_len = right_len_no;
-        }
-#else
-        if (left_len_edge && right_len_edge) {
-            add_bidomain(new_d, old_bd->left_vv, old_bd->right_vv,
-                    left_len_edge, right_len_edge, true);
-        }
-#endif
-    }
-}
-
-int directed_labelled_partition(int *vv, int vv_len, int v, unsigned char (*adjmat)[MAX_N], unsigned int label) {
-    int i=0;
-    for (int j=0; j<vv_len; j++) {
-        int nonadj = (adjmat[v][vv[j]]<<CHAR_BIT | adjmat[vv[j]][v]) != label;
-        if (nonadj) {
-            swap(&vv[i], &vv[j]);
-            i++;
+        } else if (left_len_edge && right_len_edge) {
+            add_bidomain(new_d, old_bd->left_vv, old_bd->right_vv, left_len_edge, right_len_edge, true);
         }
     }
-    return i;
-}
-
-void filter_domains_directed(struct BidomainList *d, struct BidomainList *new_d,
-        struct Graph *g0, struct Graph *g1, int v, int w)
-{
-    new_d->len=0;
-    for (int j=0; j<d->len; j++) {
-        struct Bidomain *old_bd = &d->vals[j];
-        int left_len = old_bd->left_len;
-        int right_len = old_bd->right_len;
-        while (left_len && right_len) {
-            unsigned int label = (g0->adjmat[v][old_bd->left_vv[0]]<<CHAR_BIT) |
-                                  g0->adjmat[old_bd->left_vv[0]][v];
-            int left_len_no = directed_labelled_partition(old_bd->left_vv, left_len, v, g0->adjmat, label);
-            int right_len_no = directed_labelled_partition(old_bd->right_vv, right_len, w, g1->adjmat, label);
-            int left_len_yes = left_len - left_len_no;
-            int right_len_yes = right_len - right_len_no;
-            if (left_len_yes && right_len_yes) {
-                int *left_vv = old_bd->left_vv + left_len_no;
-                int *right_vv = old_bd->right_vv + right_len_no;
-                add_bidomain(new_d, left_vv, right_vv, left_len_yes, right_len_yes, true);
-            }
-            //printf("%d %d %d\n", left_len_no, left_len_yes, left_len);
-            left_len = left_len_no;
-            right_len = right_len_no;
-        }
-    }
-}
-
-void filter_domains(struct BidomainList *d, struct BidomainList *new_d,
-        struct Graph *g0, struct Graph *g1, int v, int w)
-{
-    if (arguments.directed)
-        filter_domains_directed(d, new_d, g0, g1, v, w);
-    else
-        filter_domains_undirected(d, new_d, g0, g1, v, w);
 }
 
 void remove_bidomain(struct BidomainList *list, struct Bidomain *b) {
@@ -497,7 +445,11 @@ void solve(struct D d, int level) {
         bd->right_vv[idx] = bd->right_vv[bd->right_len];
         bd->right_vv[bd->right_len] = w;
 
-        filter_domains(d.domains, new_d.domains, d.g0, d.g1, v, w);
+#ifdef LABELLED
+        filter_domains(d.domains, new_d.domains, d.g0, d.g1, v, w, true);
+#else
+        filter_domains(d.domains, new_d.domains, d.g0, d.g1, v, w, arguments.directed);
+#endif
         d.current->vals[d.current->len++] = (struct VtxPair) {.v=v, .w=w};
         solve(new_d, level+1);
         d.current->len--;
@@ -588,18 +540,15 @@ int count_edges(struct Graph *g0, struct Graph *g1, struct VtxPairList *solution
         struct VtxPair p0 = solution->vals[i];
         for (int j=i+1; j<solution->len; j++) {
             struct VtxPair p1 = solution->vals[j];
-            if (g0->adjmat[p0.v][p1.v]) count++;
-            if (arguments.directed && g0->adjmat[p1.v][p0.v]) count++;
+#ifdef LABELLED
+            if (g0->adjmat[p0.v][p1.v]&0xFFFFu) count++;
+            if (g0->adjmat[p0.v][p1.v]&0xFFFF0000u) count++;
+#else
+            if (g0->adjmat[p0.v][p1.v]&1) count++;
+            if (g0->adjmat[p0.v][p1.v]&2) count++;
+#endif
         }
     }
-//    for (int i=0; i<solution->len; i++) {
-//        struct VtxPair p0 = solution->vals[i];
-//        for (int j=0; j<solution->len; j++) {
-//            struct VtxPair p1 = solution->vals[j];
-//            printf("%s ", g0->adjmat[p0.v][p1.v]!=0 ? "1" : ".");
-//        }
-//        printf("\n");
-//    }
     return count;
 }
 
@@ -631,6 +580,9 @@ int graph_edge_count(struct Graph *g) {
 }
 
 int main(int argc, char** argv) {
+    if (sizeof(unsigned int) < 4)
+        fail("sizeof(unsigned int) must be at least 4.");
+
     set_default_arguments();
     argp_parse(&argp, argc, argv, 0, 0, 0);
 
