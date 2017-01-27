@@ -226,21 +226,29 @@ int find_min(int *vv, int len) {
 struct Bidomain *select_bidomain(struct BidomainList *domains, int current_matching_size) {
     // Select the bidomain with the smallest max(leftsize, rightsize), breaking
     // ties on the smallest vertex index in the left set
+    struct Bidomain *bds[MAX_N];  // a list of bidomains of minimum size
+    int bds_len = 0;
     int min_size = 999999999;
-    int min_idx = 999999999;
-    struct Bidomain *best = NULL;
     for (int i=0; i<domains->len; i++) {
         struct Bidomain *bd = &domains->vals[i];
         if (arguments.connected && current_matching_size>0 && !bd->is_adjacent) continue;
-        int len = MAX(bd->left_len, bd->right_len);
-        int idx;
-        if (len < min_size) {
-            min_size = len;
-            min_idx = find_min(bd->left_vv, bd->left_len);
-            best = &domains->vals[i];
-        } else if (len==min_size && (idx=find_min(bd->left_vv, bd->left_len))<min_idx) {
-            min_idx = idx;
-            best = &domains->vals[i];
+        int size = MAX(bd->left_len, bd->right_len);
+        if (size == min_size) {
+            bds[bds_len++] = bd;
+        } else if (size < min_size) {
+            min_size = size;
+            bds[0] = bd;
+            bds_len = 1;
+        }
+    }
+    int min_vtx_idx = 999999999;
+    struct Bidomain *best = NULL;
+    for (int i=0; i<bds_len; i++) {
+        struct Bidomain *bd = bds[i];
+        int vtx_idx = find_min(bd->left_vv, bd->left_len);
+        if (vtx_idx < min_vtx_idx) {
+            min_vtx_idx = vtx_idx;
+            best = bd;
         }
     }
     return best;
