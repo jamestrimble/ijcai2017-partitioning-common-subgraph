@@ -266,20 +266,6 @@ int partition(int *vv, int vv_len, edge_label_t *adjrow) {
     return i;
 }
 
-// Swaps everything with an edge of the correct label to the end of vv
-// Returns length of left half of array
-int labelled_partition(int *vv, int vv_len, edge_label_t *adjrow, edge_label_t label) {
-    int i=0;
-    for (int j=0; j<vv_len; j++) {
-        int nonadj = adjrow[vv[j]] != label;
-        if (nonadj) {
-            swap(&vv[i], &vv[j]);
-            i++;
-        }
-    }
-    return i;
-}
-
 void add_bidomain(struct BidomainList *bd_list, int *left_vv, int *right_vv,
         int left_len, int right_len, bool is_adjacent)
 {
@@ -292,6 +278,14 @@ void add_bidomain(struct BidomainList *bd_list, int *left_vv, int *right_vv,
     };
 }
 
+int compare_by_edge_labels(const void *a, const void *b, void *ar)
+{
+    int v = *(int*) a;
+    int w = *(int*) b;
+    edge_label_t *adjrow = (edge_label_t *) ar;
+    return (adjrow[v]>adjrow[w]) - (adjrow[v]<adjrow[w]);
+}
+
 // multiway must be true iff we are solving a labelled or directed problem
 void filter_domains(struct BidomainList *d, struct BidomainList *new_d,
         struct Graph *g0, struct Graph *g1, int v, int w, bool multiway)
@@ -299,37 +293,43 @@ void filter_domains(struct BidomainList *d, struct BidomainList *new_d,
     new_d->len=0;
     for (int j=0; j<d->len; j++) {
         struct Bidomain *old_bd = &d->vals[j];
+        int *l = old_bd->left_vv;
+        int *r = old_bd->right_vv;
         // After these two partitions, left_len and right_len are the lengths of the
         // arrays of vertices with edges from v or w (int the directed case, edges
         // either from or to v or w)
-        int left_len = partition(old_bd->left_vv, old_bd->left_len, g0->adjmat[v]);
-        int right_len = partition(old_bd->right_vv, old_bd->right_len, g1->adjmat[w]);
+        int left_len = partition(l, old_bd->left_len, g0->adjmat[v]);
+        int right_len = partition(r, old_bd->right_len, g1->adjmat[w]);
         int left_len_noedge = old_bd->left_len - left_len;
         int right_len_noedge = old_bd->right_len - right_len;
         if (left_len_noedge && right_len_noedge) {
-            add_bidomain(new_d, old_bd->left_vv+left_len, old_bd->right_vv+right_len,
+            add_bidomain(new_d, l+left_len, r+right_len,
                     left_len_noedge, right_len_noedge, old_bd->is_adjacent);
         }
-        if (multiway) {
-            while (left_len && right_len) {
-                edge_label_t label = g0->adjmat[v][old_bd->left_vv[0]];
-                // These partitions move vertices whose edges have label 'label' to the end of
-                // the old_bd->left_vv and old_bd->right_vv arrays. left_len becomes the length
-                // of the remaining array; that is, the left part of old_bd->left_vv that
-                // contains vertices with other edge labels
-                int left_len_yes = left_len - labelled_partition(
-                        old_bd->left_vv, left_len, g0->adjmat[v], label);
-                int right_len_yes = right_len - labelled_partition(
-                        old_bd->right_vv, right_len, g1->adjmat[w], label);
-                left_len -= left_len_yes;
-                right_len -= right_len_yes;
-                if (left_len_yes && right_len_yes) {
-                    add_bidomain(new_d, old_bd->left_vv+left_len, old_bd->right_vv+right_len,
-                            left_len_yes, right_len_yes, true);
+        if (multiway && left_len && right_len) {
+            edge_label_t *adjrow_v = g0->adjmat[v];
+            edge_label_t *adjrow_w = g1->adjmat[w];
+            qsort_r(l, left_len, sizeof(int), compare_by_edge_labels, adjrow_v);
+            qsort_r(r, right_len, sizeof(int), compare_by_edge_labels, adjrow_w);
+            int *left_top = l + left_len;
+            int *right_top = r + right_len;
+            while (l<left_top && r<right_top) {
+                int left_label = adjrow_v[*l];
+                int right_label = adjrow_w[*r];
+                if (left_label < right_label) {
+                    l++;
+                } else if (left_label > right_label) {
+                    r++;
+                } else {  // The edges in the two graphs are equal
+                    int *lmin = l;
+                    int *rmin = r;
+                    do { l++; } while (l<left_top && adjrow_v[*l]==left_label);
+                    do { r++; } while (r<right_top && adjrow_w[*r]==left_label);
+                    add_bidomain(new_d, lmin, rmin, l-lmin, r-rmin, true);
                 }
             }
         } else if (left_len && right_len) {
-            add_bidomain(new_d, old_bd->left_vv, old_bd->right_vv, left_len, right_len, true);
+            add_bidomain(new_d, l, r, left_len, right_len, true);
         }
     }
 }
