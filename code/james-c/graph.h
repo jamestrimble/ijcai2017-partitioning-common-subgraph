@@ -11,6 +11,8 @@ typedef unsigned int edge_label_t;
 typedef unsigned char edge_label_t;
 #endif
 
+enum graph_format {DIMACS_FORMAT, VF_FORMAT, LAD_FORMAT};
+
 struct Graph {
     int n;
     int degree[MAX_N];
@@ -18,13 +20,6 @@ struct Graph {
     unsigned int label[MAX_N];
 };
 
-// Precondition: *g is already zeroed out
-void readGraph(char* filename, struct Graph* g, bool directed, bool labelled);
+struct Graph *read_graph(char* filename, enum graph_format format, bool directed, bool labelled);
 
-// Precondition: *g is already zeroed out
-void readBinaryGraph(char* filename, struct Graph* g, bool directed, bool labelled);
-
-// Precondition: *g is already zeroed out
-void readLadGraph(char* filename, struct Graph* g, bool directed);
-
-void induced_subgraph(struct Graph *g, struct Graph *subg, int *vv, int vv_len);
+struct Graph *induced_subgraph(struct Graph *g, int *vv, int vv_len);

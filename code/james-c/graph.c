@@ -48,7 +48,8 @@ void add_edge(struct Graph *g, int v, int w, edge_label_t edge_val, bool directe
     }
 }
 
-void induced_subgraph(struct Graph *g, struct Graph *subg, int *vv, int vv_len) {
+struct Graph *induced_subgraph(struct Graph *g, int *vv, int vv_len) {
+    struct Graph* subg = calloc(1, sizeof(*subg));
     subg->n = vv_len;
     for (int i=0; i<subg->n; i++)
         for (int j=0; j<subg->n; j++)
@@ -56,6 +57,7 @@ void induced_subgraph(struct Graph *g, struct Graph *subg, int *vv, int vv_len) 
 
     for (int i=0; i<subg->n; i++)
         subg->label[i] = g->label[vv[i]];
+    return subg;
 }
 
 // Precondition: *g is already zeroed out
@@ -181,4 +183,15 @@ void readBinaryGraph(char* filename, struct Graph* g, bool directed, bool labell
         }
     }
     fclose(f);
+}
+
+struct Graph *read_graph(char* filename, enum graph_format format, bool directed, bool labelled)
+{
+    struct Graph* g = calloc(1, sizeof(*g));
+    switch (format) {
+    case DIMACS_FORMAT: readGraph(filename, g, directed, labelled);
+    case LAD_FORMAT: readLadGraph(filename, g, directed);
+    case VF_FORMAT: readBinaryGraph(filename, g, directed, labelled);
+    }
+    return g;
 }

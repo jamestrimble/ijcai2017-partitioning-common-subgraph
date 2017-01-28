@@ -12,8 +12,6 @@
 #include <string.h>
 #include <time.h>
 
-typedef unsigned long long ULL;
-
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
 
@@ -593,27 +591,17 @@ int main(int argc, char** argv) {
     set_default_arguments();
     argp_parse(&argp, argc, argv, 0, 0, 0);
 
-    struct Graph* g0 = calloc(1, sizeof(*g0));
-    struct Graph* g1 = calloc(1, sizeof(*g1));
-
 #ifdef LABELLED
     bool labelled = true;
 #else
     bool labelled = false;
 #endif
 
-    if (arguments.dimacs) {
-        readGraph(arguments.filename1, g0, arguments.directed, labelled);
-        readGraph(arguments.filename2, g1, arguments.directed, labelled);
-    } else if (arguments.lad) {
-        if (labelled)
-            fail("This program can't read LAD format with labels\n");
-        readLadGraph(arguments.filename1, g0, arguments.directed);
-        readLadGraph(arguments.filename2, g1, arguments.directed);
-    } else {
-        readBinaryGraph(arguments.filename1, g0, arguments.directed, labelled);
-        readBinaryGraph(arguments.filename2, g1, arguments.directed, labelled);
-    }
+    enum graph_format format = arguments.dimacs ? DIMACS_FORMAT :
+                               arguments.lad    ? LAD_FORMAT :
+                                                  VF_FORMAT;
+    struct Graph *g0 = read_graph(arguments.filename1, format, arguments.directed, labelled);
+    struct Graph *g1 = read_graph(arguments.filename2, format, arguments.directed, labelled);
 
     start = clock();
     preallocated_lists = malloc((g0->n+1) * sizeof(struct BidomainList));
@@ -636,12 +624,8 @@ int main(int argc, char** argv) {
         INSERTION_SORT(int, vv1, g1->n, (g1->degree[vv1[j-1]] < g1->degree[vv1[j]]))
     }
 
-    struct Graph *g0_sorted = calloc(1, sizeof(struct Graph));
-    struct Graph *g1_sorted = calloc(1, sizeof(struct Graph));
-    induced_subgraph(g0, g0_sorted, vv0, g0->n);
-    induced_subgraph(g1, g1_sorted, vv1, g1->n);
-    calculate_all_degrees(g0_sorted);
-    calculate_all_degrees(g1_sorted);
+    struct Graph *g0_sorted = induced_subgraph(g0, vv0, g0->n);
+    struct Graph *g1_sorted = induced_subgraph(g1, vv1, g1->n);
 
     struct VtxPairList solution = mcs(g0_sorted, g1_sorted);
 
