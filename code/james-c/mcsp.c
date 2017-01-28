@@ -189,7 +189,7 @@ struct Bidomain {
 };
 
 struct BidomainList {
-    struct Bidomain vals[MAX_N*2];
+    struct Bidomain *vals;
     int len;
 };
 
@@ -202,7 +202,35 @@ struct D {
     int matching_size_goal;
 };
 
+/*******************************************************************************
+                              Preallocated structs
+*******************************************************************************/
+
 struct BidomainList *preallocated_lists;
+
+// parameter n is the number of vertices in graph g0
+void preallocate_lists(int n) {
+    int num_lists = n + 1;
+    int list_length = n;
+    preallocated_lists = malloc(num_lists * sizeof(struct BidomainList));
+    for (int i=0; i<num_lists; i++)
+        preallocated_lists[i].vals = malloc(list_length * sizeof(struct Bidomain));
+}
+
+struct BidomainList *get_preallocated_list(int level) {
+    struct BidomainList *list = &preallocated_lists[level];
+    list->len = 0;
+    return list;
+}
+
+void free_preallocated_lists(int n) {
+    int num_lists = n + 1;
+    for (int i=0; i<num_lists; i++)
+        free(preallocated_lists[i].vals);
+    free(preallocated_lists);
+}
+
+/******************************************************************************/
 
 int calc_bound(struct BidomainList *domains) {
     int bound = 0;
@@ -397,12 +425,6 @@ int index_of_next_smallest(int *arr, int len, int w) {
     return idx;
 }
 
-struct BidomainList *get_preallocated_list(int level) {
-    struct BidomainList *list = &preallocated_lists[level];
-    list->len = 0;
-    return list;
-}
-
 void solve(struct D d, int level) {
 //    printf(" mcsp --- Nodes: %ld\n", stats.nodes);
     if (arguments.verbose) show(d);
@@ -479,8 +501,8 @@ void build_domains_and_solve(struct Graph *g0, struct Graph *g1, struct VtxPairL
 {
     struct BidomainList *domains = get_preallocated_list(0);
 
-    int left[MAX_N];  // the buffer of vertex indices for the left partitions
-    int right[MAX_N];  // the buffer of vertex indices for the right partitions
+    int *left = malloc(g0->n * sizeof(*left));    // the buffer of vertex indices for the left partitions
+    int *right = malloc(g1->n * sizeof(*right));  // the buffer of vertex indices for the right partitions
     int l = 0;  // next free index in left
     int r = 0;  // next free index in right
     for (int i=0; i<all_labels_len; i++) {
@@ -514,10 +536,13 @@ void build_domains_and_solve(struct Graph *g0, struct Graph *g1, struct VtxPairL
             .matching_size_goal=matching_size_goal};
 
     solve(d, 1);
+
+    free(left);
+    free(right);
 }
 
 struct VtxPairList mcs(struct Graph *g0, struct Graph *g1) {
-    unsigned int all_labels[MAX_N*2];
+    unsigned int *all_labels = malloc((g0->n+g1->n) * sizeof(*all_labels));
     int all_labels_len = 0;
     for (int i=0; i<g0->n; i++) all_labels[all_labels_len++] = g0->label[i];
     for (int i=0; i<g1->n; i++) all_labels[all_labels_len++] = g1->label[i];
@@ -536,6 +561,7 @@ struct VtxPairList mcs(struct Graph *g0, struct Graph *g1) {
         build_domains_and_solve(g0, g1, &incumbent, 1, all_labels, all_labels_len);
     }
 
+    free(all_labels);
     return incumbent;
 }
 
@@ -559,8 +585,8 @@ int count_edges(struct Graph *g0, struct Graph *g1, struct VtxPairList *solution
 }
 
 bool check_sol(struct Graph *g0, struct Graph *g1, struct VtxPairList *solution) {
-    bool used_left[MAX_N];
-    bool used_right[MAX_N];
+    bool *used_left = malloc(g0->n * sizeof(*used_left));
+    bool *used_right = malloc(g1->n * sizeof(*used_right));
     for (int i=0; i<g0->n; i++) used_left[i] = false;
     for (int i=0; i<g1->n; i++) used_right[i] = false;
     for (int i=0; i<solution->len; i++) {
@@ -576,6 +602,8 @@ bool check_sol(struct Graph *g0, struct Graph *g1, struct VtxPairList *solution)
         }
     }
     return true;
+    free(used_left);
+    free(used_right);
 }
 
 int graph_edge_count(struct Graph *g) {
@@ -605,7 +633,7 @@ int main(int argc, char** argv) {
     struct Graph *g1 = read_graph(arguments.filename2, format, arguments.directed, labelled);
 
     start = clock();
-    preallocated_lists = malloc((g0->n+1) * sizeof(struct BidomainList));
+    preallocate_lists(g0->n);
     calculate_all_degrees(g0);
     calculate_all_degrees(g1);
 
@@ -658,7 +686,7 @@ int main(int argc, char** argv) {
 
     free(vv0);
     free(vv1);
-    free(preallocated_lists);
+    free_preallocated_lists(g0->n);
     free_graph(g0);
     free_graph(g1);
     free_graph(g0_sorted);
