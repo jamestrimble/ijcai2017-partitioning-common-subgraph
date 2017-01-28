@@ -1,4 +1,4 @@
-#define MAX_N 7001 
+#define MAX_N 7001
 
 #include <limits.h>
 #include <stdbool.h>
@@ -15,10 +15,15 @@ enum graph_format {DIMACS_FORMAT, VF_FORMAT, LAD_FORMAT};
 
 struct Graph {
     int n;
-    int degree[MAX_N];
-    edge_label_t adjmat[MAX_N][MAX_N];
-    unsigned int label[MAX_N];
+    int *degree;                    // the degree of each vertex
+    edge_label_t **adjmat;          // each element points to a row of the adjacency matrix
+    unsigned int *label;            // a label for each vertex
+    edge_label_t *adjmat_elements;  // a flat array containing the n*n elements of the adj. matrix
 };
+
+struct Graph *new_graph(int n);
+
+void free_graph(struct Graph *g);
 
 struct Graph *read_graph(char* filename, enum graph_format format, bool directed, bool labelled);
 

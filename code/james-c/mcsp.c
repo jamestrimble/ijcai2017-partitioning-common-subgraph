@@ -214,7 +214,7 @@ int calc_bound(struct BidomainList *domains) {
 }
 
 int find_min(int *vv, int len) {
-    int min = 999999999;
+    int min = INT_MAX;
     for (int i=0; i<len; i++)
         if (vv[i] < min)
             min = vv[i];
@@ -226,7 +226,7 @@ struct Bidomain *select_bidomain(struct BidomainList *domains, int current_match
     // ties on the smallest vertex index in the left set
     struct Bidomain *bds[MAX_N];  // a list of bidomains of minimum size
     int bds_len = 0;
-    int min_size = 999999999;
+    int min_size = INT_MAX;
     for (int i=0; i<domains->len; i++) {
         struct Bidomain *bd = &domains->vals[i];
         if (arguments.connected && current_matching_size>0 && !bd->is_adjacent) continue;
@@ -239,7 +239,8 @@ struct Bidomain *select_bidomain(struct BidomainList *domains, int current_match
             bds_len = 1;
         }
     }
-    int min_vtx_idx = 999999999;
+    // break ties
+    int min_vtx_idx = INT_MAX;
     struct Bidomain *best = NULL;
     for (int i=0; i<bds_len; i++) {
         struct Bidomain *bd = bds[i];
@@ -367,7 +368,7 @@ void set_incumbent(struct VtxPairList *current, struct VtxPairList *incumbent) {
 }
 
 int find_and_remove_min_value(int *arr, int *len) {
-    int min_v = 999999999;
+    int min_v = INT_MAX;
     int idx = -1;
     for (int i=0; i<*len; i++) {
         if (arr[i] < min_v) {
@@ -383,10 +384,10 @@ int find_and_remove_min_value(int *arr, int *len) {
 // returns the index of the smallest value in arr that is >w.
 // Assumption: such a value exists
 // Assumption: arr contains no duplicates
-// Assumption: arr has no values>=999999999
+// Assumption: arr has no values==INT_MAX
 int index_of_next_smallest(int *arr, int len, int w) {
     int idx = -1;
-    int smallest = 999999999;
+    int smallest = INT_MAX;
     for (int i=0; i<len; i++) {
         if (arr[i]>w && arr[i]<smallest) {
             smallest = arr[i];
@@ -608,7 +609,7 @@ int main(int argc, char** argv) {
     calculate_all_degrees(g0);
     calculate_all_degrees(g1);
 
-    int vv0[MAX_N];
+    int *vv0 = malloc(g0->n * sizeof(*vv0));
     for (int i=0; i<g0->n; i++) vv0[i] = i;
     if (graph_edge_count(g1) > g1->n*(g1->n-1)/2) {
         INSERTION_SORT(int, vv0, g0->n, (g0->degree[vv0[j-1]] > g0->degree[vv0[j]]))
@@ -616,7 +617,7 @@ int main(int argc, char** argv) {
         INSERTION_SORT(int, vv0, g0->n, (g0->degree[vv0[j-1]] < g0->degree[vv0[j]]))
     }
 
-    int vv1[MAX_N];
+    int *vv1 = malloc(g0->n * sizeof(*vv0));
     for (int i=0; i<g1->n; i++) vv1[i] = i;
     if (graph_edge_count(g0) > g0->n*(g0->n-1)/2) {
         INSERTION_SORT(int, vv1, g1->n, (g1->degree[vv1[j-1]] > g1->degree[vv1[j]]))
@@ -655,9 +656,11 @@ int main(int argc, char** argv) {
     printf("Nodes:                      %'15llu\n", nodes);
     printf("CPU time (ms):              %15ld\n", time_elapsed * 1000 / CLOCKS_PER_SEC);
 
+    free(vv0);
+    free(vv1);
     free(preallocated_lists);
-    free(g0);
-    free(g1);
-    free(g0_sorted);
-    free(g1_sorted);
+    free_graph(g0);
+    free_graph(g1);
+    free_graph(g0_sorted);
+    free_graph(g1_sorted);
 }

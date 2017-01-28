@@ -11,6 +11,28 @@ static void fail(char* msg) {
     exit(1);
 }
 
+struct Graph *new_graph(int n)
+{
+    struct Graph *g = calloc(1, sizeof(*g));
+    g->n = n;
+    g->adjmat_elements = calloc(n*n, sizeof(*g->adjmat_elements));
+    g->label = calloc(n, sizeof(*g->label));
+    g->degree = calloc(n, sizeof(*g->degree));
+    g->adjmat = calloc(n, sizeof(*g->adjmat));
+    for (int i=0; i<n; i++)
+        g->adjmat[i] = &g->adjmat_elements[i*n];
+    return g;
+}
+
+void free_graph(struct Graph *g)
+{
+    free(g->adjmat_elements);
+    free(g->label);
+    free(g->degree);
+    free(g->adjmat);
+    free(g);
+}
+
 // Unlabelled, undirected: if there is an edge v-w, then adjmat[v][w]==adjmat[w][v]==1
 // Labelled, undirected:   if there is an edge v-w, then adjmat[v][w]==adjmat[w][v]==label
 // Unlabelled, directed:   if there is an edge v->w, then adjmat[v][w]&1 == (adjmat[w][v]>>1)&1 == 1
@@ -49,8 +71,7 @@ void add_edge(struct Graph *g, int v, int w, edge_label_t edge_val, bool directe
 }
 
 struct Graph *induced_subgraph(struct Graph *g, int *vv, int vv_len) {
-    struct Graph* subg = calloc(1, sizeof(*subg));
-    subg->n = vv_len;
+    struct Graph* subg = new_graph(vv_len);
     for (int i=0; i<subg->n; i++)
         for (int j=0; j<subg->n; j++)
             subg->adjmat[i][j] = g->adjmat[vv[i]][vv[j]];
@@ -61,7 +82,7 @@ struct Graph *induced_subgraph(struct Graph *g, int *vv, int vv_len) {
 }
 
 // Precondition: *g is already zeroed out
-void readGraph(char* filename, struct Graph* g, bool directed, bool labelled) {
+struct Graph *readGraph(char* filename, bool directed, bool labelled) {
     FILE* f;
     
     if ((f=fopen(filename, "r"))==NULL)
@@ -76,6 +97,8 @@ void readGraph(char* filename, struct Graph* g, bool directed, bool labelled) {
     int edges_read = 0;
     int label;
 
+    struct Graph *g = NULL;
+
     while (getline(&line, &nchar, f) != -1) {
         if (nchar > 0) {
             switch (line[0]) {
@@ -83,17 +106,19 @@ void readGraph(char* filename, struct Graph* g, bool directed, bool labelled) {
                 if (sscanf(line, "p edge %d %d", &nvertices, &medges)!=2)
                     fail("Error reading a line beginning with p.\n");
                 printf("%d vertices\n", nvertices);
-                if (nvertices >= MAX_N)
-                    fail("Too many vertices. Please recompile with a larger MAX_N.\n");
-                g->n = nvertices;
+                g = new_graph(nvertices);
                 break;
             case 'e':
+                if (g == NULL)
+                    fail("Graph size must be specified at start of file.");
                 if (sscanf(line, "e %d %d", &v, &w)!=2)
                     fail("Error reading a line beginning with e.\n");
                 add_edge(g, v-1, w-1, 1, directed);
                 edges_read++;
                 break;
             case 'n':
+                if (g == NULL)
+                    fail("Graph size must be specified at start of file.");
                 if (sscanf(line, "n %d %d", &v, &label)!=2)
                     fail("Error reading a line beginning with n.\n");
                 if (labelled)
@@ -106,10 +131,11 @@ void readGraph(char* filename, struct Graph* g, bool directed, bool labelled) {
     if (medges>0 && edges_read != medges) fail("Unexpected number of edges.");
 
     fclose(f);
+    return g;
 }
 
 // Precondition: *g is already zeroed out
-void readLadGraph(char* filename, struct Graph* g, bool directed) {
+struct Graph *readLadGraph(char* filename, bool directed) {
     FILE* f;
     
     if ((f=fopen(filename, "r"))==NULL)
@@ -120,9 +146,7 @@ void readLadGraph(char* filename, struct Graph* g, bool directed) {
 
     if (fscanf(f, "%d", &nvertices) != 1)
         fail("Number of vertices not read correctly.\n");
-    if (nvertices >= MAX_N)
-        fail("Too many vertices. Please recompile with a larger MAX_N.\n");
-    g->n = nvertices;
+    struct Graph *g = new_graph(nvertices);
 
     for (int i=0; i<nvertices; i++) {
         int edge_count;
@@ -136,6 +160,7 @@ void readLadGraph(char* filename, struct Graph* g, bool directed) {
     }
 
     fclose(f);
+    return g;
 }
 
 int read_word(FILE *fp) {
@@ -146,14 +171,14 @@ int read_word(FILE *fp) {
 }
 
 // Precondition: *g is already zeroed out
-void readBinaryGraph(char* filename, struct Graph* g, bool directed, bool labelled) {
+struct Graph *readBinaryGraph(char* filename, bool directed, bool labelled) {
     FILE* f;
     
     if ((f=fopen(filename, "rb"))==NULL)
         fail("Cannot open file");
 
     int nvertices = read_word(f);
-    g->n = nvertices;
+    struct Graph *g = new_graph(nvertices);
     printf("%d vertices\n", nvertices);
 
     // Labelling scheme: see
@@ -183,15 +208,16 @@ void readBinaryGraph(char* filename, struct Graph* g, bool directed, bool labell
         }
     }
     fclose(f);
+    return g;
 }
 
 struct Graph *read_graph(char* filename, enum graph_format format, bool directed, bool labelled)
 {
-    struct Graph* g = calloc(1, sizeof(*g));
     switch (format) {
-    case DIMACS_FORMAT: readGraph(filename, g, directed, labelled);
-    case LAD_FORMAT: readLadGraph(filename, g, directed);
-    case VF_FORMAT: readBinaryGraph(filename, g, directed, labelled);
+    case DIMACS_FORMAT: return readGraph(filename, directed, labelled);
+    case LAD_FORMAT: return readLadGraph(filename, directed);
+    case VF_FORMAT: return readBinaryGraph(filename, directed, labelled);
     }
-    return g;
+    fail("Unknown format");
+    return NULL;
 }
