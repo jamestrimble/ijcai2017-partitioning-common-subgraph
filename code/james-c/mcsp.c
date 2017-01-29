@@ -451,14 +451,8 @@ void solve(struct D d, int level) {
     struct Bidomain *bd = select_bidomain(d.domains, d.current->len);
     if (bd == NULL)   // In the MCCS case, there may be nothing we can branch on
         return;
-    struct Bidomain bd_copy;
 
     int v = find_and_remove_min_value(bd->left_vv, &bd->left_len);
-    if (bd->left_len == 0) {
-        bd_copy = *bd;
-        remove_bidomain(d.domains, bd);
-        bd = &bd_copy;
-    }
 
     struct D new_d = d;
     new_d.domains = get_preallocated_list(level);
@@ -484,6 +478,9 @@ void solve(struct D d, int level) {
         d.current->len--;
     }
     bd->right_len++;
+    if (bd->left_len == 0) {
+        remove_bidomain(d.domains, bd);
+    }
     solve(d, level+1);
 }
 
