@@ -642,7 +642,7 @@ int main(int argc, char** argv) {
         INSERTION_SORT(int, vv0, g0->n, (g0->degree[vv0[j-1]] < g0->degree[vv0[j]]))
     }
 
-    int *vv1 = malloc(g0->n * sizeof(*vv0));
+    int *vv1 = malloc(g1->n * sizeof(*vv1));
     for (int i=0; i<g1->n; i++) vv1[i] = i;
     if (graph_edge_count(g0) > g0->n*(g0->n-1)/2) {
         INSERTION_SORT(int, vv1, g1->n, (g1->degree[vv1[j-1]] > g1->degree[vv1[j]]))
