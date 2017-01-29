@@ -2,12 +2,11 @@
 
 #include <argp.h>
 #include <limits.h>
-#include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <utility>
@@ -182,18 +181,36 @@ int calc_bound(const vector<Bidomain>& domains) {
     return bound;
 }
 
-int select_bidomain(const vector<Bidomain>& domains, int current_matching_size) {
+int find_min_value(const vector<int>& arr, int start_idx, int len) {
+    int min_v = INT_MAX;
+    for (int i=0; i<len; i++)
+        if (arr[start_idx + i] < min_v)
+            min_v = arr[start_idx + i];
+    return min_v;
+}
+
+int select_bidomain(const vector<Bidomain>& domains, vector<int>& left,
+        int current_matching_size)
+{
     // Select the bidomain with the smallest max(leftsize, rightsize), breaking
     // ties on the smallest vertex index in the left set
     int min_size = INT_MAX;
+    int min_tie_breaker = INT_MAX;
     int best = -1;
     for (unsigned int i=0; i<domains.size(); i++) {
-    const Bidomain &bd = domains[i];
+        const Bidomain &bd = domains[i];
         if (arguments.connected && current_matching_size>0 && !bd.is_adjacent) continue;
         int len = std::max(bd.left_len, bd.right_len);
         if (len < min_size) {
             min_size = len;
+            min_tie_breaker = find_min_value(left, bd.l, bd.left_len);
             best = i;
+        } else if (len == min_size) {
+            int tie_breaker = find_min_value(left, bd.l, bd.left_len);
+            if (tie_breaker < min_tie_breaker) {
+                min_tie_breaker = tie_breaker;
+                best = i;
+            }
         }
     }
     return best;
@@ -212,7 +229,7 @@ int partition(vector<int>& all_vv, int start, int len, vector<unsigned char>& ad
 }
 
 vector<Bidomain> filter_domains(const vector<Bidomain> &d, vector<int>& left,
-        vector<int>& right, struct Graph *g0, struct Graph *g1, int v, int w)
+        vector<int>& right, struct Graph& g0, struct Graph& g1, int v, int w)
 {
     vector<Bidomain> new_d;
     new_d.reserve(d.size());
@@ -222,8 +239,8 @@ vector<Bidomain> filter_domains(const vector<Bidomain> &d, vector<int>& left,
         // After these two partitions, left_len and right_len are the lengths of the
         // arrays of vertices with edges from v or w (int the directed case, edges
         // either from or to v or w)
-        int left_len = partition(left, l, old_bd.left_len, g0->adjmat[v]);
-        int right_len = partition(right, r, old_bd.right_len, g1->adjmat[w]);
+        int left_len = partition(left, l, old_bd.left_len, g0.adjmat[v]);
+        int right_len = partition(right, r, old_bd.right_len, g1.adjmat[w]);
         int left_len_noedge = old_bd.left_len - left_len;
         int right_len_noedge = old_bd.right_len - right_len;
         if (left_len_noedge && right_len_noedge)
@@ -232,14 +249,6 @@ vector<Bidomain> filter_domains(const vector<Bidomain> &d, vector<int>& left,
             new_d.push_back({l, r, left_len, right_len, true});
     }
     return new_d;
-}
-
-int find_min_value(const vector<int>& arr, int start_idx, int len) {
-    int min_v = INT_MAX;
-    for (int i=0; i<len; i++)
-        if (arr[start_idx + i] < min_v)
-            min_v = arr[start_idx + i];
-    return min_v;
 }
 
 // returns the index of the smallest value in arr that is >w.
@@ -271,7 +280,7 @@ void remove_bidomain(vector<Bidomain>& domains, int idx) {
     domains.pop_back();
 }
 
-void solve(struct Graph *g0, struct Graph *g1, vector<VtxPair>& incumbent,
+void solve(struct Graph& g0, struct Graph& g1, vector<VtxPair>& incumbent,
         vector<VtxPair>& current, vector<Bidomain>& domains,
         vector<int>& left, vector<int>& right, int level)
 {
@@ -286,7 +295,7 @@ void solve(struct Graph *g0, struct Graph *g1, vector<VtxPair>& incumbent,
     if (current.size() + calc_bound(domains) <= incumbent.size())
         return;
 
-    int bd_idx = select_bidomain(domains, current.size());
+    int bd_idx = select_bidomain(domains, left, current.size());
     if (bd_idx == -1)   // In the MCCS case, there may be nothing we can branch on
         return;
     Bidomain &bd = domains[bd_idx];
@@ -316,7 +325,7 @@ void solve(struct Graph *g0, struct Graph *g1, vector<VtxPair>& incumbent,
     solve(g0, g1, incumbent, current, domains, left, right, level+1);
 }
 
-vector<VtxPair> mcs(struct Graph *g0, struct Graph *g1) {
+vector<VtxPair> mcs(Graph& g0, Graph& g1) {
     vector<int> left;  // the buffer of vertex indices for the left partitions
     vector<int> right;  // the buffer of vertex indices for the right partitions
 
@@ -328,11 +337,11 @@ vector<VtxPair> mcs(struct Graph *g0, struct Graph *g1) {
         int start_l = left.size();
         int start_r = right.size();
 
-        for (int i=0; i<g0->n; i++)
-            if (g0->label[i]==label)
+        for (int i=0; i<g0.n; i++)
+            if (g0.label[i]==label)
                 left.push_back(i);
-        for (int i=0; i<g1->n; i++)
-            if (g1->label[i]==label)
+        for (int i=0; i<g1.n; i++)
+            if (g1.label[i]==label)
                 right.push_back(i);
 
         int left_len = left.size() - start_l;
@@ -348,6 +357,20 @@ vector<VtxPair> mcs(struct Graph *g0, struct Graph *g1) {
     return incumbent;
 }
 
+vector<int> calculate_degrees(struct Graph &g) {
+    vector<int> degree(g.n, 0);
+    for (int v=0; v<g.n; v++) {
+        for (int w=0; w<g.n; w++) {
+            if (g.adjmat[v][w]) degree[v]++;
+        }
+    }
+    return degree;
+}
+
+int sum(vector<int>& vec) {
+    return std::accumulate(std::begin(vec), std::end(vec), 0);
+}
+
 int main(int argc, char** argv) {
     set_default_arguments();
     argp_parse(&argp, argc, argv, 0, 0, 0);
@@ -358,7 +381,32 @@ int main(int argc, char** argv) {
 
     auto start = std::chrono::steady_clock::now();
 
-    vector<VtxPair> solution = mcs(&g0, &g1);
+    vector<int> g0_deg = calculate_degrees(g0);
+    vector<int> g1_deg = calculate_degrees(g1);
+
+    vector<int> vv0(g0.n);
+    std::iota(std::begin(vv0), std::end(vv0), 0);
+    bool g1_dense = sum(g1_deg) > g1.n*(g1.n-1);
+    std::stable_sort(std::begin(vv0), std::end(vv0), [&](int a, int b) {
+        return g1_dense ? (g0_deg[a]<g0_deg[b]) : (g0_deg[a]>g0_deg[b]);
+    });
+    vector<int> vv1(g1.n);
+    std::iota(std::begin(vv1), std::end(vv1), 0);
+    bool g0_dense = sum(g0_deg) > g0.n*(g0.n-1);
+    std::stable_sort(std::begin(vv1), std::end(vv1), [&](int a, int b) {
+        return g0_dense ? (g1_deg[a]<g1_deg[b]) : (g1_deg[a]>g1_deg[b]);
+    });
+
+    struct Graph g0_sorted = induced_subgraph(g0, vv0);
+    struct Graph g1_sorted = induced_subgraph(g1, vv1);
+
+    vector<VtxPair> solution = mcs(g0_sorted, g1_sorted);
+
+    // Convert to indices from original, unsorted graphs
+    for (auto& vtx_pair : solution) {
+        vtx_pair.v = vv0[vtx_pair.v];
+        vtx_pair.w = vv1[vtx_pair.w];
+    }
 
     auto stop = std::chrono::steady_clock::now();
     auto time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
