@@ -1,6 +1,5 @@
 CXX := g++
 CXXFLAGS := -O3 -march=native
-
 all: mcsp
 
 mcsp: mcsp.c graph.c graph.h

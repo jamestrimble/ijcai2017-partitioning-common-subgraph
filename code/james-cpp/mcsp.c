@@ -12,8 +12,11 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <chrono>
 
 using std::vector;
+using std::cout;
+using std::endl;
 
 static void fail(std::string msg) {
     std::cerr << msg << std::endl;
@@ -103,7 +106,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
                                      Stats
 *******************************************************************************/
 
-static long nodes = 0;
+unsigned long long nodes{ 0 };
 
 /*******************************************************************************
                                  MCS functions
@@ -127,30 +130,10 @@ struct Bidomain {
             is_adjacent (is_adjacent) { };
 };
 
-bool check_sol(struct Graph *g0, struct Graph *g1, vector<VtxPair>& solution) {
-    vector<bool> used_left(g0->n, false);
-    vector<bool> used_right(g1->n, false);
-    for (unsigned int i=0; i<solution.size(); i++) {
-        struct VtxPair p0 = solution[i];
-        if (used_left[p0.v] || used_right[p0.w])
-            return false;
-        used_left[p0.v] = true;
-        used_right[p0.w] = true;
-        if (g0->label[p0.v] != g1->label[p0.w])
-            return false;
-        for (unsigned int j=i+1; j<solution.size(); j++) {
-            struct VtxPair p1 = solution[j];
-            if (g0->adjmat[p0.v][p1.v] != g1->adjmat[p0.w][p1.w])
-                return false;
-        }
-    }
-    return true;
-}
-
 void show(const vector<VtxPair>& current, const vector<Bidomain> &domains,
         const vector<int>& left, const vector<int>& right)
 {
-    printf("Nodes: %ld\n", nodes);
+    printf("Nodes: %llu\n", nodes);
     printf("Length of current assignment: %ld\n", current.size());
     printf("Current assignment:");
     for (unsigned int i=0; i<current.size(); i++) {
@@ -171,6 +154,26 @@ void show(const vector<VtxPair>& current, const vector<Bidomain> &domains,
     printf("\n\n");
 }
 
+bool check_sol(struct Graph *g0, struct Graph *g1, vector<VtxPair>& solution) {
+    vector<bool> used_left(g0->n, false);
+    vector<bool> used_right(g1->n, false);
+    for (unsigned int i=0; i<solution.size(); i++) {
+        struct VtxPair p0 = solution[i];
+        if (used_left[p0.v] || used_right[p0.w])
+            return false;
+        used_left[p0.v] = true;
+        used_right[p0.w] = true;
+        if (g0->label[p0.v] != g1->label[p0.w])
+            return false;
+        for (unsigned int j=i+1; j<solution.size(); j++) {
+            struct VtxPair p1 = solution[j];
+            if (g0->adjmat[p0.v][p1.v] != g1->adjmat[p0.w][p1.w])
+                return false;
+        }
+    }
+    return true;
+}
+
 int calc_bound(const vector<Bidomain>& domains) {
     int bound = 0;
     for (const Bidomain &bd : domains) {
@@ -187,8 +190,6 @@ int select_bidomain(const vector<Bidomain>& domains, int current_matching_size) 
     for (unsigned int i=0; i<domains.size(); i++) {
     const Bidomain &bd = domains[i];
         if (arguments.connected && current_matching_size>0 && !bd.is_adjacent) continue;
-        if (bd.left_len==0) continue;  // This could happen if a decision has been
-                                       // made to reject a vertex
         int len = std::max(bd.left_len, bd.right_len);
         if (len < min_size) {
             min_size = len;
@@ -198,48 +199,37 @@ int select_bidomain(const vector<Bidomain>& domains, int current_matching_size) 
     return best;
 }
 
-void filter(const vector<int>& arr, int start_idx, int len,
-        vector<int>&out_arr, int v, const std::vector<unsigned char>& adjrow)
-{
+// Returns length of left half of array
+int partition(vector<int>& all_vv, int start, int len, vector<unsigned char>& adjrow) {
+    int i=0;
     for (int j=0; j<len; j++) {
-        int w = arr[start_idx + j];
-        if (adjrow[w]) {
-            out_arr.push_back(w);
+        if (adjrow[all_vv[start+j]]) {
+            std::swap(all_vv[start+i], all_vv[start+j]);
+            i++;
         }
     }
+    return i;
 }
 
-vector<Bidomain> filter_domains(const vector<Bidomain> &d,
-        const vector<int>& old_left, const vector<int>& old_right,
-        vector<int>& new_left, vector<int>& new_right,
-        struct Graph *g0, struct Graph *g1, int v, int w)
+vector<Bidomain> filter_domains(const vector<Bidomain> &d, vector<int>& left,
+        vector<int>& right, struct Graph *g0, struct Graph *g1, int v, int w)
 {
     vector<Bidomain> new_d;
     new_d.reserve(d.size());
-    int l = 0;
-    int r = 0;
     for (const Bidomain &old_bd : d) {
-        if (!old_bd.left_len || !old_bd.right_len) continue;
-        for (int edge=0; edge<=1; edge++) {
-            filter(old_left, old_bd.l, old_bd.left_len, new_left, v,
-                    edge ? g0->adjmat[v] : g0->antiadjmat[v]);
-            int left_len = new_left.size() - l;
-            if (left_len) {
-                filter(old_right, old_bd.r, old_bd.right_len, new_right, w,
-                        edge ? g1->adjmat[w] : g1->antiadjmat[w]);
-                int right_len = new_right.size() - r;
-                if (right_len) {
-                    new_d.push_back({l, r, left_len, right_len, old_bd.is_adjacent | edge});
-                    l = new_left.size();
-                    r = new_right.size();
-                } else {
-                    new_left.resize(l);
-                    new_right.resize(r);
-                }
-            } else {
-                new_left.resize(l);
-            }
-        }
+        int l = old_bd.l;
+        int r = old_bd.r;
+        // After these two partitions, left_len and right_len are the lengths of the
+        // arrays of vertices with edges from v or w (int the directed case, edges
+        // either from or to v or w)
+        int left_len = partition(left, l, old_bd.left_len, g0->adjmat[v]);
+        int right_len = partition(right, r, old_bd.right_len, g1->adjmat[w]);
+        int left_len_noedge = old_bd.left_len - left_len;
+        int right_len_noedge = old_bd.right_len - right_len;
+        if (left_len_noedge && right_len_noedge)
+            new_d.push_back({l+left_len, r+right_len, left_len_noedge, right_len_noedge, old_bd.is_adjacent});
+        if (left_len && right_len)
+            new_d.push_back({l, r, left_len, right_len, true});
     }
     return new_d;
 }
@@ -272,20 +262,25 @@ void remove_vtx_from_left_domain(vector<int>& left, Bidomain& bd, int v)
 {
     int i = 0;
     while(left[bd.l + i] != v) i++;
-    left[bd.l+i] = left[bd.l+bd.left_len-1];
+    std::swap(left[bd.l+i], left[bd.l+bd.left_len-1]);
     bd.left_len--;
 }
 
+void remove_bidomain(vector<Bidomain>& domains, int idx) {
+    domains[idx] = domains[domains.size()-1];
+    domains.pop_back();
+}
+
 void solve(struct Graph *g0, struct Graph *g1, vector<VtxPair>& incumbent,
-        const vector<VtxPair>& current, const vector<Bidomain> &domains,
-        const vector<int>& left, const vector<int>& right, int level)
+        vector<VtxPair>& current, vector<Bidomain>& domains,
+        vector<int>& left, vector<int>& right, int level)
 {
     if (arguments.verbose) show(current, domains, left, right);
     nodes++;
 
     if (current.size() > incumbent.size()) {
         incumbent = current;
-        if (!arguments.quiet) printf("Incumbent size: %ld\n", incumbent.size());
+        if (!arguments.quiet) cout << "Incumbent size: " << incumbent.size() << endl;
     }
 
     if (current.size() + calc_bound(domains) <= incumbent.size())
@@ -294,29 +289,31 @@ void solve(struct Graph *g0, struct Graph *g1, vector<VtxPair>& incumbent,
     int bd_idx = select_bidomain(domains, current.size());
     if (bd_idx == -1)   // In the MCCS case, there may be nothing we can branch on
         return;
-    const Bidomain &bd = domains[bd_idx];
+    Bidomain &bd = domains[bd_idx];
 
     int v = find_min_value(left, bd.l, bd.left_len);
+    remove_vtx_from_left_domain(left, domains[bd_idx], v);
 
-    // Try assigning v to each vertex w in bd.right_vv, in turn
+    // Try assigning v to each vertex w in the colour class beginning at bd.r, in turn
     int w = -1;
-    for (int i=0; i<bd.right_len; i++) {
-        int idx = index_of_next_smallest(right, bd.r, bd.right_len, w);
+    bd.right_len--;
+    for (int i=0; i<=bd.right_len; i++) {
+        int idx = index_of_next_smallest(right, bd.r, bd.right_len+1, w);
         w = right[bd.r + idx];
-        vector<int> new_left;
-        new_left.reserve(left.size());
-        vector<int> new_right;
-        new_right.reserve(right.size());
-        auto new_domains = filter_domains(
-                domains, left, right, new_left, new_right, g0, g1, v, w);
-        auto new_current(current);
-        new_current.push_back(VtxPair(v, w));
-        solve(g0, g1, incumbent, new_current, new_domains, new_left, new_right, level+1);
+
+        // swap w to the end of its colour class
+        right[bd.r + idx] = right[bd.r + bd.right_len];
+        right[bd.r + bd.right_len] = w;
+
+        auto new_domains = filter_domains(domains, left, right, g0, g1, v, w);
+        current.push_back(VtxPair(v, w));
+        solve(g0, g1, incumbent, current, new_domains, left, right, level+1);
+        current.pop_back();
     }
-    auto new_domains = domains;
-    auto new_left = left;
-    remove_vtx_from_left_domain(new_left, new_domains[bd_idx], v);
-    solve(g0, g1, incumbent, current, new_domains, new_left, right, level+1);
+    bd.right_len++;
+    if (bd.left_len == 0)
+        remove_bidomain(domains, bd_idx);
+    solve(g0, g1, incumbent, current, domains, left, right, level+1);
 }
 
 vector<VtxPair> mcs(struct Graph *g0, struct Graph *g1) {
@@ -359,11 +356,12 @@ int main(int argc, char** argv) {
     struct Graph g0 = readGraph(arguments.filename1, format);
     struct Graph g1 = readGraph(arguments.filename2, format);
 
-    clock_t start = clock();
+    auto start = std::chrono::steady_clock::now();
 
     vector<VtxPair> solution = mcs(&g0, &g1);
 
-    clock_t time_elapsed = clock() - start;
+    auto stop = std::chrono::steady_clock::now();
+    auto time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
 
     if (!check_sol(&g0, &g1, solution))
         fail("*** Error: Invalid solution\n");
@@ -375,7 +373,6 @@ int main(int argc, char** argv) {
                 printf("(%d -> %d) ", solution[j].v, solution[j].w);
     printf("\n");
 
-    setlocale(LC_NUMERIC, "");
-    printf("Nodes:                      %'15ld\n", nodes);
-    printf("CPU time (ms):              %15ld\n", time_elapsed * 1000 / CLOCKS_PER_SEC);
+    cout << "Nodes:                      " << nodes << endl;
+    cout << "CPU time (ms):              " << time_elapsed << endl;
 }

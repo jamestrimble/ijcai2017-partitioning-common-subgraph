@@ -15,17 +15,12 @@ Graph::Graph(unsigned int n) {
     this->n = n;
     label = std::vector<unsigned int>(n, 0u);
     adjmat = {n, std::vector<unsigned char>(n, false)};
-    antiadjmat = {n, std::vector<unsigned char>(n, true)};
-    for (unsigned int i=0; i<n; i++)
-        antiadjmat[i][i] = false;
 }
 
 void add_edge(struct Graph *g, int v, int w) {
     if (v != w) {
         g->adjmat[v][w] = 1;
         g->adjmat[w][v] = 1;
-        g->antiadjmat[v][w] = 0;
-        g->antiadjmat[w][v] = 0;
     } else {
         // To indicate that a vertex has a loop, we set its label to 1
         g->label[v] = 1;
