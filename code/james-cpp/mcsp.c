@@ -1,11 +1,5 @@
 #include "graph.h"
 
-#include <argp.h>
-#include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include <algorithm>
 #include <numeric>
 #include <chrono>
@@ -18,6 +12,12 @@
 #include <thread>
 #include <condition_variable>
 #include <atomic>
+
+#include <argp.h>
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 using std::vector;
 using std::cout;
