@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include <algorithm>
+#include <numeric>
 #include <chrono>
 #include <iostream>
 #include <set>
