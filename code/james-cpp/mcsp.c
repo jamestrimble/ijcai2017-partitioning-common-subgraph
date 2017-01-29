@@ -7,11 +7,12 @@
 #include <string.h>
 
 #include <algorithm>
+#include <chrono>
 #include <iostream>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
-#include <chrono>
 
 using std::vector;
 using std::cout;
@@ -34,15 +35,19 @@ static struct argp_option options[] = {
     {"dimacs", 'd', 0, 0, "Read DIMACS format"},
     {"lad", 'l', 0, 0, "Read LAD format"},
     {"connected", 'c', 0, 0, "Solve max common CONNECTED subgraph problem"},
+    {"directed", 'i', 0, 0, "Use directed graphs"},
+    {"labelled", 'a', 0, 0, "Use edge and vertex labels"},
     { 0 }
 };
 
 static struct {
     bool quiet;
     bool verbose;
-    bool connected;
     bool dimacs;
     bool lad;
+    bool connected;
+    bool directed;
+    bool labelled;
     char *filename1;
     char *filename2;
     int arg_num;
@@ -51,9 +56,11 @@ static struct {
 void set_default_arguments() {
     arguments.quiet = false;
     arguments.verbose = false;
-    arguments.connected = false;
     arguments.dimacs = false;
     arguments.lad = false;
+    arguments.connected = false;
+    arguments.directed = false;
+    arguments.labelled = false;
     arguments.filename1 = NULL;
     arguments.filename2 = NULL;
     arguments.arg_num = 0;
@@ -78,7 +85,17 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
             arguments.verbose = true;
             break;
         case 'c':
+            if (arguments.directed)
+                fail("The connected and directed options can't be used together.");
             arguments.connected = true;
+            break;
+        case 'i':
+            if (arguments.connected)
+                fail("The connected and directed options can't be used together.");
+            arguments.directed = true;
+            break;
+        case 'a':
+            arguments.labelled = true;
             break;
         case ARGP_KEY_ARG:
             if (arguments.arg_num == 0) {
@@ -154,6 +171,7 @@ void show(const vector<VtxPair>& current, const vector<Bidomain> &domains,
 }
 
 bool check_sol(struct Graph *g0, struct Graph *g1, vector<VtxPair>& solution) {
+    return true;
     vector<bool> used_left(g0->n, false);
     vector<bool> used_right(g1->n, false);
     for (unsigned int i=0; i<solution.size(); i++) {
@@ -217,7 +235,7 @@ int select_bidomain(const vector<Bidomain>& domains, vector<int>& left,
 }
 
 // Returns length of left half of array
-int partition(vector<int>& all_vv, int start, int len, vector<unsigned char>& adjrow) {
+int partition(vector<int>& all_vv, int start, int len, vector<unsigned int>& adjrow) {
     int i=0;
     for (int j=0; j<len; j++) {
         if (adjrow[all_vv[start+j]]) {
@@ -228,8 +246,10 @@ int partition(vector<int>& all_vv, int start, int len, vector<unsigned char>& ad
     return i;
 }
 
+// multiway is for directed and/or labelled graphs
 vector<Bidomain> filter_domains(const vector<Bidomain> &d, vector<int>& left,
-        vector<int>& right, struct Graph& g0, struct Graph& g1, int v, int w)
+        vector<int>& right, struct Graph& g0, struct Graph& g1, int v, int w,
+        bool multiway)
 {
     vector<Bidomain> new_d;
     new_d.reserve(d.size());
@@ -245,8 +265,35 @@ vector<Bidomain> filter_domains(const vector<Bidomain> &d, vector<int>& left,
         int right_len_noedge = old_bd.right_len - right_len;
         if (left_len_noedge && right_len_noedge)
             new_d.push_back({l+left_len, r+right_len, left_len_noedge, right_len_noedge, old_bd.is_adjacent});
-        if (left_len && right_len)
+        if (multiway && left_len && right_len) {
+            auto& adjrow_v = g0.adjmat[v];
+            auto& adjrow_w = g1.adjmat[w];
+            auto l_begin = std::begin(left) + l;
+            auto r_begin = std::begin(right) + r;
+            std::sort(l_begin, l_begin+left_len, [&](int a, int b)
+                    { return adjrow_v[a] < adjrow_v[b]; });
+            std::sort(r_begin, r_begin+right_len, [&](int a, int b)
+                    { return adjrow_w[a] < adjrow_w[b]; });
+            int l_top = l + left_len;
+            int r_top = r + right_len;
+            while (l<l_top && r<r_top) {
+                unsigned int left_label = adjrow_v[left[l]];
+                unsigned int right_label = adjrow_w[right[r]];
+                if (left_label < right_label) {
+                    l++;
+                } else if (left_label > right_label) {
+                    r++;
+                } else {
+                    int lmin = l;
+                    int rmin = r;
+                    do { l++; } while (l<l_top && adjrow_v[left[l]]==left_label);
+                    do { r++; } while (r<r_top && adjrow_w[right[r]]==left_label);
+                    new_d.push_back({lmin, rmin, l-lmin, r-rmin, true});
+                }
+            }
+        } else if (left_len && right_len) {
             new_d.push_back({l, r, left_len, right_len, true});
+        }
     }
     return new_d;
 }
@@ -314,7 +361,8 @@ void solve(struct Graph& g0, struct Graph& g1, vector<VtxPair>& incumbent,
         right[bd.r + idx] = right[bd.r + bd.right_len];
         right[bd.r + bd.right_len] = w;
 
-        auto new_domains = filter_domains(domains, left, right, g0, g1, v, w);
+        auto new_domains = filter_domains(domains, left, right, g0, g1, v, w,
+                arguments.directed || arguments.labelled);
         current.push_back(VtxPair(v, w));
         solve(g0, g1, incumbent, current, new_domains, left, right, level+1);
         current.pop_back();
@@ -331,9 +379,19 @@ vector<VtxPair> mcs(Graph& g0, Graph& g1) {
 
     auto domains = vector<Bidomain> {};
 
-    // Create a bidomain for vertices without loops (label 0),
-    // and another for vertices with loops (label 1)
-    for (unsigned int label=0; label<=1; label++) {
+    std::set<unsigned int> left_labels;
+    std::set<unsigned int> right_labels;
+    for (unsigned int label : g0.label) left_labels.insert(label);
+    for (unsigned int label : g1.label) right_labels.insert(label);
+    std::set<unsigned int> labels;  // labels that appear in both graphs
+    std::set_intersection(std::begin(left_labels),
+                          std::end(left_labels),
+                          std::begin(right_labels),
+                          std::end(right_labels),
+                          std::inserter(labels, std::begin(labels)));
+
+    // Create a bidomain for each label that appears in both graphs
+    for (unsigned int label : labels) {
         int start_l = left.size();
         int start_r = right.size();
 
@@ -345,9 +403,8 @@ vector<VtxPair> mcs(Graph& g0, Graph& g1) {
                 right.push_back(i);
 
         int left_len = left.size() - start_l;
-        int right_len = left.size() - start_r;
-        if (left_len && right_len)
-            domains.push_back({start_l, start_r, left_len, right_len, false});
+        int right_len = right.size() - start_r;
+        domains.push_back({start_l, start_r, left_len, right_len, false});
     }
 
     vector<VtxPair> incumbent, current;
@@ -361,7 +418,9 @@ vector<int> calculate_degrees(struct Graph &g) {
     vector<int> degree(g.n, 0);
     for (int v=0; v<g.n; v++) {
         for (int w=0; w<g.n; w++) {
-            if (g.adjmat[v][w]) degree[v]++;
+            unsigned int mask = 0xFFFFu;
+            if (g.adjmat[v][w] & mask) degree[v]++;
+            if (g.adjmat[v][w] & ~mask) degree[v]++;  // inward edge, in directed case
         }
     }
     return degree;
@@ -376,8 +435,8 @@ int main(int argc, char** argv) {
     argp_parse(&argp, argc, argv, 0, 0, 0);
 
     char format = arguments.dimacs ? 'D' : arguments.lad ? 'L' : 'B';
-    struct Graph g0 = readGraph(arguments.filename1, format);
-    struct Graph g1 = readGraph(arguments.filename2, format);
+    struct Graph g0 = readGraph(arguments.filename1, format, arguments.directed, arguments.labelled);
+    struct Graph g1 = readGraph(arguments.filename2, format, arguments.directed, arguments.labelled);
 
     auto start = std::chrono::steady_clock::now();
 
