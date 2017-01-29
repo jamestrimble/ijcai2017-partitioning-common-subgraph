@@ -37,6 +37,7 @@ static struct argp_option options[] = {
     {"connected", 'c', 0, 0, "Solve max common CONNECTED subgraph problem"},
     {"directed", 'i', 0, 0, "Use directed graphs"},
     {"labelled", 'a', 0, 0, "Use edge and vertex labels"},
+    {"big-first", 'b', 0, 0, "First try to find an induced subgraph isomorphism, then decrement the target size"},
     { 0 }
 };
 
@@ -48,6 +49,7 @@ static struct {
     bool connected;
     bool directed;
     bool labelled;
+    bool big_first;
     char *filename1;
     char *filename2;
     int arg_num;
@@ -61,6 +63,7 @@ void set_default_arguments() {
     arguments.connected = false;
     arguments.directed = false;
     arguments.labelled = false;
+    arguments.big_first = false;
     arguments.filename1 = NULL;
     arguments.filename2 = NULL;
     arguments.arg_num = 0;
@@ -96,6 +99,9 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         case 'a':
             arguments.labelled = true;
+            break;
+        case 'b':
+            arguments.big_first = true;
             break;
         case ARGP_KEY_ARG:
             if (arguments.arg_num == 0) {
@@ -329,7 +335,7 @@ void remove_bidomain(vector<Bidomain>& domains, int idx) {
 
 void solve(struct Graph& g0, struct Graph& g1, vector<VtxPair>& incumbent,
         vector<VtxPair>& current, vector<Bidomain>& domains,
-        vector<int>& left, vector<int>& right, int level)
+        vector<int>& left, vector<int>& right, unsigned int matching_size_goal)
 {
     if (arguments.verbose) show(current, domains, left, right);
     nodes++;
@@ -339,7 +345,11 @@ void solve(struct Graph& g0, struct Graph& g1, vector<VtxPair>& incumbent,
         if (!arguments.quiet) cout << "Incumbent size: " << incumbent.size() << endl;
     }
 
-    if (current.size() + calc_bound(domains) <= incumbent.size())
+    unsigned int bound = current.size() + calc_bound(domains);
+    if (bound <= incumbent.size() || bound < matching_size_goal)
+        return;
+
+    if (arguments.big_first && incumbent.size()==matching_size_goal)
         return;
 
     int bd_idx = select_bidomain(domains, left, current.size());
@@ -364,13 +374,13 @@ void solve(struct Graph& g0, struct Graph& g1, vector<VtxPair>& incumbent,
         auto new_domains = filter_domains(domains, left, right, g0, g1, v, w,
                 arguments.directed || arguments.labelled);
         current.push_back(VtxPair(v, w));
-        solve(g0, g1, incumbent, current, new_domains, left, right, level+1);
+        solve(g0, g1, incumbent, current, new_domains, left, right, matching_size_goal);
         current.pop_back();
     }
     bd.right_len++;
     if (bd.left_len == 0)
         remove_bidomain(domains, bd_idx);
-    solve(g0, g1, incumbent, current, domains, left, right, level+1);
+    solve(g0, g1, incumbent, current, domains, left, right, matching_size_goal);
 }
 
 vector<VtxPair> mcs(Graph& g0, Graph& g1) {
@@ -407,9 +417,24 @@ vector<VtxPair> mcs(Graph& g0, Graph& g1) {
         domains.push_back({start_l, start_r, left_len, right_len, false});
     }
 
-    vector<VtxPair> incumbent, current;
+    vector<VtxPair> incumbent;
 
-    solve(g0, g1, incumbent, current, domains, left, right, 1);
+    if (arguments.big_first) {
+        for (int k=0; k<g0.n; k++) {
+            unsigned int goal = g0.n - k;
+            auto left_copy = left;
+            auto right_copy = right;
+            auto domains_copy = domains;
+            vector<VtxPair> current;
+            solve(g0, g1, incumbent, current, domains_copy, left_copy, right_copy, goal);
+            if (incumbent.size() == goal) break;
+            std::cout << "Upper bound: " << goal-1 << std::endl;
+        }
+
+    } else {
+        vector<VtxPair> current;
+        solve(g0, g1, incumbent, current, domains, left, right, 1);
+    }
 
     return incumbent;
 }
