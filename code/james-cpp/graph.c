@@ -69,7 +69,6 @@ struct Graph readDimacsGraph(char* filename, bool directed, bool labelled) {
             case 'p':
                 if (sscanf(line, "p edge %d %d", &nvertices, &medges)!=2)
                     fail("Error reading a line beginning with p.\n");
-                printf("%d vertices\n", nvertices);
                 g = Graph(nvertices);
                 break;
             case 'e':
@@ -139,7 +138,6 @@ struct Graph readBinaryGraph(char* filename, bool directed, bool labelled) {
 
     int nvertices = read_word(f);
     g = Graph(nvertices);
-    printf("%d vertices\n", nvertices);
 
     // Labelling scheme: see
     // https://github.com/ciaranm/cp2016-max-common-connected-subgraph-paper/blob/master/code/solve_max_common_subgraph.cc

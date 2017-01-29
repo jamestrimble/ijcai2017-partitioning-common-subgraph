@@ -155,25 +155,25 @@ struct Bidomain {
 void show(const vector<VtxPair>& current, const vector<Bidomain> &domains,
         const vector<int>& left, const vector<int>& right)
 {
-    printf("Nodes: %llu\n", nodes);
-    printf("Length of current assignment: %ld\n", current.size());
-    printf("Current assignment:");
+    cout << "Nodes: " << nodes << std::endl;
+    cout << "Length of current assignment: " << current.size() << std::endl;
+    cout << "Current assignment:";
     for (unsigned int i=0; i<current.size(); i++) {
-        printf("  %d->%d", current[i].v, current[i].w);
+        cout << "  (" << current[i].v << " -> " << current[i].w << ")";
     }
-    printf("\n");
+    cout << std::endl;
     for (unsigned int i=0; i<domains.size(); i++) {
         struct Bidomain bd = domains[i];
-        printf("Left  ");
+        cout << "Left  ";
         for (int j=0; j<bd.left_len; j++)
-            printf("%d ", left[bd.l + j]);
-        printf("\n");
-        printf("Right  ");
+            cout << left[bd.l + j] << " ";
+        cout << std::endl;
+        cout << "Right  ";
         for (int j=0; j<bd.right_len; j++)
-            printf("%d ", right[bd.r + j]);
-        printf("\n");
+            cout << right[bd.r + j] << " ";
+        cout << std::endl;
     }
-    printf("\n\n");
+    cout << "\n" << std::endl;
 }
 
 bool check_sol(struct Graph *g0, struct Graph *g1, vector<VtxPair>& solution) {
@@ -428,7 +428,7 @@ vector<VtxPair> mcs(Graph& g0, Graph& g1) {
             vector<VtxPair> current;
             solve(g0, g1, incumbent, current, domains_copy, left_copy, right_copy, goal);
             if (incumbent.size() == goal) break;
-            std::cout << "Upper bound: " << goal-1 << std::endl;
+            if (!arguments.quiet) cout << "Upper bound: " << goal-1 << std::endl;
         }
 
     } else {
@@ -498,12 +498,12 @@ int main(int argc, char** argv) {
     if (!check_sol(&g0, &g1, solution))
         fail("*** Error: Invalid solution\n");
 
-    printf("Solution size %ld\n", solution.size());
+    cout << "Solution size " << solution.size() << std::endl;
     for (int i=0; i<g0.n; i++)
         for (unsigned int j=0; j<solution.size(); j++)
             if (solution[j].v == i)
-                printf("(%d -> %d) ", solution[j].v, solution[j].w);
-    printf("\n");
+                cout << "(" << solution[j].v << " -> " << solution[j].w << ") ";
+    cout << std::endl;
 
     cout << "Nodes:                      " << nodes << endl;
     cout << "CPU time (ms):              " << time_elapsed << endl;
