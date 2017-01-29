@@ -14,6 +14,10 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <mutex>
+#include <thread>
+#include <condition_variable>
+#include <atomic>
 
 using std::vector;
 using std::cout;
@@ -41,6 +45,7 @@ static struct argp_option options[] = {
     {"directed", 'i', 0, 0, "Use directed graphs"},
     {"labelled", 'a', 0, 0, "Use edge and vertex labels"},
     {"big-first", 'b', 0, 0, "First try to find an induced subgraph isomorphism, then decrement the target size"},
+    {"timeout", 't', "timeout", 0, "Specify a timeout (seconds)"},
     { 0 }
 };
 
@@ -56,8 +61,11 @@ static struct {
     Heuristic heuristic;
     char *filename1;
     char *filename2;
+    int timeout;
     int arg_num;
 } arguments;
+
+static std::atomic<bool> abort_due_to_timeout;
 
 void set_default_arguments() {
     arguments.quiet = false;
@@ -70,6 +78,7 @@ void set_default_arguments() {
     arguments.big_first = false;
     arguments.filename1 = NULL;
     arguments.filename2 = NULL;
+    arguments.timeout = 0;
     arguments.arg_num = 0;
 }
 
@@ -106,6 +115,9 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         case 'b':
             arguments.big_first = true;
+            break;
+        case 't':
+            arguments.timeout = std::stoi(arg);
             break;
         case ARGP_KEY_ARG:
             if (arguments.arg_num == 0) {
@@ -350,6 +362,9 @@ void solve(struct Graph& g0, struct Graph& g1, vector<VtxPair>& incumbent,
         vector<VtxPair>& current, vector<Bidomain>& domains,
         vector<int>& left, vector<int>& right, unsigned int matching_size_goal)
 {
+    if (abort_due_to_timeout)
+        return;
+
     if (arguments.verbose) show(current, domains, left, right);
     nodes++;
 
@@ -476,6 +491,31 @@ int main(int argc, char** argv) {
     struct Graph g0 = readGraph(arguments.filename1, format, arguments.directed, arguments.labelled);
     struct Graph g1 = readGraph(arguments.filename2, format, arguments.directed, arguments.labelled);
 
+    std::thread timeout_thread;
+    std::mutex timeout_mutex;
+    std::condition_variable timeout_cv;
+    abort_due_to_timeout.store(false);
+    bool aborted = false;
+
+    if (0 != arguments.timeout) {
+        timeout_thread = std::thread([&] {
+                auto abort_time = std::chrono::steady_clock::now() + std::chrono::seconds(arguments.timeout);
+                {
+                    /* Sleep until either we've reached the time limit,
+                     * or we've finished all the work. */
+                    std::unique_lock<std::mutex> guard(timeout_mutex);
+                    while (! abort_due_to_timeout.load()) {
+                        if (std::cv_status::timeout == timeout_cv.wait_until(guard, abort_time)) {
+                            /* We've woken up, and it's due to a timeout. */
+                            aborted = true;
+                            break;
+                        }
+                    }
+                }
+                abort_due_to_timeout.store(true);
+                });
+    }
+
     auto start = std::chrono::steady_clock::now();
 
     vector<int> g0_deg = calculate_degrees(g0);
@@ -508,6 +548,16 @@ int main(int argc, char** argv) {
     auto stop = std::chrono::steady_clock::now();
     auto time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
 
+    /* Clean up the timeout thread */
+    if (timeout_thread.joinable()) {
+        {
+            std::unique_lock<std::mutex> guard(timeout_mutex);
+            abort_due_to_timeout.store(true);
+            timeout_cv.notify_all();
+        }
+        timeout_thread.join();
+    }
+
     if (!check_sol(&g0, &g1, solution))
         fail("*** Error: Invalid solution\n");
 
@@ -520,4 +570,7 @@ int main(int argc, char** argv) {
 
     cout << "Nodes:                      " << nodes << endl;
     cout << "CPU time (ms):              " << time_elapsed << endl;
+    if (aborted)
+        cout << "TIMEOUT" << endl;
 }
+
