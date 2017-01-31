@@ -1,0 +1,35 @@
+set -e
+
+for i in $(seq 1 10); do
+    echo Iteration $i
+    for n in $(seq 0 10); do
+        for m in $(seq $n 10); do
+            echo "n=$n m=$m"
+            for looppolicy in $(seq 0 2); do
+                for maxvtxlab in $(seq 5 7); do
+                    for maxedgelab in $(seq 5 7); do
+                        for p in $(seq 0 25 100); do
+                            bin/generate $n $p 5 $maxvtxlab 5 $maxedgelab $looppolicy A.bin
+                            bin/generate $m $p 5 $maxvtxlab 5 $maxedgelab $looppolicy B.bin
+                            for type in "" labdir labdircon con; do
+                                ./compare_programs A.bin B.bin $type | awk '
+                                    /Solution/ {print $3}
+                                    /true|false/     {print $3}
+                                ' | sort | uniq -c | awk -vn=$n -vm=$m '
+                                    $1!=4 { print "Something went wrong", n, m, $0; }
+                                '
+                                ./compare_programs B.bin A.bin $type | awk '
+                                    /Solution/ {print $3}
+                                    /true|false/     {print $3}
+                                ' | sort | uniq -c | awk -vn=$n -vm=$m '
+                                    $1!=4 { print "Something went wrong", n, m, $0; }
+                                '
+                            done
+                        done
+                    done
+                done
+            done
+        done
+    done
+done
+

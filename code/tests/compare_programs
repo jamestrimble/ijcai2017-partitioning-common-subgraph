@@ -1,0 +1,39 @@
+if [ "$3" == "" ]
+then
+#    >&2 echo "Unlabelled and undirected"
+    ../james-c/mcsp $1 $2
+    ../james-cpp/mcsp min_max $1 $2
+    ../james-cpp/mcsp min_product $1 $2
+    ../../../../OthersCode/cp2016-max-common-connected-subgraph-paper/code/solve_max_common_subgraph \
+        --unlabelled --undirected $1 $2 2>/dev/null
+fi
+
+if [ "$3" == "labdir" ]
+then
+#    >&2 echo "Labelled and directed"
+    ../james-c/mcsp_labelled $1 $2 --directed
+    ../james-cpp/mcsp min_max $1 $2 --labelled --directed
+    ../james-cpp/mcsp min_product $1 $2 --labelled --directed
+    ../../../../OthersCode/cp2016-max-common-connected-subgraph-paper/code/solve_max_common_subgraph \
+        $1 $2 2>/dev/null
+fi
+
+if [ "$3" == "labcon" ]
+then
+#    >&2 echo "Labelled and directed and connected"
+    ../james-c/mcsp_labelled $1 $2 --connected
+    ../james-cpp/mcsp min_max $1 $2 --connected --directed
+    ../james-cpp/mcsp min_product $1 $2 --connected --directed
+    ../../../../OthersCode/cp2016-max-common-connected-subgraph-paper/code/solve_max_common_subgraph \
+        --unlabelled --connected $1 $2 2>/dev/null
+fi
+
+if [ "$3" == "con" ]
+then
+#    >&2 echo "Connected"
+    ../james-c/mcsp --connected $1 $2
+    ../james-cpp/mcsp --connected min_max $1 $2
+    ../james-cpp/mcsp --connected min_product $1 $2
+    ../../../../OthersCode/cp2016-max-common-connected-subgraph-paper/code/solve_max_common_subgraph \
+        --unlabelled --undirected --connected $1 $2 2>/dev/null
+fi
