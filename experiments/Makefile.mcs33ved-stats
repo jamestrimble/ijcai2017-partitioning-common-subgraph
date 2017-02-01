@@ -1,0 +1,78 @@
+SHELL := /bin/bash
+INSTANCES_FILE := mcs33vedinstances.txt
+INSTANCES := $(shell cut -d' ' -f1 $(INSTANCES_FILE) )
+ALGORITHMS := clique cp-fc cp-mac james-cpp-product james-cpp-product-down james-cpp-max james-cpp-max-down
+RESULTS := gpgnode-results/mcs33ved
+
+all : $(RESULTS)/runtimes.data $(RESULTS)/nodes.data
+
+runtimes : $(foreach i, $(INSTANCES), $(foreach a, $(ALGORITHMS), $(RESULTS)/$(a)/$i.runtime ))
+
+nodes : $(foreach i, $(INSTANCES), $(foreach a, $(ALGORITHMS), $(RESULTS)/$(a)/$i.nodes ))
+
+$(RESULTS)/clique/%.runtime : $(RESULTS)/clique/%.out
+	tail -n1 < $^ | cut -d' ' -f1 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/cp-fc/%.runtime : $(RESULTS)/cp-fc/%.out
+	grep '^time :' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/cp-mac/%.runtime : $(RESULTS)/cp-mac/%.out
+	grep '^time :' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-max/%.runtime : $(RESULTS)/james-cpp-max/%.out
+	grep '^CPU time (ms):' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-max-down/%.runtime : $(RESULTS)/james-cpp-max-down/%.out
+	grep '^CPU time (ms):' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-product/%.runtime : $(RESULTS)/james-cpp-product/%.out
+	grep '^CPU time (ms):' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-product-down/%.runtime : $(RESULTS)/james-cpp-product-down/%.out
+	grep '^CPU time (ms):' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/clique/%.nodes : $(RESULTS)/clique/%.out
+	tail -n3 < $^ | head -n1 | cut -d' ' -f1 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/cp-fc/%.nodes : $(RESULTS)/cp-fc/%.out
+	grep '^nodes :' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/cp-mac/%.nodes : $(RESULTS)/cp-mac/%.out
+	grep '^nodes :' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-max/%.nodes : $(RESULTS)/james-cpp-max/%.out
+	grep '^Nodes:' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-max-down/%.nodes : $(RESULTS)/james-cpp-max-down/%.out
+	grep '^Nodes:' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-product/%.nodes : $(RESULTS)/james-cpp-product/%.out
+	grep '^Nodes:' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-product-down/%.nodes : $(RESULTS)/james-cpp-product-down/%.out
+	grep '^Nodes:' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/runtimes.data : runtimes
+	{ echo instance $(ALGORITHMS) ; cut -d' ' -f1 < $(INSTANCES_FILE) | while read a ; do \
+	    echo $$a $$(cat $(foreach a, $(ALGORITHMS), $(RESULTS)/$(a)/$$a.runtime ) ) ; \
+	done ; } | tee $@
+
+$(RESULTS)/nodes.data : nodes
+	{ echo instance $(ALGORITHMS) ; cut -d' ' -f1 < $(INSTANCES_FILE) | while read a ; do \
+	    echo $$a $$(cat $(foreach a, $(ALGORITHMS), $(RESULTS)/$(a)/$$a.nodes ) ) ; \
+	done ; } | tee $@
+
