@@ -4,6 +4,7 @@
 \usepackage{ijcai17}
 \usepackage{times}
 \usepackage{graphicx}
+\usepackage{cleveref}
 
 \newcommand{\citet}[1]{\citeauthor{#1} \shortcite{#1}}
 \newcommand{\citep}[1]{\cite{#1}}
@@ -36,52 +37,52 @@ j.trimble.1@research.gla.ac.uk}
 
 Dual Xeon E5-2640 v2 CPUs, 64GBytes RAM. Parallel experiments 16 threads (one per hardware core), and 32 with hyper-threading.
 
-\paragraph{No labels, undirected}
+\paragraph{No labels, undirected} are in \cref{figure:plain-cumulative}.
+
+\paragraph{Vertex and edge labels, directed} are in \cref{figure:33ved-cumulative}.
+
+\paragraph{No labels, undirected, connected} have yet to be run.
+
+\paragraph{Vertex and edge labels, connected} have yet to be run.
+
+\paragraph{Large subgraph isomorphism instances} have yet to be run.
+
+\paragraph{Compared to CP FC} Runtimes are in \cref{figure:plain-james-versus-cp-fc-scatter} and \cref{figure:33ved-james-versus-cp-fc-scatter}, and nodes are in \cref{figure:plain-james-versus-cp-fc-nodes-scatter} and \cref{figure:33ved-james-versus-cp-fc-nodes-scatter}.
 
 \begin{figure}
     \centering
     \includegraphics*{gen-graph-plain-cumulative.pdf}
-    \caption{MCS Plain instances, cumulative runtimes}
+    \caption{MCS Plain instances, cumulative runtimes}\label{figure:plain-cumulative}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics*{gen-graph-33ved-cumulative.pdf}
-    \caption{MCS 33\% vertex and edge labelled directed instances, cumulative runtimes}
+    \caption{MCS 33\% vertex and edge labelled directed instances, cumulative runtimes}\label{figure:33ved-cumulative}
 \end{figure}
-
-\paragraph{Vertex and edge labels, directed}
-
-\paragraph{No labels, undirected, connected}
-
-\paragraph{Vertex and edge labels, connected}
-
-\paragraph{Large subgraph isomorphism instances}
-
-\paragraph{Compared to CP FC}
 
 \begin{figure}
     \centering
     \includegraphics*{gen-graph-plain-james-versus-cp-fc-scatter.pdf}
-    \caption{MCS Plain instances, James vs CP-FC, Runtimes}
+    \caption{MCS Plain instances, James vs CP-FC, Runtimes (TODO?? heatmapify this)}\label{figure:plain-james-versus-cp-fc-scatter}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics*{gen-graph-33ved-james-versus-cp-fc-scatter.pdf}
-    \caption{MCS 33\% vertex and edge labelled directed instances, James vs CP-FC, Runtimes}
+    \caption{MCS 33\% vertex and edge labelled directed instances, James vs CP-FC, Runtimes (TODO?? heatmapify this)}\label{figure:33ved-james-versus-cp-fc-scatter}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics*{gen-graph-plain-james-versus-cp-fc-nodes-scatter.pdf}
-    \caption{MCS Plain instances, James vs CP-FC, Nodes}
+    \caption{MCS Plain instances, James vs CP-FC, Nodes (TODO?? heatmapify this)}\label{figure:plain-james-versus-cp-fc-nodes-scatter}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics*{gen-graph-33ved-james-versus-cp-fc-nodes-scatter.pdf}
-    \caption{MCS 33\% vertex and edge labelled directed instances, James vs CP-FC, Nodes}
+    \caption{MCS 33\% vertex and edge labelled directed instances, James vs CP-FC, Nodes (TODO?? heatmapify this)}\label{figure:33ved-james-versus-cp-fc-nodes-scatter}
 \end{figure}
 
 \bibliographystyle{named}
