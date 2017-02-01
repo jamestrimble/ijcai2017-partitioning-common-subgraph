@@ -32,23 +32,57 @@ j.trimble.1@research.gla.ac.uk}
 
 \citet{DBLP:conf/cp/NdiayeS11}
 
-\section{Results}
+\section{Computational Experiments}
 
-\begin{figure*}[tb]
+Dual Xeon E5-2640 v2 CPUs, 64GBytes RAM. Parallel experiments 16 threads (one per hardware core), and 32 with hyper-threading.
+
+\paragraph{No labels, undirected}
+
+\begin{figure}
     \centering
-    \includegraphics*{gen-graph-mcs.pdf}
-    \caption{First plot is induced SIP instances, second plot is unlabelled
-    undirected MCS instances.}\label{figure:runtimes}
-\end{figure*}
+    \includegraphics*{gen-graph-plain-cumulative.pdf}
+    \caption{MCS Plain instances, cumulative runtimes}
+\end{figure}
 
-\section{Connected}
+\begin{figure}
+    \centering
+    \includegraphics*{gen-graph-33ved-cumulative.pdf}
+    \caption{MCS 33\% vertex and edge labelled directed instances, cumulative runtimes}
+\end{figure}
 
-\section{Parallel}
+\paragraph{Vertex and edge labels, directed}
 
-\section{Labelled and Directed Edges}
+\paragraph{No labels, undirected, connected}
 
-James reckons that finding a match is so rare that it's more or less down to
-finding a maximum independent set, at least in the non-connected case.
+\paragraph{Vertex and edge labels, connected}
+
+\paragraph{Large subgraph isomorphism instances}
+
+\paragraph{Compared to CP FC}
+
+\begin{figure}
+    \centering
+    \includegraphics*{gen-graph-plain-james-versus-cp-fc-scatter.pdf}
+    \caption{MCS Plain instances, James vs CP-FC, Runtimes}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics*{gen-graph-33ved-james-versus-cp-fc-scatter.pdf}
+    \caption{MCS 33\% vertex and edge labelled directed instances, James vs CP-FC, Runtimes}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics*{gen-graph-plain-james-versus-cp-fc-nodes-scatter.pdf}
+    \caption{MCS Plain instances, James vs CP-FC, Nodes}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics*{gen-graph-33ved-james-versus-cp-fc-nodes-scatter.pdf}
+    \caption{MCS 33\% vertex and edge labelled directed instances, James vs CP-FC, Nodes}
+\end{figure}
 
 \bibliographystyle{named}
 \bibliography{paper}
