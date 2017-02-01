@@ -1,0 +1,25 @@
+Parameters: GAD=1 vflib=0 dir=0 label=0 lowerbound=1 fileNameGp=../instances/LV/g15 fileNameGt=../instances/largerGraphs/g73-normed
+Reading graphs...
+50 : 145
+561 : 1628
+Initializing...
+maxdom : 561
+D->valSize : 28050
+Solving...
+Blb : 5 (clique : 30)
+currentSize : 30 <-- 13.373442 s
+currentSize : 31 <-- 13.389385 s
+currentSize : 32 <-- 13.472635 s
+currentSize : 33 <-- 13.575450 s
+currentSize : 34 <-- 14.188333 s
+currentSize : 35 <-- 14.522749 s
+currentSize : 36 <-- 14.588042 s
+currentSize : 37 <-- 15.035974 s
+currentSize : 38 <-- 15.141903 s
+currentSize : 39 <-- 16.861452 s
+
+TIMEOUT
+maxsize : 39
+nodes : 16228381.000000
+filtered : 11070048704.000000
+time : 1000.000061

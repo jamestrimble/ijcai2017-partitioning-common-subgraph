@@ -1,0 +1,56 @@
+Parameters: GAD=1 vflib=1 dir=0 label=0 lowerbound=1 fileNameGp=../../cp2016-max-common-connected-subgraph-paper/datasets/graphsdb/mcs50/m4D/m4Dr2/mcs50_m4Dr2_s40.A05 fileNameGt=../../cp2016-max-common-connected-subgraph-paper/datasets/graphsdb/mcs50/m4D/m4Dr2/mcs50_m4Dr2_s40.B05
+Reading graphs...
+40 :  78
+40 :  78
+Initializing...
+maxdom : 40
+D->valSize : 1600
+Solving...
+Blb : 2 (clique : 22)
+currentSize : 22 <-- 0.035523 s
+currentSize : 23 <-- 0.064587 s
+currentSize : 24 <-- 0.174270 s
+currentSize : 25 <-- 0.824386 s
+currentSize : 26 <-- 0.903445 s
+currentSize : 27 <-- 5.452198 s
+currentSize : 28 <-- 16.260859 s
+currentSize : 29 <-- 346.302673 s
+
+TIMEOUT
+maxsize : 29
+nodes : 122046289.000000
+filtered : 6523831947.000000
+time : 1000.000000
+
+
+Display solution 
+
+0 --> 16
+1 --> 26
+3 --> 20
+4 --> 11
+5 --> 9
+6 --> 23
+9 --> 10
+10 --> 32
+11 --> 22
+12 --> 12
+13 --> 39
+16 --> 31
+17 --> 4
+18 --> 29
+19 --> 25
+20 --> 37
+21 --> 13
+22 --> 33
+26 --> 19
+27 --> 7
+28 --> 21
+29 --> 2
+30 --> 8
+32 --> 34
+33 --> 30
+34 --> 35
+35 --> 27
+36 --> 15
+37 --> 0

@@ -1,0 +1,18 @@
+Parameters: GAD=1 vflib=0 dir=0 label=0 lowerbound=1 fileNameGp=../instances/si/si2_rand_r001_600/si2_r001_m600.04/pattern fileNameGt=../instances/si/si2_rand_r001_600/si2_r001_m600.04/target
+Reading graphs...
+120 : 223
+600 : 3640
+Initializing...
+maxdom : 600
+D->valSize : 72000
+Solving...
+Blb : 2 (clique : 84)
+currentSize : 84 <-- 112.005775 s
+currentSize : 86 <-- 112.022049 s
+currentSize : 87 <-- 116.143555 s
+
+TIMEOUT
+maxsize : 87
+nodes : 68611238.000000
+filtered : 2115994192.000000
+time : 1000.000122

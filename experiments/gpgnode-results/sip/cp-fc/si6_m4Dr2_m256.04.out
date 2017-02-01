@@ -1,0 +1,22 @@
+Parameters: GAD=1 vflib=0 dir=0 label=0 lowerbound=1 fileNameGp=../instances/si/si6_m4D_m4Dr2_256/si6_m4Dr2_m256.04/pattern fileNameGt=../instances/si/si6_m4D_m4Dr2_256/si6_m4Dr2_m256.04/target
+Reading graphs...
+153 : 346
+256 : 722
+Initializing...
+maxdom : 256
+D->valSize : 39168
+Solving...
+Blb : 2 (clique : 96)
+currentSize : 96 <-- 29.581427 s
+currentSize : 97 <-- 35.635506 s
+currentSize : 98 <-- 95.949562 s
+currentSize : 99 <-- 112.564003 s
+currentSize : 100 <-- 170.000397 s
+currentSize : 101 <-- 194.179382 s
+currentSize : 102 <-- 195.526505 s
+
+TIMEOUT
+maxsize : 102
+nodes : 62164843.000000
+filtered : 3298483334.000000
+time : 1000.000183

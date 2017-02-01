@@ -1,0 +1,21 @@
+Parameters: GAD=1 vflib=0 dir=0 label=0 lowerbound=1 fileNameGp=../instances/LV/g19 fileNameGt=../instances/LV/g35
+Reading graphs...
+64 : 168
+120 : 317
+Initializing...
+maxdom : 120
+D->valSize : 7680
+Solving...
+Blb : 2 (clique : 35)
+currentSize : 35 <-- 0.906366 s
+currentSize : 36 <-- 0.911358 s
+currentSize : 37 <-- 0.954135 s
+currentSize : 38 <-- 1.261412 s
+currentSize : 39 <-- 1.290396 s
+currentSize : 40 <-- 2.187984 s
+
+TIMEOUT
+maxsize : 40
+nodes : 53357779.000000
+filtered : 11330166158.000000
+time : 1000.000061

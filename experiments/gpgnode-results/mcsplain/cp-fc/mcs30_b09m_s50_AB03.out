@@ -1,0 +1,49 @@
+Parameters: GAD=1 vflib=1 dir=0 label=0 lowerbound=1 fileNameGp=../../cp2016-max-common-connected-subgraph-paper/datasets/graphsdb/mcs30/bvg/b09m/mcs30_b09m_s50.A03 fileNameGt=../../cp2016-max-common-connected-subgraph-paper/datasets/graphsdb/mcs30/bvg/b09m/mcs30_b09m_s50.B03
+Reading graphs...
+50 :  210
+50 :  213
+Initializing...
+maxdom : 50
+D->valSize : 2500
+Solving...
+Blb : 2 (clique : 19)
+currentSize : 19 <-- 0.086142 s
+currentSize : 20 <-- 0.093565 s
+currentSize : 21 <-- 0.094157 s
+currentSize : 22 <-- 0.126267 s
+currentSize : 23 <-- 0.229001 s
+currentSize : 24 <-- 1.205285 s
+
+TIMEOUT
+maxsize : 24
+nodes : 178657173.000000
+filtered : 4637227955.000000
+time : 1000.000000
+
+
+Display solution 
+
+0 --> 34
+1 --> 46
+4 --> 0
+5 --> 36
+6 --> 17
+7 --> 14
+11 --> 39
+12 --> 19
+13 --> 28
+17 --> 6
+20 --> 44
+24 --> 29
+26 --> 21
+27 --> 9
+28 --> 1
+29 --> 49
+30 --> 45
+31 --> 25
+37 --> 5
+41 --> 43
+42 --> 41
+45 --> 42
+46 --> 3
+49 --> 37

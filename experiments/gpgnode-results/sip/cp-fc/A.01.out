@@ -1,0 +1,21 @@
+Parameters: GAD=1 vflib=0 dir=0 label=0 lowerbound=1 fileNameGp=../instances/scalefree/A.01/pattern fileNameGt=../instances/scalefree/A.01/target
+Reading graphs...
+180 : 497
+200 : 612
+Initializing...
+maxdom : 200
+D->valSize : 36000
+Solving...
+Blb : 2 (clique : 84)
+currentSize : 84 <-- 32.435097 s
+currentSize : 85 <-- 32.470543 s
+currentSize : 86 <-- 32.575527 s
+currentSize : 87 <-- 33.982616 s
+currentSize : 88 <-- 94.061707 s
+currentSize : 89 <-- 325.108551 s
+
+TIMEOUT
+maxsize : 89
+nodes : 107332895.000000
+filtered : 2063032714.000000
+time : 1000.000122

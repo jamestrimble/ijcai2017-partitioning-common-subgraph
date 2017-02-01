@@ -1,0 +1,26 @@
+Parameters: GAD=1 vflib=0 dir=0 label=0 lowerbound=1 fileNameGp=../instances/meshes-CVIU11/patterns/pattern3 fileNameGt=../instances/meshes-CVIU11/targets/target512
+Reading graphs...
+163 : 288
+514 : 1349
+Initializing...
+maxdom : 514
+D->valSize : 83782
+Solving...
+Blb : 3 (clique : 36)
+currentSize : 36 <-- 182.429916 s
+currentSize : 75 <-- 182.442062 s
+currentSize : 76 <-- 182.442703 s
+currentSize : 77 <-- 182.443466 s
+currentSize : 78 <-- 182.449020 s
+currentSize : 79 <-- 182.453705 s
+currentSize : 80 <-- 182.488556 s
+currentSize : 81 <-- 182.514038 s
+currentSize : 82 <-- 182.597900 s
+currentSize : 83 <-- 182.980865 s
+currentSize : 84 <-- 183.248764 s
+
+TIMEOUT
+maxsize : 84
+nodes : 29308415.000000
+filtered : 1959881367.000000
+time : 1000.000183

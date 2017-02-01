@@ -1,0 +1,23 @@
+Parameters: GAD=1 vflib=0 dir=0 label=0 lowerbound=1 fileNameGp=../instances/si/si4_rand_r005_400/si4_r005_m400.06/pattern fileNameGt=../instances/si/si4_rand_r005_400/si4_r005_m400.06/target
+Reading graphs...
+160 : 1182
+400 : 7802
+Initializing...
+maxdom : 400
+D->valSize : 64000
+Solving...
+Blb : 2 (clique : 45)
+currentSize : 45 <-- 108.431183 s
+currentSize : 46 <-- 108.437935 s
+currentSize : 47 <-- 108.483986 s
+currentSize : 48 <-- 108.569214 s
+currentSize : 49 <-- 111.724136 s
+currentSize : 50 <-- 112.589378 s
+currentSize : 51 <-- 136.892700 s
+currentSize : 52 <-- 229.347305 s
+
+TIMEOUT
+maxsize : 52
+nodes : 98201770.000000
+filtered : 1778039816.000000
+time : 1000.000122

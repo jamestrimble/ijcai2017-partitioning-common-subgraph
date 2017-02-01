@@ -1,0 +1,21 @@
+Parameters: GAD=1 vflib=0 dir=0 label=0 lowerbound=1 fileNameGp=../instances/phase/phase-30-150-0.68-0.64-0.68-1-pattern fileNameGt=../instances/phase/phase-30-150-0.68-0.64-0.68-1-target
+Reading graphs...
+30 : 304
+150 : 7284
+Initializing...
+maxdom : 150
+D->valSize : 4500
+Solving...
+Blb : 5 (clique : 13)
+currentSize : 13 <-- 0.241503 s
+currentSize : 14 <-- 0.241846 s
+currentSize : 15 <-- 0.245194 s
+currentSize : 16 <-- 0.245426 s
+currentSize : 17 <-- 0.822737 s
+currentSize : 18 <-- 118.414268 s
+
+TIMEOUT
+maxsize : 18
+nodes : 252413574.000000
+filtered : 3444244478.000000
+time : 1000.000000

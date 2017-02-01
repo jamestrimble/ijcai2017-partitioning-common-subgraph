@@ -1,0 +1,40 @@
+Parameters: GAD=1 vflib=1 dir=0 label=0 lowerbound=1 fileNameGp=../../cp2016-max-common-connected-subgraph-paper/datasets/graphsdb/mcs90/m4D/m4D/mcs90_m4D_s20.A05 fileNameGt=../../cp2016-max-common-connected-subgraph-paper/datasets/graphsdb/mcs90/m4D/m4D/mcs90_m4D_s20.B05
+Reading graphs...
+20 :  37
+20 :  37
+Initializing...
+maxdom : 20
+D->valSize : 400
+Solving...
+Blb : 2 (clique : 12)
+currentSize : 12 <-- 0.002425 s
+currentSize : 14 <-- 0.002911 s
+currentSize : 15 <-- 0.003314 s
+currentSize : 16 <-- 0.007863 s
+currentSize : 17 <-- 0.016180 s
+
+maxsize : 17
+nodes : 6965.000000
+filtered : 125308.000000
+time : 0.024244
+
+
+Display solution 
+
+0 --> 10
+1 --> 7
+2 --> 13
+3 --> 4
+4 --> 3
+5 --> 6
+6 --> 19
+7 --> 14
+8 --> 16
+9 --> 15
+11 --> 1
+12 --> 9
+13 --> 2
+14 --> 11
+15 --> 8
+17 --> 18
+18 --> 12

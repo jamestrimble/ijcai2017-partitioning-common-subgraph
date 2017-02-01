@@ -1,0 +1,25 @@
+Parameters: GAD=1 vflib=0 dir=0 label=0 lowerbound=1 fileNameGp=../instances/si/si6_bvg_b06m_200/si6_b06m_m200.08/pattern fileNameGt=../instances/si/si6_bvg_b06m_200/si6_b06m_m200.08/target
+Reading graphs...
+120 : 281
+200 : 600
+Initializing...
+maxdom : 200
+D->valSize : 24000
+Solving...
+Blb : 2 (clique : 69)
+currentSize : 69 <-- 10.127474 s
+currentSize : 70 <-- 10.134250 s
+currentSize : 71 <-- 10.146246 s
+currentSize : 72 <-- 10.183263 s
+currentSize : 73 <-- 10.861799 s
+currentSize : 74 <-- 10.922778 s
+currentSize : 75 <-- 11.161220 s
+currentSize : 76 <-- 15.151534 s
+currentSize : 77 <-- 19.355017 s
+currentSize : 78 <-- 19.361521 s
+
+TIMEOUT
+maxsize : 78
+nodes : 37765005.000000
+filtered : 5196691388.000000
+time : 1000.000122
