@@ -8,7 +8,7 @@ set xtics nomirror
 set ytics nomirror
 
 set xlabel "Heuristic: minimise product"
-set ylabel "Heuristic: minimise max(left_size, right_size)"
+set ylabel "Heuristic: minimise max(leftsize, rightsize)"
 set format x '10^%T'
 set format y '10^%T'
 
