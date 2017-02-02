@@ -1,21 +1,23 @@
 #include "graph.h"
 
-#include <argp.h>
-#include <limits.h>
-#include <locale.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
+#include <algorithm>
+#include <numeric>
+#include <chrono>
 #include <iostream>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
-#include <chrono>
+#include <mutex>
+#include <thread>
+#include <condition_variable>
 #include <atomic>
 
-#include <cilk/cilk.h>
+#include <argp.h>
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 using std::vector;
 using std::cout;
@@ -26,40 +28,57 @@ static void fail(std::string msg) {
     exit(1);
 }
 
+enum Heuristic { min_max, min_product };
+
 /*******************************************************************************
                              Command-line arguments
 *******************************************************************************/
 
-static char doc[] = "Find a maximum clique in a graph in DIMACS format";
-static char args_doc[] = "FILENAME1 FILENAME2";
+static char doc[] = "Find a maximum clique in a graph in DIMACS format\vHEURISTIC can be min_max or min_product";
+static char args_doc[] = "HEURISTIC FILENAME1 FILENAME2";
 static struct argp_option options[] = {
     {"quiet", 'q', 0, 0, "Quiet output"},
     {"verbose", 'v', 0, 0, "Verbose output"},
     {"dimacs", 'd', 0, 0, "Read DIMACS format"},
     {"lad", 'l', 0, 0, "Read LAD format"},
     {"connected", 'c', 0, 0, "Solve max common CONNECTED subgraph problem"},
+    {"directed", 'i', 0, 0, "Use directed graphs"},
+    {"labelled", 'a', 0, 0, "Use edge and vertex labels"},
+    {"big-first", 'b', 0, 0, "First try to find an induced subgraph isomorphism, then decrement the target size"},
+    {"timeout", 't', "timeout", 0, "Specify a timeout (seconds)"},
     { 0 }
 };
 
 static struct {
     bool quiet;
     bool verbose;
-    bool connected;
     bool dimacs;
     bool lad;
+    bool connected;
+    bool directed;
+    bool labelled;
+    bool big_first;
+    Heuristic heuristic;
     char *filename1;
     char *filename2;
+    int timeout;
     int arg_num;
 } arguments;
+
+static std::atomic<bool> abort_due_to_timeout;
 
 void set_default_arguments() {
     arguments.quiet = false;
     arguments.verbose = false;
-    arguments.connected = false;
     arguments.dimacs = false;
     arguments.lad = false;
+    arguments.connected = false;
+    arguments.directed = false;
+    arguments.labelled = false;
+    arguments.big_first = false;
     arguments.filename1 = NULL;
     arguments.filename2 = NULL;
+    arguments.timeout = 0;
     arguments.arg_num = 0;
 }
 
@@ -82,12 +101,35 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
             arguments.verbose = true;
             break;
         case 'c':
+            if (arguments.directed)
+                fail("The connected and directed options can't be used together.");
             arguments.connected = true;
+            break;
+        case 'i':
+            if (arguments.connected)
+                fail("The connected and directed options can't be used together.");
+            arguments.directed = true;
+            break;
+        case 'a':
+            arguments.labelled = true;
+            break;
+        case 'b':
+            arguments.big_first = true;
+            break;
+        case 't':
+            arguments.timeout = std::stoi(arg);
             break;
         case ARGP_KEY_ARG:
             if (arguments.arg_num == 0) {
-                arguments.filename1 = arg;
+                if (std::string(arg) == "min_max")
+                    arguments.heuristic = min_max;
+                else if (std::string(arg) == "min_product")
+                    arguments.heuristic = min_product;
+                else
+                    fail("Unknown heuristic (try min_max or min_product)");
             } else if (arguments.arg_num == 1) {
+                arguments.filename1 = arg;
+            } else if (arguments.arg_num == 2) {
                 arguments.filename2 = arg;
             } else {
                 argp_usage(state);
@@ -109,7 +151,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
                                      Stats
 *******************************************************************************/
 
-std::atomic<unsigned long long> nodes{ 0 };
+unsigned long long nodes{ 0 };
 
 /*******************************************************************************
                                  MCS functions
@@ -133,20 +175,45 @@ struct Bidomain {
             is_adjacent (is_adjacent) { };
 };
 
-bool check_sol(struct Graph *g0, struct Graph *g1, vector<VtxPair>& solution) {
-    vector<bool> used_left(g0->n, false);
-    vector<bool> used_right(g1->n, false);
+void show(const vector<VtxPair>& current, const vector<Bidomain> &domains,
+        const vector<int>& left, const vector<int>& right)
+{
+    cout << "Nodes: " << nodes << std::endl;
+    cout << "Length of current assignment: " << current.size() << std::endl;
+    cout << "Current assignment:";
+    for (unsigned int i=0; i<current.size(); i++) {
+        cout << "  (" << current[i].v << " -> " << current[i].w << ")";
+    }
+    cout << std::endl;
+    for (unsigned int i=0; i<domains.size(); i++) {
+        struct Bidomain bd = domains[i];
+        cout << "Left  ";
+        for (int j=0; j<bd.left_len; j++)
+            cout << left[bd.l + j] << " ";
+        cout << std::endl;
+        cout << "Right  ";
+        for (int j=0; j<bd.right_len; j++)
+            cout << right[bd.r + j] << " ";
+        cout << std::endl;
+    }
+    cout << "\n" << std::endl;
+}
+
+bool check_sol(const Graph & g0, const Graph & g1 , const vector<VtxPair> & solution) {
+    return true;
+    vector<bool> used_left(g0.n, false);
+    vector<bool> used_right(g1.n, false);
     for (unsigned int i=0; i<solution.size(); i++) {
         struct VtxPair p0 = solution[i];
         if (used_left[p0.v] || used_right[p0.w])
             return false;
         used_left[p0.v] = true;
         used_right[p0.w] = true;
-        if (g0->label[p0.v] != g1->label[p0.w])
+        if (g0.label[p0.v] != g1.label[p0.w])
             return false;
         for (unsigned int j=i+1; j<solution.size(); j++) {
             struct VtxPair p1 = solution[j];
-            if (g0->adjmat[p0.v][p1.v] != g1->adjmat[p0.w][p1.w])
+            if (g0.adjmat[p0.v][p1.v] != g1.adjmat[p0.w][p1.w])
                 return false;
         }
     }
@@ -161,77 +228,105 @@ int calc_bound(const vector<Bidomain>& domains) {
     return bound;
 }
 
-int select_bidomain(const vector<Bidomain>& domains, int current_matching_size) {
-    // Select the bidomain with the smallest max(leftsize, rightsize), breaking
-    // ties on the smallest vertex index in the left set
-    int min_size = INT_MAX;
-    int best = -1;
-    for (unsigned int i=0; i<domains.size(); i++) {
-    const Bidomain &bd = domains[i];
-        if (arguments.connected && current_matching_size>0 && !bd.is_adjacent) continue;
-        if (bd.left_len==0) continue;  // This could happen if a decision has been
-                                       // made to reject a vertex
-        int len = std::max(bd.left_len, bd.right_len);
-        if (len < min_size) {
-            min_size = len;
-            best = i;
-        }
-    }
-    return best;
-}
-
-void filter(const vector<int>& arr, int start_idx, int len,
-        vector<int>&out_arr, int v, const std::vector<unsigned char>& adjrow)
-{
-    for (int j=0; j<len; j++) {
-        int w = arr[start_idx + j];
-        if (adjrow[w]) {
-            out_arr.push_back(w);
-        }
-    }
-}
-
-vector<Bidomain> filter_domains(const vector<Bidomain> &d,
-        const vector<int>& old_left, const vector<int>& old_right,
-        vector<int>& new_left, vector<int>& new_right,
-        struct Graph *g0, struct Graph *g1, int v, int w)
-{
-    vector<Bidomain> new_d;
-    new_d.reserve(d.size());
-    int l = 0;
-    int r = 0;
-    for (const Bidomain &old_bd : d) {
-        if (!old_bd.left_len || !old_bd.right_len) continue;
-        for (int edge=0; edge<=1; edge++) {
-            filter(old_left, old_bd.l, old_bd.left_len, new_left, v,
-                    edge ? g0->adjmat[v] : g0->antiadjmat[v]);
-            int left_len = new_left.size() - l;
-            if (left_len) {
-                filter(old_right, old_bd.r, old_bd.right_len, new_right, w,
-                        edge ? g1->adjmat[w] : g1->antiadjmat[w]);
-                int right_len = new_right.size() - r;
-                if (right_len) {
-                    new_d.push_back({l, r, left_len, right_len, old_bd.is_adjacent | edge});
-                    l = new_left.size();
-                    r = new_right.size();
-                } else {
-                    new_left.resize(l);
-                    new_right.resize(r);
-                }
-            } else {
-                new_left.resize(l);
-            }
-        }
-    }
-    return new_d;
-}
-
 int find_min_value(const vector<int>& arr, int start_idx, int len) {
     int min_v = INT_MAX;
     for (int i=0; i<len; i++)
         if (arr[start_idx + i] < min_v)
             min_v = arr[start_idx + i];
     return min_v;
+}
+
+int select_bidomain(const vector<Bidomain>& domains, const vector<int> & left,
+        int current_matching_size)
+{
+    // Select the bidomain with the smallest max(leftsize, rightsize), breaking
+    // ties on the smallest vertex index in the left set
+    int min_size = INT_MAX;
+    int min_tie_breaker = INT_MAX;
+    int best = -1;
+    for (unsigned int i=0; i<domains.size(); i++) {
+        const Bidomain &bd = domains[i];
+        if (arguments.connected && current_matching_size>0 && !bd.is_adjacent) continue;
+        int len = arguments.heuristic == min_max ?
+                std::max(bd.left_len, bd.right_len) :
+                bd.left_len * bd.right_len;
+        if (len < min_size) {
+            min_size = len;
+            min_tie_breaker = find_min_value(left, bd.l, bd.left_len);
+            best = i;
+        } else if (len == min_size) {
+            int tie_breaker = find_min_value(left, bd.l, bd.left_len);
+            if (tie_breaker < min_tie_breaker) {
+                min_tie_breaker = tie_breaker;
+                best = i;
+            }
+        }
+    }
+    return best;
+}
+
+// Returns length of left half of array
+int partition(vector<int>& all_vv, int start, int len, const vector<unsigned int> & adjrow) {
+    int i=0;
+    for (int j=0; j<len; j++) {
+        if (adjrow[all_vv[start+j]]) {
+            std::swap(all_vv[start+i], all_vv[start+j]);
+            i++;
+        }
+    }
+    return i;
+}
+
+// multiway is for directed and/or labelled graphs
+vector<Bidomain> filter_domains(const vector<Bidomain> & d, vector<int> & left,
+        vector<int> & right, const Graph & g0, const Graph & g1, int v, int w,
+        bool multiway)
+{
+    vector<Bidomain> new_d;
+    new_d.reserve(d.size());
+    for (const Bidomain &old_bd : d) {
+        int l = old_bd.l;
+        int r = old_bd.r;
+        // After these two partitions, left_len and right_len are the lengths of the
+        // arrays of vertices with edges from v or w (int the directed case, edges
+        // either from or to v or w)
+        int left_len = partition(left, l, old_bd.left_len, g0.adjmat[v]);
+        int right_len = partition(right, r, old_bd.right_len, g1.adjmat[w]);
+        int left_len_noedge = old_bd.left_len - left_len;
+        int right_len_noedge = old_bd.right_len - right_len;
+        if (left_len_noedge && right_len_noedge)
+            new_d.push_back({l+left_len, r+right_len, left_len_noedge, right_len_noedge, old_bd.is_adjacent});
+        if (multiway && left_len && right_len) {
+            auto& adjrow_v = g0.adjmat[v];
+            auto& adjrow_w = g1.adjmat[w];
+            auto l_begin = std::begin(left) + l;
+            auto r_begin = std::begin(right) + r;
+            std::sort(l_begin, l_begin+left_len, [&](int a, int b)
+                    { return adjrow_v[a] < adjrow_v[b]; });
+            std::sort(r_begin, r_begin+right_len, [&](int a, int b)
+                    { return adjrow_w[a] < adjrow_w[b]; });
+            int l_top = l + left_len;
+            int r_top = r + right_len;
+            while (l<l_top && r<r_top) {
+                unsigned int left_label = adjrow_v[left[l]];
+                unsigned int right_label = adjrow_w[right[r]];
+                if (left_label < right_label) {
+                    l++;
+                } else if (left_label > right_label) {
+                    r++;
+                } else {
+                    int lmin = l;
+                    int rmin = r;
+                    do { l++; } while (l<l_top && adjrow_v[left[l]]==left_label);
+                    do { r++; } while (r<r_top && adjrow_w[right[r]]==left_label);
+                    new_d.push_back({lmin, rmin, l-lmin, r-rmin, true});
+                }
+            }
+        } else if (left_len && right_len) {
+            new_d.push_back({l, r, left_len, right_len, true});
+        }
+    }
+    return new_d;
 }
 
 // returns the index of the smallest value in arr that is >w.
@@ -254,14 +349,23 @@ void remove_vtx_from_left_domain(vector<int>& left, Bidomain& bd, int v)
 {
     int i = 0;
     while(left[bd.l + i] != v) i++;
-    left[bd.l+i] = left[bd.l+bd.left_len-1];
+    std::swap(left[bd.l+i], left[bd.l+bd.left_len-1]);
     bd.left_len--;
 }
 
-void solve(struct Graph *g0, struct Graph *g1, vector<VtxPair>& incumbent,
-        const vector<VtxPair>& current, const vector<Bidomain> &domains,
-        const vector<int>& left, const vector<int>& right, int level)
+void remove_bidomain(vector<Bidomain>& domains, int idx) {
+    domains[idx] = domains[domains.size()-1];
+    domains.pop_back();
+}
+
+void solve(const Graph & g0, const Graph & g1, vector<VtxPair> & incumbent,
+        vector<VtxPair> & current, vector<Bidomain> & domains,
+        vector<int> & left, vector<int> & right, unsigned int matching_size_goal)
 {
+    if (abort_due_to_timeout)
+        return;
+
+    if (arguments.verbose) show(current, domains, left, right);
     nodes++;
 
     if (current.size() > incumbent.size()) {
@@ -269,71 +373,114 @@ void solve(struct Graph *g0, struct Graph *g1, vector<VtxPair>& incumbent,
         if (!arguments.quiet) cout << "Incumbent size: " << incumbent.size() << endl;
     }
 
-    if (current.size() + calc_bound(domains) <= incumbent.size())
+    unsigned int bound = current.size() + calc_bound(domains);
+    if (bound <= incumbent.size() || bound < matching_size_goal)
         return;
 
-    int bd_idx = select_bidomain(domains, current.size());
+    if (arguments.big_first && incumbent.size()==matching_size_goal)
+        return;
+
+    int bd_idx = select_bidomain(domains, left, current.size());
     if (bd_idx == -1)   // In the MCCS case, there may be nothing we can branch on
         return;
-    const Bidomain &bd = domains[bd_idx];
+    Bidomain &bd = domains[bd_idx];
 
     int v = find_min_value(left, bd.l, bd.left_len);
+    remove_vtx_from_left_domain(left, domains[bd_idx], v);
 
-    // Try assigning v to each vertex w in bd.right_vv, in turn
+    // Try assigning v to each vertex w in the colour class beginning at bd.r, in turn
     int w = -1;
-    for (int i=0; i<bd.right_len; i++) {
-        int idx = index_of_next_smallest(right, bd.r, bd.right_len, w);
+    bd.right_len--;
+    for (int i=0; i<=bd.right_len; i++) {
+        int idx = index_of_next_smallest(right, bd.r, bd.right_len+1, w);
         w = right[bd.r + idx];
-        cilk_spawn [&left, &right, &bd, &domains, &g0, &g1, &current, &incumbent, v, w, level] {
-            vector<int> new_left;
-            new_left.reserve(left.size());
-            vector<int> new_right;
-            new_right.reserve(right.size());
-            auto new_domains = filter_domains(
-                    domains, left, right, new_left, new_right, g0, g1, v, w);
-            auto new_current(current);
-            new_current.push_back(VtxPair(v, w));
-            solve(g0, g1, incumbent, new_current, new_domains, new_left, new_right, level+1);
-        }();
-    }
-    auto new_domains = domains;
-    auto new_left = left;
-    remove_vtx_from_left_domain(new_left, new_domains[bd_idx], v);
-    solve(g0, g1, incumbent, current, new_domains, new_left, right, level+1);
 
-    cilk_sync;
+        // swap w to the end of its colour class
+        right[bd.r + idx] = right[bd.r + bd.right_len];
+        right[bd.r + bd.right_len] = w;
+
+        auto new_domains = filter_domains(domains, left, right, g0, g1, v, w,
+                arguments.directed || arguments.labelled);
+        current.push_back(VtxPair(v, w));
+        solve(g0, g1, incumbent, current, new_domains, left, right, matching_size_goal);
+        current.pop_back();
+    }
+    bd.right_len++;
+    if (bd.left_len == 0)
+        remove_bidomain(domains, bd_idx);
+    solve(g0, g1, incumbent, current, domains, left, right, matching_size_goal);
 }
 
-vector<VtxPair> mcs(struct Graph *g0, struct Graph *g1) {
+vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
     vector<int> left;  // the buffer of vertex indices for the left partitions
     vector<int> right;  // the buffer of vertex indices for the right partitions
 
     auto domains = vector<Bidomain> {};
 
-    // Create a bidomain for vertices without loops (label 0),
-    // and another for vertices with loops (label 1)
-    for (unsigned int label=0; label<=1; label++) {
+    std::set<unsigned int> left_labels;
+    std::set<unsigned int> right_labels;
+    for (unsigned int label : g0.label) left_labels.insert(label);
+    for (unsigned int label : g1.label) right_labels.insert(label);
+    std::set<unsigned int> labels;  // labels that appear in both graphs
+    std::set_intersection(std::begin(left_labels),
+                          std::end(left_labels),
+                          std::begin(right_labels),
+                          std::end(right_labels),
+                          std::inserter(labels, std::begin(labels)));
+
+    // Create a bidomain for each label that appears in both graphs
+    for (unsigned int label : labels) {
         int start_l = left.size();
         int start_r = right.size();
 
-        for (int i=0; i<g0->n; i++)
-            if (g0->label[i]==label)
+        for (int i=0; i<g0.n; i++)
+            if (g0.label[i]==label)
                 left.push_back(i);
-        for (int i=0; i<g1->n; i++)
-            if (g1->label[i]==label)
+        for (int i=0; i<g1.n; i++)
+            if (g1.label[i]==label)
                 right.push_back(i);
 
         int left_len = left.size() - start_l;
-        int right_len = left.size() - start_r;
-        if (left_len && right_len)
-            domains.push_back({start_l, start_r, left_len, right_len, false});
+        int right_len = right.size() - start_r;
+        domains.push_back({start_l, start_r, left_len, right_len, false});
     }
 
-    vector<VtxPair> incumbent, current;
+    vector<VtxPair> incumbent;
 
-    solve(g0, g1, incumbent, current, domains, left, right, 1);
+    if (arguments.big_first) {
+        for (int k=0; k<g0.n; k++) {
+            unsigned int goal = g0.n - k;
+            auto left_copy = left;
+            auto right_copy = right;
+            auto domains_copy = domains;
+            vector<VtxPair> current;
+            solve(g0, g1, incumbent, current, domains_copy, left_copy, right_copy, goal);
+            if (incumbent.size() == goal) break;
+            if (!arguments.quiet) cout << "Upper bound: " << goal-1 << std::endl;
+        }
+
+    } else {
+        vector<VtxPair> current;
+        solve(g0, g1, incumbent, current, domains, left, right, 1);
+    }
 
     return incumbent;
+}
+
+vector<int> calculate_degrees(const Graph & g) {
+    vector<int> degree(g.n, 0);
+    for (int v=0; v<g.n; v++) {
+        for (int w=0; w<g.n; w++) {
+            unsigned int mask = 0xFFFFu;
+            if (g.adjmat[v][w] & mask) degree[v]++;
+            if (g.adjmat[v][w] & ~mask) degree[v]++;  // inward edge, in directed case
+        }
+    }
+    return degree;
+}
+
+int sum(const vector<int> & vec) {
+    return std::accumulate(std::begin(vec), std::end(vec), 0);
 }
 
 int main(int argc, char** argv) {
@@ -341,26 +488,89 @@ int main(int argc, char** argv) {
     argp_parse(&argp, argc, argv, 0, 0, 0);
 
     char format = arguments.dimacs ? 'D' : arguments.lad ? 'L' : 'B';
-    struct Graph g0 = readGraph(arguments.filename1, format);
-    struct Graph g1 = readGraph(arguments.filename2, format);
+    struct Graph g0 = readGraph(arguments.filename1, format, arguments.directed, arguments.labelled);
+    struct Graph g1 = readGraph(arguments.filename2, format, arguments.directed, arguments.labelled);
+
+    std::thread timeout_thread;
+    std::mutex timeout_mutex;
+    std::condition_variable timeout_cv;
+    abort_due_to_timeout.store(false);
+    bool aborted = false;
+
+    if (0 != arguments.timeout) {
+        timeout_thread = std::thread([&] {
+                auto abort_time = std::chrono::steady_clock::now() + std::chrono::seconds(arguments.timeout);
+                {
+                    /* Sleep until either we've reached the time limit,
+                     * or we've finished all the work. */
+                    std::unique_lock<std::mutex> guard(timeout_mutex);
+                    while (! abort_due_to_timeout.load()) {
+                        if (std::cv_status::timeout == timeout_cv.wait_until(guard, abort_time)) {
+                            /* We've woken up, and it's due to a timeout. */
+                            aborted = true;
+                            break;
+                        }
+                    }
+                }
+                abort_due_to_timeout.store(true);
+                });
+    }
 
     auto start = std::chrono::steady_clock::now();
 
-    vector<VtxPair> solution = mcs(&g0, &g1);
+    vector<int> g0_deg = calculate_degrees(g0);
+    vector<int> g1_deg = calculate_degrees(g1);
+
+    vector<int> vv0(g0.n);
+    std::iota(std::begin(vv0), std::end(vv0), 0);
+    bool g1_dense = sum(g1_deg) > g1.n*(g1.n-1);
+    std::stable_sort(std::begin(vv0), std::end(vv0), [&](int a, int b) {
+        return g1_dense ? (g0_deg[a]<g0_deg[b]) : (g0_deg[a]>g0_deg[b]);
+    });
+    vector<int> vv1(g1.n);
+    std::iota(std::begin(vv1), std::end(vv1), 0);
+    bool g0_dense = sum(g0_deg) > g0.n*(g0.n-1);
+    std::stable_sort(std::begin(vv1), std::end(vv1), [&](int a, int b) {
+        return g0_dense ? (g1_deg[a]<g1_deg[b]) : (g1_deg[a]>g1_deg[b]);
+    });
+
+    struct Graph g0_sorted = induced_subgraph(g0, vv0);
+    struct Graph g1_sorted = induced_subgraph(g1, vv1);
+
+    vector<VtxPair> solution = mcs(g0_sorted, g1_sorted);
+
+    // Convert to indices from original, unsorted graphs
+    for (auto& vtx_pair : solution) {
+        vtx_pair.v = vv0[vtx_pair.v];
+        vtx_pair.w = vv1[vtx_pair.w];
+    }
 
     auto stop = std::chrono::steady_clock::now();
     auto time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
 
-    if (!check_sol(&g0, &g1, solution))
+    /* Clean up the timeout thread */
+    if (timeout_thread.joinable()) {
+        {
+            std::unique_lock<std::mutex> guard(timeout_mutex);
+            abort_due_to_timeout.store(true);
+            timeout_cv.notify_all();
+        }
+        timeout_thread.join();
+    }
+
+    if (!check_sol(g0, g1, solution))
         fail("*** Error: Invalid solution\n");
 
-    printf("Solution size %ld\n", solution.size());
+    cout << "Solution size " << solution.size() << std::endl;
     for (int i=0; i<g0.n; i++)
         for (unsigned int j=0; j<solution.size(); j++)
             if (solution[j].v == i)
-                printf("(%d -> %d) ", solution[j].v, solution[j].w);
-    printf("\n");
+                cout << "(" << solution[j].v << " -> " << solution[j].w << ") ";
+    cout << std::endl;
 
     cout << "Nodes:                      " << nodes << endl;
     cout << "CPU time (ms):              " << time_elapsed << endl;
+    if (aborted)
+        cout << "TIMEOUT" << endl;
 }
+
