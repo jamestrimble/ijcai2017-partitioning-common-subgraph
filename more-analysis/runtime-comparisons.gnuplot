@@ -28,3 +28,13 @@ set output "plots/mcs33ved-nodes.pdf"
 set title "33 per cent labelled MCS instances, nodes"
 plot "../experiments/gpgnode-results/mcs33ved/nodes.data" u 5:7 notitle w points pointtype 7 pointsize .1, x notitle
 
+set xlabel "Heuristic: minimise max(leftsize, rightsize), k-asc"
+set ylabel "Heuristic: minimise max(leftsize, rightsize), k-desc"
+set output "plots/mcsplain-runtime-kasc-kdesc.pdf"
+set title "Plain MCS instances, run time, k-ascending vs k-descending"
+plot "../experiments/gpgnode-results/mcsplain/runtimes.data" u 8:9 notitle w points pointtype 7 pointsize .1, x notitle
+
+set output "plots/mcs33ved-runtime-kasc-kdesc.pdf"
+set title "33 per cent labelled MCS instances, run time, k-ascending vs k-descending"
+plot "../experiments/gpgnode-results/mcs33ved/runtimes.data" u 7:8 notitle w points pointtype 7 pointsize .1, x notitle
+
