@@ -20,8 +20,6 @@ plot \
     "../experiments/gpgnode-results/mcsplain/runtimes.data" u ($3*1000):($3>=1e3?1e-10:1) smooth cumulative w l ti columnhead(3) at end, \
     "../experiments/gpgnode-results/mcsplain/runtimes.data" u ($4*1000):($4>=1e3?1e-10:1) smooth cumulative w l ti columnhead(4) at end, \
     "../experiments/gpgnode-results/mcsplain/runtimes.data" u 5:($5>=1e6?1e-10:1) smooth cumulative w l ti columnhead(5) at end, \
-    "../experiments/gpgnode-results/mcsplain/runtimes.data" u 6:($6>=1e6?1e-10:1) smooth cumulative w l ti columnhead(6) at end, \
-    "../experiments/gpgnode-results/mcsplain/runtimes.data" u 7:($7>=1e6?1e-10:1) smooth cumulative w l ti columnhead(7) at end, \
     "../experiments/gpgnode-results/mcsplain/runtimes.data" u 8:($8>=1e6?1e-10:1) smooth cumulative w l ti columnhead(8) at end, \
     "../experiments/gpgnode-results/mcsplain/runtimes.data" u 9:($9>=1e6?1e-10:1) smooth cumulative w l ti columnhead(9) at end
 

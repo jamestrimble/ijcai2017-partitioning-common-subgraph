@@ -199,21 +199,21 @@ void show(const vector<VtxPair>& current, const vector<Bidomain> &domains,
     cout << "\n" << std::endl;
 }
 
-bool check_sol(struct Graph *g0, struct Graph *g1, vector<VtxPair>& solution) {
+bool check_sol(const Graph & g0, const Graph & g1 , const vector<VtxPair> & solution) {
     return true;
-    vector<bool> used_left(g0->n, false);
-    vector<bool> used_right(g1->n, false);
+    vector<bool> used_left(g0.n, false);
+    vector<bool> used_right(g1.n, false);
     for (unsigned int i=0; i<solution.size(); i++) {
         struct VtxPair p0 = solution[i];
         if (used_left[p0.v] || used_right[p0.w])
             return false;
         used_left[p0.v] = true;
         used_right[p0.w] = true;
-        if (g0->label[p0.v] != g1->label[p0.w])
+        if (g0.label[p0.v] != g1.label[p0.w])
             return false;
         for (unsigned int j=i+1; j<solution.size(); j++) {
             struct VtxPair p1 = solution[j];
-            if (g0->adjmat[p0.v][p1.v] != g1->adjmat[p0.w][p1.w])
+            if (g0.adjmat[p0.v][p1.v] != g1.adjmat[p0.w][p1.w])
                 return false;
         }
     }
@@ -236,7 +236,7 @@ int find_min_value(const vector<int>& arr, int start_idx, int len) {
     return min_v;
 }
 
-int select_bidomain(const vector<Bidomain>& domains, vector<int>& left,
+int select_bidomain(const vector<Bidomain>& domains, const vector<int> & left,
         int current_matching_size)
 {
     // Select the bidomain with the smallest max(leftsize, rightsize), breaking
@@ -266,7 +266,7 @@ int select_bidomain(const vector<Bidomain>& domains, vector<int>& left,
 }
 
 // Returns length of left half of array
-int partition(vector<int>& all_vv, int start, int len, vector<unsigned int>& adjrow) {
+int partition(vector<int>& all_vv, int start, int len, const vector<unsigned int> & adjrow) {
     int i=0;
     for (int j=0; j<len; j++) {
         if (adjrow[all_vv[start+j]]) {
@@ -278,8 +278,8 @@ int partition(vector<int>& all_vv, int start, int len, vector<unsigned int>& adj
 }
 
 // multiway is for directed and/or labelled graphs
-vector<Bidomain> filter_domains(const vector<Bidomain> &d, vector<int>& left,
-        vector<int>& right, struct Graph& g0, struct Graph& g1, int v, int w,
+vector<Bidomain> filter_domains(const vector<Bidomain> & d, vector<int> & left,
+        vector<int> & right, const Graph & g0, const Graph & g1, int v, int w,
         bool multiway)
 {
     vector<Bidomain> new_d;
@@ -358,9 +358,9 @@ void remove_bidomain(vector<Bidomain>& domains, int idx) {
     domains.pop_back();
 }
 
-void solve(struct Graph& g0, struct Graph& g1, vector<VtxPair>& incumbent,
-        vector<VtxPair>& current, vector<Bidomain>& domains,
-        vector<int>& left, vector<int>& right, unsigned int matching_size_goal)
+void solve(const Graph & g0, const Graph & g1, vector<VtxPair> & incumbent,
+        vector<VtxPair> & current, vector<Bidomain> & domains,
+        vector<int> & left, vector<int> & right, unsigned int matching_size_goal)
 {
     if (abort_due_to_timeout)
         return;
@@ -411,7 +411,7 @@ void solve(struct Graph& g0, struct Graph& g1, vector<VtxPair>& incumbent,
     solve(g0, g1, incumbent, current, domains, left, right, matching_size_goal);
 }
 
-vector<VtxPair> mcs(Graph& g0, Graph& g1) {
+vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
     vector<int> left;  // the buffer of vertex indices for the left partitions
     vector<int> right;  // the buffer of vertex indices for the right partitions
 
@@ -467,7 +467,7 @@ vector<VtxPair> mcs(Graph& g0, Graph& g1) {
     return incumbent;
 }
 
-vector<int> calculate_degrees(struct Graph &g) {
+vector<int> calculate_degrees(const Graph & g) {
     vector<int> degree(g.n, 0);
     for (int v=0; v<g.n; v++) {
         for (int w=0; w<g.n; w++) {
@@ -479,7 +479,7 @@ vector<int> calculate_degrees(struct Graph &g) {
     return degree;
 }
 
-int sum(vector<int>& vec) {
+int sum(const vector<int> & vec) {
     return std::accumulate(std::begin(vec), std::end(vec), 0);
 }
 
@@ -558,7 +558,7 @@ int main(int argc, char** argv) {
         timeout_thread.join();
     }
 
-    if (!check_sol(&g0, &g1, solution))
+    if (!check_sol(g0, g1, solution))
         fail("*** Error: Invalid solution\n");
 
     cout << "Solution size " << solution.size() << std::endl;
