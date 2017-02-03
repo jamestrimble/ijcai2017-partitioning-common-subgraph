@@ -33,13 +33,16 @@ plot "../experiments/gpgnode-results/mcs33ved/nodes.data" u 5:7 notitle w points
 set xlabel "Heuristic: minimise max(leftsize, rightsize), k-asc"
 set ylabel "Heuristic: minimise max(leftsize, rightsize), k-desc"
 
-set output "plots/mcs33ved-runtime-kasc-kdesc.pdf"
-set title "33 per cent labelled MCS instances, run time, k-ascending vs k-descending"
 plot "../experiments/gpgnode-results/mcs33ved/runtimes.data" u 7:8 notitle w points pointtype 7 pointsize .1, x notitle
 
 
 load 'moreland.pal'
+set cbrange [0:1]
 
 set output "plots/mcsplain-runtime-kasc-kdesc.pdf"
 set title "Plain MCS instances, run time, k-ascending vs k-descending"
-plot "kup-vs-kdown.txt" u 4:5:7 w points pointtype 7 pointsize .1 lc palette notitle, x notitle, 2.6*x with line notitle
+plot "kup-vs-kdown-mcsplain.txt" u 4:5:7 w points pointtype 7 pointsize .1 lc palette notitle, x notitle, 2.6*x with line notitle
+
+set output "plots/mcs33ved-runtime-kasc-kdesc.pdf"
+set title "33 per cent labelled MCS instances, run time, k-ascending vs k-descending"
+plot "kup-vs-kdown-mcs33ved.txt" u 4:5:7 w points pointtype 7 pointsize .1 lc palette notitle, x notitle, 2.6*x with line notitle
