@@ -1,1 +1,2 @@
-NOTE: In the comparison of kup and kdown, runtimes of 0 ms are changed to 1 ms to avoid division by zero.
+moreland.pal is from
+https://github.com/Gnuplotting/gnuplot-palettes/blob/master/doc/overview.png

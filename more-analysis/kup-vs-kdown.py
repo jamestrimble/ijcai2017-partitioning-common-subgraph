@@ -22,8 +22,7 @@ def analyse_instance(instance, runtime_kup, runtime_kdown):
     if solsize_kup != solsize_kdown:
         sys.stderr.write("Solution sizes differ between runs!\n")
         sys.exit(1)
-    runtime_ratio = float(runtime_kup) / runtime_kdown
-    print instance[0], n0, n1, runtime_kup, runtime_kdown, runtime_ratio, solsize_kup, \
+    print instance[0], n0, n1, runtime_kup, runtime_kdown, solsize_kup, \
             float(solsize_kup) / n0
     
 def print_header():
@@ -32,7 +31,6 @@ def print_header():
             "n_target", \
             "runtime_kup", \
             "runtime_kdown", \
-            "runtime_ratio", \
             "solsize", \
             "solsize_over_n_pattern"
 def go():
@@ -43,10 +41,6 @@ def go():
     for tokens in lines[1:]:
         kup_time = int(tokens[7])
         kdown_time = int(tokens[8])
-        if kup_time == 0:
-            kup_time = 1
-        if kdown_time == 0:
-            kdown_time = 1
         runtimes[tokens[0]] = {"kup":kup_time, "kdown":kdown_time}
 
     with open("../experiments/mcsplaininstances.txt", "r") as f:
