@@ -1,9 +1,15 @@
 GNUPLOT := gnuplot
 
-PLOTS := plots/mcs33ved-nodes.pdf plots/mcs33ved-runtime.pdf plots/mcsplain-nodes.pdf plots/mcsplain-runtime.pdf
+RUNTIMEPLOTS := plots/mcs33ved-nodes.pdf plots/mcs33ved-runtime.pdf plots/mcsplain-nodes.pdf plots/mcsplain-runtime.pdf
 
-all: ${PLOTS}
+all: ${RUNTIMEPLOTS} plots/kup-vs-kdown.pdf
 
-${PLOTS}: heuristics-max-vs-product.gnuplot
+${RUNTIMEPLOTS}: runtime-comparisons.gnuplot
 	mkdir -p plots
-	gnuplot heuristics-max-vs-product.gnuplot
+	gnuplot runtime-comparison.gnuplot
+
+plots/kup-vs-kdown.pdf: kup-vs-kdown.gnuplot kup-vs-kdown.txt
+	gnuplot kup-vs-kdown.gnuplot
+
+kup-vs-kdown.txt:
+	python kup-vs-kdown.py > kup-vs-kdown.txt
