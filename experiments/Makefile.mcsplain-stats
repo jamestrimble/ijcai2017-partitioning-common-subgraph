@@ -51,43 +51,43 @@ $(RESULTS)/james-cpp-product-down/%.runtime : $(RESULTS)/james-cpp-product-down/
 	[[ -s $@ ]]
 
 $(RESULTS)/clique/%.nodes : $(RESULTS)/clique/%.out
-	tail -n3 < $^ | head -n1 | cut -d' ' -f2 > $@
+	if grep -q aborted $^ ; then echo NaN ; else tail -n3 < $^ | head -n1 | cut -d' ' -f2 ; fi > $@
 	[[ -s $@ ]]
 
 $(RESULTS)/clique-par/t16/%.nodes : $(RESULTS)/clique-par/t16/%.out
-	tail -n3 < $^ | head -n1 | cut -d' ' -f2 > $@
+	if grep -q aborted $^ ; then echo NaN ; else tail -n3 < $^ | head -n1 | cut -d' ' -f2 ; fi > $@
 	[[ -s $@ ]]
 
 $(RESULTS)/clique-par/t32/%.nodes : $(RESULTS)/clique-par/t32/%.out
-	tail -n3 < $^ | head -n1 | cut -d' ' -f2 > $@
+	if grep -q aborted $^ ; then echo NaN ; else tail -n3 < $^ | head -n1 | cut -d' ' -f2 ; fi > $@
 	[[ -s $@ ]]
 
 $(RESULTS)/kdown/%.nodes : $(RESULTS)/kdown/%.out
-	tail -n4 < $^ | head -n1 | cut -d' ' -f2 > $@
+	if grep -q aborted %^ ; then echo NaN ; else tail -n4 < $^ | head -n1 | cut -d' ' -f2 ; fi > $@
 	[[ -s $@ ]]
 
 $(RESULTS)/cp-fc/%.nodes : $(RESULTS)/cp-fc/%.out
-	grep '^nodes :' < $^ | cut -d':' -f2 > $@
+	if grep -q TIMEOUT $^ ; then echo NaN ; else grep '^nodes :' < $^ | cut -d':' -f2 ; fi > $@
 	[[ -s $@ ]]
 
 $(RESULTS)/cp-mac/%.nodes : $(RESULTS)/cp-mac/%.out
-	grep '^nodes :' < $^ | cut -d':' -f2 > $@
+	if grep -q TIMEOUT $^ ; then echo NaN ; else grep '^nodes :' < $^ | cut -d':' -f2 ; fi > $@
 	[[ -s $@ ]]
 
 $(RESULTS)/james-cpp-max/%.nodes : $(RESULTS)/james-cpp-max/%.out
-	grep '^Nodes:' < $^ | cut -d':' -f2 > $@
+	if grep -q TIMEOUT $^ ; then echo NaN ; else grep '^Nodes:' < $^ | cut -d':' -f2 ; fi > $@
 	[[ -s $@ ]]
 
 $(RESULTS)/james-cpp-max-down/%.nodes : $(RESULTS)/james-cpp-max-down/%.out
-	grep '^Nodes:' < $^ | cut -d':' -f2 > $@
+	if grep -q TIMEOUT $^ ; then echo NaN ; else grep '^Nodes:' < $^ | cut -d':' -f2 ; fi > $@
 	[[ -s $@ ]]
 
 $(RESULTS)/james-cpp-product/%.nodes : $(RESULTS)/james-cpp-product/%.out
-	grep '^Nodes:' < $^ | cut -d':' -f2 > $@
+	if grep -q TIMEOUT $^ ; then echo NaN ; else grep '^Nodes:' < $^ | cut -d':' -f2 ; fi > $@
 	[[ -s $@ ]]
 
 $(RESULTS)/james-cpp-product-down/%.nodes : $(RESULTS)/james-cpp-product-down/%.out
-	grep '^Nodes:' < $^ | cut -d':' -f2 > $@
+	if grep -q TIMEOUT $^ ; then echo NaN ; else grep '^Nodes:' < $^ | cut -d':' -f2 ; fi > $@
 	[[ -s $@ ]]
 
 $(RESULTS)/runtimes.data : runtimes

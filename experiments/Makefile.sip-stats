@@ -31,23 +31,23 @@ $(RESULTS)/kdown/%.runtime : $(RESULTS)/kdown/%.out
 	[[ -s $@ ]]
 
 $(RESULTS)/clique/%.nodes : $(RESULTS)/clique/%.out
-	if grep -q 'too big' $^ ; then echo NaN ; else tail -n3 < $^ | head -n1 | cut -d' ' -f2 ; fi > $@
+	if grep -q 'too big\|aborted' $^ ; then echo NaN ; else tail -n3 < $^ | head -n1 | cut -d' ' -f2 ; fi > $@
 	[[ -s $@ ]]
 
 $(RESULTS)/cp-fc/%.nodes : $(RESULTS)/cp-fc/%.out
-	if grep -q 'too big' $^ ; then echo NaN ; else grep '^nodes :' < $^ | cut -d':' -f2 ; fi > $@
+	if grep -q 'too big\|TIMEOUT' $^ ; then echo NaN ; else grep '^nodes :' < $^ | cut -d':' -f2 ; fi > $@
 	[[ -s $@ ]]
 
 $(RESULTS)/james-cpp-max/%.nodes : $(RESULTS)/james-cpp-max/%.out
-	grep '^Nodes:' < $^ | cut -d':' -f2 > $@
+	if grep -q TIMEOUT $^ ; then echo NaN ; else grep '^Nodes:' < $^ | cut -d':' -f2 ; fi > $@
 	[[ -s $@ ]]
 
 $(RESULTS)/james-cpp-max-down/%.nodes : $(RESULTS)/james-cpp-max-down/%.out
-	grep '^Nodes:' < $^ | cut -d':' -f2 > $@
+	if grep -q TIMEOUT $^ ; then echo NaN ; else grep '^Nodes:' < $^ | cut -d':' -f2 ; fi > $@
 	[[ -s $@ ]]
 
 $(RESULTS)/kdown/%.nodes : $(RESULTS)/kdown/%.out
-	tail -n4 < $^ | head -n1 | cut -d' ' -f2 > $@
+	if grep -q aborted $^ ; then echo NaN ; else tail -n4 < $^ | head -n1 | cut -d' ' -f2 ; fi > $@
 	[[ -s $@ ]]
 
 $(RESULTS)/runtimes.data : runtimes
