@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 INSTANCES_FILE := mcsplaininstances.txt
 INSTANCES := $(shell cut -d' ' -f1 $(INSTANCES_FILE) )
-ALGORITHMS := clique cp-fc cp-mac kdown james-cpp-product james-cpp-product-down james-cpp-max james-cpp-max-down
+ALGORITHMS := clique cp-fc cp-mac kdown james-cpp-product james-cpp-product-down james-cpp-max james-cpp-max-down clique-par/t16 clique-par/t32
 RESULTS := gpgnode-results/mcsplain
 
 all : $(RESULTS)/runtimes.data $(RESULTS)/nodes.data
@@ -11,6 +11,14 @@ runtimes : $(foreach i, $(INSTANCES), $(foreach a, $(ALGORITHMS), $(RESULTS)/$(a
 nodes : $(foreach i, $(INSTANCES), $(foreach a, $(ALGORITHMS), $(RESULTS)/$(a)/$i.nodes ))
 
 $(RESULTS)/clique/%.runtime : $(RESULTS)/clique/%.out
+	tail -n1 < $^ | cut -d' ' -f1 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/clique-par/t16/%.runtime : $(RESULTS)/clique-par/t16/%.out
+	tail -n1 < $^ | cut -d' ' -f1 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/clique-par/t32/%.runtime : $(RESULTS)/clique-par/t32/%.out
 	tail -n1 < $^ | cut -d' ' -f1 > $@
 	[[ -s $@ ]]
 
@@ -43,11 +51,19 @@ $(RESULTS)/james-cpp-product-down/%.runtime : $(RESULTS)/james-cpp-product-down/
 	[[ -s $@ ]]
 
 $(RESULTS)/clique/%.nodes : $(RESULTS)/clique/%.out
-	tail -n3 < $^ | head -n1 | cut -d' ' -f1 > $@
+	tail -n3 < $^ | head -n1 | cut -d' ' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/clique-par/t16/%.nodes : $(RESULTS)/clique-par/t16/%.out
+	tail -n3 < $^ | head -n1 | cut -d' ' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/clique-par/t32/%.nodes : $(RESULTS)/clique-par/t32/%.out
+	tail -n3 < $^ | head -n1 | cut -d' ' -f2 > $@
 	[[ -s $@ ]]
 
 $(RESULTS)/kdown/%.nodes : $(RESULTS)/kdown/%.out
-	tail -n4 < $^ | head -n1 | cut -d' ' -f1 > $@
+	tail -n4 < $^ | head -n1 | cut -d' ' -f2 > $@
 	[[ -s $@ ]]
 
 $(RESULTS)/cp-fc/%.nodes : $(RESULTS)/cp-fc/%.out
