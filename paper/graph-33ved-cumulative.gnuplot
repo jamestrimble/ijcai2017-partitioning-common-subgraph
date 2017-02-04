@@ -12,13 +12,13 @@ set ytics nomirror
 set xrange [1:1e6]
 set logscale x
 set format x '$10^{%T}$'
-set yrange [1:8140]
+set yrange [0:8140]
 set key off
+set ytics add ('8140' 8140) add ('' 8000)
 
 plot \
-    "../experiments/gpgnode-results/mcs33ved/runtimes.data" u 2:($2>=1e6?1e-10:1) smooth cumulative w l ti columnhead(2) at end, \
-    "../experiments/gpgnode-results/mcs33ved/runtimes.data" u ($3*1000):($3>=1e3?1e-10:1) smooth cumulative w l ti columnhead(3) at end, \
-    "../experiments/gpgnode-results/mcs33ved/runtimes.data" u ($4*1000):($4>=1e3?1e-10:1) smooth cumulative w l ti columnhead(4) at end, \
-    "../experiments/gpgnode-results/mcs33ved/runtimes.data" u 7:($7>=1e6?1e-10:1) smooth cumulative w l ti columnhead(7) at end, \
-    "../experiments/gpgnode-results/mcs33ved/runtimes.data" u 8:($8>=1e6?1e-10:1) smooth cumulative w l ti columnhead(8) at end
+    "../experiments/gpgnode-results/mcs33ved/runtimes.data" u 2:($2>=1e6?1e-10:1) smooth cumulative w l ti columnhead(2) at end lc 1, \
+    "../experiments/gpgnode-results/mcs33ved/runtimes.data" u ($4*1000):($4>=1e3?1e-10:1) smooth cumulative w l ti columnhead(4) at end lc 2, \
+    "../experiments/gpgnode-results/mcs33ved/runtimes.data" u 7:($7>=1e6?1e-10:1) smooth cumulative w l ti columnhead(7) at end lc 3, \
+    "../experiments/gpgnode-results/mcs33ved/runtimes.data" u 10:($10>=1e6?1e-10:1) smooth cumulative w l ti columnhead(10) at end lc 1 dt '.'
 

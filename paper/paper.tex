@@ -35,7 +35,8 @@ j.trimble.1@research.gla.ac.uk}
 
 \section{Computational Experiments}
 
-Dual Xeon E5-2640 v2 CPUs, 64GBytes RAM. Parallel experiments 16 threads (one per hardware core), and 32 with hyper-threading.
+Dual Xeon E5-2640 v2 CPUs, 64GBytes RAM. Parallel experiments 32 threads, using
+all 16 physical cores with hyper-threading enabled.
 
 \paragraph{No labels, undirected} are in \cref{figure:plain-cumulative}.
 
@@ -45,9 +46,11 @@ Dual Xeon E5-2640 v2 CPUs, 64GBytes RAM. Parallel experiments 16 threads (one pe
 
 \paragraph{Vertex and edge labels, connected} have yet to be run.
 
-\paragraph{Large subgraph isomorphism instances} have yet to be run.
+\paragraph{Large subgraph isomorphism instances} are in \cref{figure:sip-cumulative}.
 
-\paragraph{Compared to CP FC} Runtimes are in \cref{figure:plain-james-versus-cp-fc-scatter} and \cref{figure:33ved-james-versus-cp-fc-scatter}, and nodes are in \cref{figure:plain-james-versus-cp-fc-nodes-scatter} and \cref{figure:33ved-james-versus-cp-fc-nodes-scatter}.
+\paragraph{Compared to CP FC} Nodes are in \cref{figure:plain-james-versus-cp-fc-nodes-scatter} and \cref{figure:33ved-james-versus-cp-fc-nodes-scatter}.
+
+\paragraph{Nodes compared to kdown on SIP} have yet to be run.
 
 \begin{figure}
     \centering
@@ -63,26 +66,23 @@ Dual Xeon E5-2640 v2 CPUs, 64GBytes RAM. Parallel experiments 16 threads (one pe
 
 \begin{figure}
     \centering
-    \includegraphics*{gen-graph-plain-james-versus-cp-fc-scatter.pdf}
-    \caption{MCS Plain instances, James vs CP-FC, Runtimes (TODO?? heatmapify this)}\label{figure:plain-james-versus-cp-fc-scatter}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics*{gen-graph-33ved-james-versus-cp-fc-scatter.pdf}
-    \caption{MCS 33\% vertex and edge labelled directed instances, James vs CP-FC, Runtimes (TODO?? heatmapify this)}\label{figure:33ved-james-versus-cp-fc-scatter}
+    \includegraphics*{gen-graph-sip-cumulative.pdf}
+    \caption{SIP instances, cumulative runtimes}\label{figure:sip-cumulative}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics*{gen-graph-plain-james-versus-cp-fc-nodes-scatter.pdf}
-    \caption{MCS Plain instances, James vs CP-FC, Nodes (TODO?? heatmapify this)}\label{figure:plain-james-versus-cp-fc-nodes-scatter}
+    \caption{MCS Plain instances, James vs CP-FC, Nodes (TODO?? heatmapify this
+    and exclude timeouts)}\label{figure:plain-james-versus-cp-fc-nodes-scatter}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics*{gen-graph-33ved-james-versus-cp-fc-nodes-scatter.pdf}
-    \caption{MCS 33\% vertex and edge labelled directed instances, James vs CP-FC, Nodes (TODO?? heatmapify this)}\label{figure:33ved-james-versus-cp-fc-nodes-scatter}
+    \caption{MCS 33\% vertex and edge labelled directed instances, James vs
+    CP-FC, Nodes (TODO?? heatmapify this and exclude
+    timeouts)}\label{figure:33ved-james-versus-cp-fc-nodes-scatter}
 \end{figure}
 
 \bibliographystyle{named}

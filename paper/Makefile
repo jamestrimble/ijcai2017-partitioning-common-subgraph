@@ -4,12 +4,11 @@ all : tables graphs
 TABLES =
 
 GRAPHS = \
-	 gen-graph-plain-james-versus-cp-fc-scatter.pdf \
-	 gen-graph-33ved-james-versus-cp-fc-scatter.pdf \
 	 gen-graph-plain-james-versus-cp-fc-nodes-scatter.pdf \
 	 gen-graph-33ved-james-versus-cp-fc-nodes-scatter.pdf \
 	 gen-graph-plain-cumulative.pdf \
-	 gen-graph-33ved-cumulative.pdf
+	 gen-graph-33ved-cumulative.pdf \
+	 gen-graph-sip-cumulative.pdf
 
 tables : $(TABLES)
 
