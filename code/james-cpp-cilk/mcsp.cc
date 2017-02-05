@@ -394,7 +394,7 @@ void remove_bidomain(vector<Bidomain>& domains, int idx) {
 }
 
 void solve(const Graph & g0, const Graph & g1, AtomicIncumbent & incumbent,
-        vector<VtxPair> & current, vector<Bidomain> & domains,
+        const vector<VtxPair> & current, vector<Bidomain> & domains,
         vector<int> & left, vector<int> & right, unsigned int matching_size_goal)
 {
     if (abort_due_to_timeout)
@@ -433,9 +433,10 @@ void solve(const Graph & g0, const Graph & g1, AtomicIncumbent & incumbent,
 
         auto new_domains = filter_domains(domains, left, right, g0, g1, v, w,
                 arguments.directed || arguments.labelled);
-        current.push_back(VtxPair(v, w));
-        solve(g0, g1, incumbent, current, new_domains, left, right, matching_size_goal);
-        current.pop_back();
+
+        auto new_current = current;
+        new_current.push_back(VtxPair(v, w));
+        solve(g0, g1, incumbent, new_current, new_domains, left, right, matching_size_goal);
     }
     bd.right_len++;
     if (bd.left_len == 0)
