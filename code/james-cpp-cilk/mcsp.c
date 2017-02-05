@@ -19,9 +19,44 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <cilk/reducer_opadd.h>
+
 using std::vector;
 using std::cout;
 using std::endl;
+
+struct AtomicIncumbent
+{
+    std::atomic<unsigned> value;
+
+    AtomicIncumbent()
+    {
+        value.store(0, std::memory_order_seq_cst);
+    }
+
+    bool update(unsigned v)
+    {
+        while (true) {
+            unsigned cur_v = value.load(std::memory_order_seq_cst);
+            if (v > cur_v) {
+                if (value.compare_exchange_strong(cur_v, v, std::memory_order_seq_cst))
+                    return true;
+            }
+            else
+                return false;
+        }
+    }
+
+    bool beaten_by(unsigned v) const
+    {
+        return v > value.load(std::memory_order_seq_cst);
+    }
+
+    unsigned get() const
+    {
+        return value.load(std::memory_order_relaxed);
+    }
+};
 
 static void fail(std::string msg) {
     std::cerr << msg << std::endl;
@@ -151,7 +186,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
                                      Stats
 *******************************************************************************/
 
-unsigned long long nodes{ 0 };
+cilk::reducer<cilk::op_add<unsigned long long> > nodes{ 0 };
 
 /*******************************************************************************
                                  MCS functions
@@ -178,7 +213,7 @@ struct Bidomain {
 void show(const vector<VtxPair>& current, const vector<Bidomain> &domains,
         const vector<int>& left, const vector<int>& right)
 {
-    cout << "Nodes: " << nodes << std::endl;
+    cout << "Nodes: " << nodes.get_value() << std::endl;
     cout << "Length of current assignment: " << current.size() << std::endl;
     cout << "Current assignment:";
     for (unsigned int i=0; i<current.size(); i++) {
@@ -358,7 +393,7 @@ void remove_bidomain(vector<Bidomain>& domains, int idx) {
     domains.pop_back();
 }
 
-void solve(const Graph & g0, const Graph & g1, vector<VtxPair> & incumbent,
+void solve(const Graph & g0, const Graph & g1, AtomicIncumbent & incumbent,
         vector<VtxPair> & current, vector<Bidomain> & domains,
         vector<int> & left, vector<int> & right, unsigned int matching_size_goal)
 {
@@ -366,18 +401,15 @@ void solve(const Graph & g0, const Graph & g1, vector<VtxPair> & incumbent,
         return;
 
     if (arguments.verbose) show(current, domains, left, right);
-    nodes++;
+    *nodes += 1;
 
-    if (current.size() > incumbent.size()) {
-        incumbent = current;
-        if (!arguments.quiet) cout << "Incumbent size: " << incumbent.size() << endl;
-    }
+    incumbent.update(current.size());
 
     unsigned int bound = current.size() + calc_bound(domains);
-    if (bound <= incumbent.size() || bound < matching_size_goal)
+    if (bound <= incumbent.value || bound < matching_size_goal)
         return;
 
-    if (arguments.big_first && incumbent.size()==matching_size_goal)
+    if (arguments.big_first && incumbent.value == matching_size_goal)
         return;
 
     int bd_idx = select_bidomain(domains, left, current.size());
@@ -411,7 +443,7 @@ void solve(const Graph & g0, const Graph & g1, vector<VtxPair> & incumbent,
     solve(g0, g1, incumbent, current, domains, left, right, matching_size_goal);
 }
 
-vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
+unsigned mcs(const Graph & g0, const Graph & g1) {
     vector<int> left;  // the buffer of vertex indices for the left partitions
     vector<int> right;  // the buffer of vertex indices for the right partitions
 
@@ -445,7 +477,7 @@ vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
         domains.push_back({start_l, start_r, left_len, right_len, false});
     }
 
-    vector<VtxPair> incumbent;
+    AtomicIncumbent incumbent;
 
     if (arguments.big_first) {
         for (int k=0; k<g0.n; k++) {
@@ -455,7 +487,7 @@ vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
             auto domains_copy = domains;
             vector<VtxPair> current;
             solve(g0, g1, incumbent, current, domains_copy, left_copy, right_copy, goal);
-            if (incumbent.size() == goal) break;
+            if (incumbent.value == goal) break;
             if (!arguments.quiet) cout << "Upper bound: " << goal-1 << std::endl;
         }
 
@@ -464,7 +496,7 @@ vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
         solve(g0, g1, incumbent, current, domains, left, right, 1);
     }
 
-    return incumbent;
+    return incumbent.value;
 }
 
 vector<int> calculate_degrees(const Graph & g) {
@@ -537,13 +569,13 @@ int main(int argc, char** argv) {
     struct Graph g0_sorted = induced_subgraph(g0, vv0);
     struct Graph g1_sorted = induced_subgraph(g1, vv1);
 
-    vector<VtxPair> solution = mcs(g0_sorted, g1_sorted);
+    auto solution = mcs(g0_sorted, g1_sorted);
 
     // Convert to indices from original, unsorted graphs
-    for (auto& vtx_pair : solution) {
-        vtx_pair.v = vv0[vtx_pair.v];
-        vtx_pair.w = vv1[vtx_pair.w];
-    }
+    // for (auto& vtx_pair : solution) {
+    //     vtx_pair.v = vv0[vtx_pair.v];
+    //     vtx_pair.w = vv1[vtx_pair.w];
+    // }
 
     auto stop = std::chrono::steady_clock::now();
     auto time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
@@ -558,17 +590,17 @@ int main(int argc, char** argv) {
         timeout_thread.join();
     }
 
-    if (!check_sol(g0, g1, solution))
-        fail("*** Error: Invalid solution\n");
+    // if (!check_sol(g0, g1, solution))
+    //     fail("*** Error: Invalid solution\n");
 
-    cout << "Solution size " << solution.size() << std::endl;
-    for (int i=0; i<g0.n; i++)
-        for (unsigned int j=0; j<solution.size(); j++)
-            if (solution[j].v == i)
-                cout << "(" << solution[j].v << " -> " << solution[j].w << ") ";
-    cout << std::endl;
+    cout << "Solution size " << solution << std::endl;
+    // for (int i=0; i<g0.n; i++)
+    //     for (unsigned int j=0; j<solution.size(); j++)
+    //         if (solution[j].v == i)
+    //             cout << "(" << solution[j].v << " -> " << solution[j].w << ") ";
+    // cout << std::endl;
 
-    cout << "Nodes:                      " << nodes << endl;
+    cout << "Nodes:                      " << nodes.get_value() << endl;
     cout << "CPU time (ms):              " << time_elapsed << endl;
     if (aborted)
         cout << "TIMEOUT" << endl;
