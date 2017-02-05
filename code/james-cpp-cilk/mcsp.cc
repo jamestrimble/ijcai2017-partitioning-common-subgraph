@@ -1,4 +1,4 @@
-#include "graph.h"
+#include "graph.hh"
 
 #include <algorithm>
 #include <numeric>
