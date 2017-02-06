@@ -10,8 +10,35 @@
 \usepackage{MnSymbol,wasysym}
 \usepackage{latexsym}
 
+\usepackage{tikz}
+
+\usetikzlibrary{graphs}
+
 \newcommand{\citet}[1]{\citeauthor{#1} \shortcite{#1}}
 \newcommand{\citep}[1]{\cite{#1}}
+
+\newcommand{\examplexG}[5] {
+    \begin{minipage}{.3\textwidth}
+    \tikz {
+        \graph [nodes={draw, circle, minimum width=.6cm}, circular placement, radius=1cm,
+                clockwise=5] {
+                    1[label=90:#1],2[label=0:#2],3[label=0:#3],4[label=180:#4],5[label=180:#5];
+            1--4; 1--5; 2--3; 2--5; 3--5;
+        };
+    }
+    \end{minipage}
+}
+\newcommand{\examplexH}[6] {
+    \begin{minipage}{.3\textwidth}
+    \tikz {
+        \graph [nodes={draw, circle, minimum width=.6cm}, circular placement, radius=1.1cm,
+                clockwise=6, phase=60] {
+                    a[label=0:#1],b[label=0:#2],c[label=0:#3],d[label=180:#4],e[label=180:#5],f[label=180:#6];
+            a--b; a--c; a--e; b--d; b--f; c--d; c--e; c--f; d--f; e--f;
+        };
+    }
+    \end{minipage}
+}
 
 \title{A Partitioning Algorithm for Maximum Common (Connected) Subgraphs\thanks{This work
 was supported by the Engineering and Physical Sciences Research Council [grant
@@ -37,6 +64,89 @@ j.trimble.1@research.gla.ac.uk}
 \citet{DBLP:conf/cp/McCreeshNPS16}
 
 \citet{DBLP:conf/cp/NdiayeS11}
+
+Given graphs $G=(V^G, E^G)$ and $H=(V^H, E^H)$, the \emph{Maximum Common
+Subgraph (MCS)} problem is to find a graph with as many vertices as possible
+that is isomorphic to induced subgraphs of both $G$ and $H$. Equivalently, MCS
+is the problem of finding a maximum-cardinality matching $M = \{(v_1, w_1),
+\dots, (v_{|M|}, w_{|M|})\}$, such that for each pair $i,j$ ($1 \leq i \leq j
+\leq |M|$), $v_i$ and $v_j$ are adjacent in $G$ if and only if $w_i$ and $w_j$
+are adjacent in $H$.
+
+The most successful existing approaches to optimally solving MCS are
+reformulation to the maximum clique problem and constraint programming
+\cite{DBLP:conf/cp/McCreeshNPS16}. In this paper, we introduce a new branch and bound
+algorithm for MCS which does not require a domain to be explicity maintained in
+memory for each vertex in $V^G$. The algorithm maintains labellings of the
+unmatched vertices in $V^G$ and $V^H$ such that a pair $(v, w)$ with $v \in V^G$
+and $w \in V^H$ can be added to the matching if and only if $v$ and $w$ have the
+same label.
+
+\section{Preliminaries}
+
+Let $N(v, G)$ denote the neighbourhood of a vertex $v$ in a graph $G$.  We
+extend this notation to denote the set of vertices that are adjacent to all
+vertices in a set $U$: $N(U, G) = \bigcap_{v \in U} N_G(v)$.
+
+\section{Walkthrough}
+
+Suppose we are given the graphs $G$ and $H$ in Figure~\ref{fig:alg1}.  Graphs $G$ and $H$
+have no common subgraph with five vertices. However, they do have common
+subgraphs with four vertices; the mapping $\{1a, 2f, 3d, 5b\}$ is one example.
+
+\begin{figure}[ht]
+\centering
+    \examplexG{}{}{}{}{}
+    \examplexH{}{}{}{}{}{}
+\caption{Step 1}
+\label{fig:alg1}
+\end{figure}
+
+The algorithm proceeds by building up a mapping $M$, starting with the empty
+mapping $\{\}$. Begin by (arbitrarily) mapping vertex $1$ in $G$ to vertex $a$
+in $H$, giving $M=\{1a\}$.  Label each unmatched vertex according to whether it
+is adjacent to $1$ (in $G$) or $a$ (in $H$), as shown in Figure~\ref{fig:alg2}.
+Adjacent vertices have label 1; non-adjacent vertices have label 0.  It is
+straightforward to see that we can extend $M$ with a vertex mapping $vw$, with
+$v \in V^G$ and $w \in V^H$, if and only if $v$ and $w$ have the same label.  This
+property is the algorithm's key invariant.
+
+\begin{figure}[ht]
+\centering
+    \examplexG{$(1a)$}{0}{0}{1}{1}
+    \examplexH{$(1a)$}{1}{1}{0}{1}{0}
+\caption{Step 2}
+\label{fig:alg2}
+\end{figure}
+
+Next, extend the mapping by pairing a vertex in $G$ with a vertex in $H$ of the
+same label; we will choose to map vertex $2$ to vertex $d$, giving $M=\{1a,
+2d\}$ (Figure~\ref{fig:alg3}).  Each unmatched vertex $v \in V^G$ is labelled
+with a two-character bit string, indicating whether $v$ is adjacent to each of
+the two matched vertices in $V^G$ (vertices $1$ and $2$).  For example, vertex
+$3$ is labelled $01$, indicating that it is not adjacent to $1$ but is adjacent
+to $2$.  Labels are given to vertices in $V^H$ in a similar fashion, showing
+whether each vertex is adjacent to $a$ and $d$.
+
+Observe that our invariant is maintained: we can extend $M$ by a vertex pairing if
+and only if the two vertices have the same colour.
+
+\begin{figure}[ht]
+\centering
+    \examplexG{$(1a)$}{$(2d)$}{01}{10}{11}
+    \examplexH{$(1a)$}{11}{11}{$(2d)$}{10}{01}
+\caption{Step 3}
+\label{fig:alg3}
+\end{figure}
+
+The algorithm proceeds by backtracking search. When we have explored the full
+search space of matchings containing $\{1a, 2d\}$, we try reassigning $2$ to
+$f$.  Since $d$ and $f$ are the only vertices to which $2$ can be matched given
+the decision to match $1$ to $a$, we lastly explore the possibility that $2$ is
+left unmatched, by giving $2$ the label $\bot$ and selecting another vertex in
+$V^G$ to assign.
+
+
 
 \section{The Lilybank Algorithm}
 
