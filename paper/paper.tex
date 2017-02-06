@@ -6,6 +6,10 @@
 \usepackage{graphicx}
 \usepackage{cleveref}
 
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{MnSymbol,wasysym}
+\usepackage{latexsym}
+
 \newcommand{\citet}[1]{\citeauthor{#1} \shortcite{#1}}
 \newcommand{\citep}[1]{\cite{#1}}
 
@@ -21,8 +25,9 @@ j.trimble.1@research.gla.ac.uk}
 \maketitle
 
 \begin{abstract}
-    James came up with an awesome new algorithm for the maximum common (connected)
-    subgraph problem.
+    We came up with an important new algorithm for the maximum common (connected)
+    subgraph problem. This is an important problem, with at least two important
+    applications.
 \end{abstract}
 
 \section{Introduction}
@@ -32,6 +37,74 @@ j.trimble.1@research.gla.ac.uk}
 \citet{DBLP:conf/cp/McCreeshNPS16}
 
 \citet{DBLP:conf/cp/NdiayeS11}
+
+\section{The Lilybank Algorithm}
+
+\begin{algorithm}
+\DontPrintSemicolon
+\nl $expand(\mathit{future},matching)$ \;
+\nl \Begin{
+\nl \lIf {$future = \emptyset$ \bf{and} $|matching|  > |incumbent|$}{$save(matching)$}
+\nl \lIf {$future = \emptyset$}{return}
+\nl $bestFuture \gets 0$ \;
+\nl \lFor {$\langle P,T \rangle \in future$}{$bestFuture \gets bestFuture + min(|P|,|T|)$}
+\nl \lIf {$|matching|  + bestFuture \leq |incumbent|$}{return}
+\bigskip
+\nl $\langle P,T \rangle \gets select(future)$ \;
+\nl $v \gets select(P)$ \;
+\nl \For {$w \in T$}{
+\nl    $matching \gets matching + (v,w)$\;
+\nl    \bf{Let} $future^{'} \gets \emptyset$ \;
+\nl    \For {$\langle P^{'},T'^{'}\rangle \in future$}{
+\nl        \bf{Let} $P^{''} \gets P^{'} \cap N(v,G) \setminus \{v\}$ \;
+\nl        \bf{Let} $T^{''} \gets T^{'} \cap N(w,H) \setminus \{w\}$ \;
+\nl        \lIf {$P^{''} \neq \emptyset$ \bf{and} $T^{''} \neq \emptyset$}{$future^{'} \gets future^{'} + \langle P^{''} , T^{''} \rangle$}
+\nl        \bf{Let} $P^{''} \gets P^{'} \cap N(v,\overline{G}) \setminus \{v\}$ \;
+\nl        \bf{Let} $T^{''} \gets T^{'} \cap N(w,\overline{H}) \setminus \{w\}$ \;
+\nl        \lIf {$P^{''} \neq \emptyset$ \bf{and} $T^{''} \neq \emptyset$}{$future^{'} \gets future^{'} + \langle P^{''} , T^{''} \rangle$}
+       }
+\nl   $expand(future^{'},matching)$ \;
+\nl   $matching \gets matching \setminus \{(v,w)\}$ \;
+  }
+\nl $P \gets P \setminus \{v\}$\;
+\nl \lIf {$P = \emptyset$} {$future \gets future \setminus \{\langle P,T \rangle \}$}
+\nl $expand(future,matching)$ \;
+}
+\;
+\nl $Split(G,H)$ \;
+\nl \Begin{
+\nl $incumbent \gets \emptyset$ \;
+\nl $expand(\{\langle V(G),V(H) \rangle \},\emptyset)$ \;
+\nl return $|incubent|$ \;
+}
+\caption{Lilybank splitting algorithm}
+\label{jtAlg}
+\end{algorithm}
+
+\noindent
+Now, let's try and explain this. First, assume we have two graph G and H and there are no more vertices in G than in H (think of G as the pattern graph and H as the target).
+future is a list of pairs, where the first element of a pair is a set of pattern vertices P and the second is a set of target vertices T. It is assumed that each pattern vertex in P 
+might be matched with any (all) of the target vertices in T, or be unmatched. Therefore we start our search via the function LilybankSplit (line 26). This returns an integer, the size of the largest matching.
+In line 29 a call is made to expand, where we have as arguments a list of pairs (called future, line 1) and a set of pairs of the form (v,w) where pattern vertex v is matched to target vertex w.
+
+\bigskip
+\noindent
+We now focus on expand (line (1)). This is initially called (line 29) with the future as a list containing the single pair $\langle V(G),V(H) \rangle$. Lines 4 to 7 define the conditions 
+where we return, i.e. when the incumbent cannot be improved. In line 3, a new incumbent might be saved. Lines 8 to 24 perform the search.
+
+\bigskip
+\noindent
+A pair is selected from the future (line 8) using some heuristic. Note that this pair is not removed from the future, and that P and T can be considered as pointers to sets. A pattern vertex is then selected, possibly using a heuristic (line 9). We now iterate over all possible target vertices in T (lines 10 to 21). A target vertex w is selected and a matching produced (line 11). A new future is created (using {\bf Let} to signify a new variable, line 12). Every pair in the future can now be split (lines 13 to 19) into pattern vertices adjacent to the selected pattern vertex v and target vertices adjacent to the selected target vertex w (lines 14 to 15) and this is added to the new future if both sets are not null (line 16) i.e. there is a potential for more matchings. This is then repeated symmetrically for non-adjacency (lines 17 to 19) using the compliments of the graphs.
+A recursive call is then made using the new future and the increased matching (line 20). On return from that call we remove the matching (v,w) (line 21). Having explored all matchings with v in its target set we now consider what happens if the selected pattern vertex v is not matched (line 22 to 24), where that set of matchings does not contain a pair (v,*).
+
+\bigskip
+\bigskip
+\bigskip
+\bigskip
+\noindent
+Phew!
+
+
 
 \section{Computational Experiments}
 
