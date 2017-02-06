@@ -1,0 +1,36 @@
+SHELL := /bin/bash
+FILTER := -1
+MODULUS := 1
+CATTER := cat
+INSTANCES_FILE := mcsplaininstances.txt
+INSTANCES := $(shell cut -d' ' -f1 $(INSTANCES_FILE) | if [[ $(FILTER) == -1 ]] ; then cat ; else awk "(NR % $(MODULUS)) == ($(FILTER) % $(MODULUS))" ; fi | $(CATTER) )
+TIMEOUT := 1000
+ALGORITHMS := clique james-cpp-max james-cpp-max-down cp-branching-fc cp-branching-filtering-fc cp-filtering-fc
+STACK_SPACE := 10485760
+RESULTS := gpgnode-results/mcsplain-connected
+
+all : $(foreach i, $(INSTANCES), $(foreach a, $(ALGORITHMS), $(RESULTS)/$(a)/$i.out ))
+
+$(RESULTS)/clique/%.out :
+	mkdir -p $(RESULTS)/clique
+	ulimit -s $(STACK_SPACE) ; ../clique-code/solve_max_common_subgraph --undirected --unlabelled --connected --timeout $(TIMEOUT) $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f2-3 ) > >(tee $@ ) 2>&1
+
+$(RESULTS)/james-cpp-max/%.out :
+	mkdir -p $(RESULTS)/james-cpp-max
+	ulimit -s $(STACK_SPACE) ; ../../partitioning-common-subgraph/code/james-cpp/mcsp --connected --timeout $(TIMEOUT) min_max $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f2-3 ) > >(tee $@ ) 2>&1
+
+$(RESULTS)/james-cpp-max-down/%.out :
+	mkdir -p $(RESULTS)/james-cpp-max-down
+	ulimit -s $(STACK_SPACE) ; ../../partitioning-common-subgraph/code/james-cpp/mcsp --connected --timeout $(TIMEOUT) min_max --big-first $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f2-3 ) > >(tee $@ ) 2>&1
+
+$(RESULTS)/cp-branching-fc/%.out :
+	mkdir -p $(RESULTS)/cp-branching-fc
+	ulimit -s $(STACK_SPACE) ; ../french-code/mccis_branching_fc/executable.out -d 0 -l 0 -p $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f2 ) -t $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f3 ) > >(tee $@ ) 2>&1
+
+$(RESULTS)/cp-branching-filtering-fc/%.out :
+	mkdir -p $(RESULTS)/cp-branching-filtering-fc
+	ulimit -s $(STACK_SPACE) ; ../french-code/mccis_branching_filtering_fc/executable.out -d 0 -l 0 -p $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f2 ) -t $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f3 ) > >(tee $@ ) 2>&1
+
+$(RESULTS)/cp-filtering-fc/%.out :
+	mkdir -p $(RESULTS)/cp-filtering-fc
+	ulimit -s $(STACK_SPACE) ; ../french-code/mccis_filtering_fc/executable.out -d 0 -l 0 -p $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f2 ) -t $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f3 ) > >(tee $@ ) 2>&1
