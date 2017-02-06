@@ -1,0 +1,22 @@
+Parameters: GAD=1 vflib=1 dir=0 label=1 lowerbound=1 fileNameGp=../../cp2016-max-common-connected-subgraph-paper/datasets/graphsdb/mcs10/rand/r02/mcs10_r02_s90.A07 fileNameGt=../../cp2016-max-common-connected-subgraph-paper/datasets/graphsdb/mcs10/rand/r02/mcs10_r02_s90.B07
+Reading graphs...
+90 :  1432
+90 :  1422
+Initializing...
+maxdom : 8
+D->valSize : 511
+Solving...
+currentSize : 3 <-- 0.005460 s
+currentSize : 4 <-- 0.005906 s
+currentSize : 5 <-- 0.018614 s
+currentSize : 6 <-- 0.039620 s
+currentSize : 7 <-- 0.217500 s
+currentSize : 8 <-- 0.449442 s
+currentSize : 9 <-- 0.617242 s
+
+maxsize : 9
+nodes : 25342.000000
+filtered : 397010.000000
+CCGP filtered : 117470.000000
+CCGT filtered : 102146.000000
+time : 1.517197
