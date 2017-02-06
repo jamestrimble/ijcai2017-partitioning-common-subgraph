@@ -19,4 +19,6 @@ set ytics add ('8140' 8140) add ('' 8000)
 plot \
     "../experiments/gpgnode-results/mcs33ve-connected/runtimes.data" u 2:($2>=1e6?1e-10:1) smooth cumulative w l ti columnhead(2) at end lc 1, \
     "../experiments/gpgnode-results/mcs33ve-connected/runtimes.data" u 3:($3>=1e6?1e-10:1) smooth cumulative w l ti columnhead(3) at end lc 2, \
-    "../experiments/gpgnode-results/mcs33ve-connected/runtimes.data" u 5:($5>=1e6?1e-10:1) smooth cumulative w l ti columnhead(5) at end lc 1 dt "."
+    "../experiments/gpgnode-results/mcs33ve-connected/runtimes.data" u 5:($5>=1e6?1e-10:1) smooth cumulative w l ti columnhead(5) at end lc 1 dt ".", \
+    "../experiments/gpgnode-results/mcs33ve-connected/runtimes.data" u ($7*1000):($7>=1e3?1e-10:1) smooth cumulative w l ti columnhead(7) at end lc 4
+
