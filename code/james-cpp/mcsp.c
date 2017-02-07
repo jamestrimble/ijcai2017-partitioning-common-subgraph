@@ -44,6 +44,7 @@ static struct argp_option options[] = {
     {"connected", 'c', 0, 0, "Solve max common CONNECTED subgraph problem"},
     {"directed", 'i', 0, 0, "Use directed graphs"},
     {"labelled", 'a', 0, 0, "Use edge and vertex labels"},
+    {"vertex-labelled-only", 'x', 0, 0, "Use vertex labels, but not edge labels"},
     {"big-first", 'b', 0, 0, "First try to find an induced subgraph isomorphism, then decrement the target size"},
     {"timeout", 't', "timeout", 0, "Specify a timeout (seconds)"},
     { 0 }
@@ -57,6 +58,7 @@ static struct {
     bool connected;
     bool directed;
     bool labelled;
+    bool vertex_labelled_only;
     bool big_first;
     Heuristic heuristic;
     char *filename1;
@@ -75,6 +77,7 @@ void set_default_arguments() {
     arguments.connected = false;
     arguments.directed = false;
     arguments.labelled = false;
+    arguments.vertex_labelled_only = false;
     arguments.big_first = false;
     arguments.filename1 = NULL;
     arguments.filename2 = NULL;
@@ -111,7 +114,14 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
             arguments.directed = true;
             break;
         case 'a':
+            if (arguments.vertex_labelled_only)
+                fail("The -a and -x options can't be used together.");
             arguments.labelled = true;
+            break;
+        case 'x':
+            if (arguments.labelled)
+                fail("The -a and -x options can't be used together.");
+            arguments.vertex_labelled_only = true;
             break;
         case 'b':
             arguments.big_first = true;
@@ -488,8 +498,10 @@ int main(int argc, char** argv) {
     argp_parse(&argp, argc, argv, 0, 0, 0);
 
     char format = arguments.dimacs ? 'D' : arguments.lad ? 'L' : 'B';
-    struct Graph g0 = readGraph(arguments.filename1, format, arguments.directed, arguments.labelled);
-    struct Graph g1 = readGraph(arguments.filename2, format, arguments.directed, arguments.labelled);
+    struct Graph g0 = readGraph(arguments.filename1, format, arguments.directed,
+            arguments.labelled, arguments.labelled || arguments.vertex_labelled_only);
+    struct Graph g1 = readGraph(arguments.filename2, format, arguments.directed,
+            arguments.labelled, arguments.labelled || arguments.vertex_labelled_only);
 
     std::thread timeout_thread;
     std::mutex timeout_mutex;

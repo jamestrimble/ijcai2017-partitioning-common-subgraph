@@ -46,7 +46,7 @@ void add_edge(Graph& g, int v, int w, bool directed=false, unsigned int val=1) {
     }
 }
 
-struct Graph readDimacsGraph(char* filename, bool directed, bool labelled) {
+struct Graph readDimacsGraph(char* filename, bool directed, bool vertex_labelled) {
     struct Graph g(0);
 
     FILE* f;
@@ -80,7 +80,7 @@ struct Graph readDimacsGraph(char* filename, bool directed, bool labelled) {
             case 'n':
                 if (sscanf(line, "n %d %d", &v, &label)!=2)
                     fail("Error reading a line beginning with n.\n");
-                if (labelled)
+                if (vertex_labelled)
                     g.label[v-1] |= label;
                 break;
             }
@@ -129,7 +129,9 @@ int read_word(FILE *fp) {
     return (int)a[0] | (((int)a[1]) << 8);
 }
 
-struct Graph readBinaryGraph(char* filename, bool directed, bool labelled) {
+struct Graph readBinaryGraph(char* filename, bool directed, bool edge_labelled,
+        bool vertex_labelled)
+{
     struct Graph g(0);
     FILE* f;
     
@@ -153,7 +155,7 @@ struct Graph readBinaryGraph(char* filename, bool directed, bool labelled) {
     
     for (int i=0; i<nvertices; i++) {
         int label = (read_word(f) >> (16-k1));
-        if (labelled)
+        if (vertex_labelled)
             g.label[i] |= label;
     }
 
@@ -162,18 +164,18 @@ struct Graph readBinaryGraph(char* filename, bool directed, bool labelled) {
         for (int j=0; j<len; j++) {
             int target = read_word(f);
             int label = (read_word(f) >> (16-k1)) + 1;
-            add_edge(g, i, target, directed, labelled ? label : 1);
+            add_edge(g, i, target, directed, edge_labelled ? label : 1);
         }
     }
     fclose(f);
     return g;
 }
 
-struct Graph readGraph(char* filename, char format, bool directed, bool labelled) {
+struct Graph readGraph(char* filename, char format, bool directed, bool edge_labelled, bool vertex_labelled) {
     struct Graph g(0);
-    if (format=='D') g = readDimacsGraph(filename, directed, labelled);
+    if (format=='D') g = readDimacsGraph(filename, directed, vertex_labelled);
     else if (format=='L') g = readLadGraph(filename, directed);
-    else if (format=='B') g = readBinaryGraph(filename, directed, labelled);
+    else if (format=='B') g = readBinaryGraph(filename, directed, edge_labelled, vertex_labelled);
     else fail("Unknown graph format\n");
     return g;
 }
