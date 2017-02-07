@@ -13,7 +13,7 @@ set xrange [1:1e6]
 set logscale x
 set format x '$10^{%T}$'
 set yrange [0:8140]
-set key top left box
+set key off
 set ytics add ('8140' 8140) add ('' 8000)
 
 plot \
