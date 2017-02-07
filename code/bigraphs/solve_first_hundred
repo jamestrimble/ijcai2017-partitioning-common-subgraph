@@ -1,0 +1,16 @@
+mkdir -p vf-instances
+mkdir -p results
+
+for inst1 in ../../../../Instances/bigraphs/savannah-test/decs/*.txt; do
+    for inst2 in $(ls ../../../../Instances/bigraphs/savannah-test/*.txt | grep -E '/[0-9]{1,2}.txt'); do
+        name1=$(basename $inst1 .txt)
+        name2=$(basename $inst2 .txt)
+        echo $name1 $name2
+        python convert_bigraph.py $inst1 $inst2 \
+                vf-instances/$name1-$name2-first.vf vf-instances/$name1-$name2-second.vf 
+        ../james-cpp-for-bigraphs/mcsp --labelled --directed min_max \
+                vf-instances/$name1-$name2-first.vf vf-instances/$name1-$name2-second.vf \
+                | tee results/$name1-$name2.out
+    done
+done
+
