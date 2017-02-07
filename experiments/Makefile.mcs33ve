@@ -1,0 +1,28 @@
+SHELL := /bin/bash
+FILTER := -1
+MODULUS := 1
+CATTER := cat
+INSTANCES_FILE := mcs33vedinstances.txt
+INSTANCES := $(shell cut -d' ' -f1 $(INSTANCES_FILE) | if [[ $(FILTER) == -1 ]] ; then cat ; else awk "(NR % $(MODULUS)) == ($(FILTER) % $(MODULUS))" ; fi | $(CATTER) )
+TIMEOUT := 1000
+ALGORITHMS := clique cp-fc james-cpp-max
+STACK_SPACE := 10485760
+RESULTS := gpgnode-results/mcs33ve
+
+all : $(foreach i, $(INSTANCES), $(foreach a, $(ALGORITHMS), $(RESULTS)/$(a)/$i.out ))
+
+$(RESULTS)/clique/%.out :
+	mkdir -p $(RESULTS)/clique
+	ulimit -s $(STACK_SPACE) ; ../clique-code/solve_max_common_subgraph --timeout $(TIMEOUT) --undirected $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f2-3 ) > >(tee $@ ) 2>&1
+
+$(RESULTS)/cp-fc/%.out :
+	mkdir -p $(RESULTS)/cp-fc
+	ulimit -s $(STACK_SPACE) ; ../french-code/mcis_fc/executable.out -d 0 -l 1 -p $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f2 ) -t $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f3 ) > >(tee $@ ) 2>&1
+
+$(RESULTS)/james-cpp-max/%.out :
+	mkdir -p $(RESULTS)/james-cpp-max
+	ulimit -s $(STACK_SPACE) ; ../../partitioning-common-subgraph/code/james-cpp/mcsp -a --timeout $(TIMEOUT) min_max $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f2-3 ) > >(tee $@ ) 2>&1
+
+$(RESULTS)/james-cpp-max-down/%.out :
+	mkdir -p $(RESULTS)/james-cpp-max-down
+	ulimit -s $(STACK_SPACE) ; ../../partitioning-common-subgraph/code/james-cpp/mcsp -a --timeout $(TIMEOUT) min_max --big-first $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f2-3 ) > >(tee $@ ) 2>&1

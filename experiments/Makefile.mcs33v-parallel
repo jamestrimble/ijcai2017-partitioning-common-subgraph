@@ -1,0 +1,18 @@
+SHELL := /bin/bash
+FILTER := -1
+MODULUS := 1
+CATTER := cat
+INSTANCES_FILE := mcs33vedinstances.txt
+INSTANCES := $(shell cut -d' ' -f1 $(INSTANCES_FILE) | if [[ $(FILTER) == -1 ]] ; then cat ; else awk "(NR % $(MODULUS)) == ($(FILTER) % $(MODULUS))" ; fi | $(CATTER) )
+TIMEOUT := 1000
+ALGORITHMS := clique-par
+STACK_SPACE := 10485760
+RESULTS := gpgnode-results/mcs33v
+N_THREADS := 32
+
+all : $(foreach i, $(INSTANCES), $(foreach a, $(ALGORITHMS), $(RESULTS)/$(a)/t$(N_THREADS)/$i.out ))
+
+$(RESULTS)/clique-par/t$(N_THREADS)/%.out :
+	mkdir -p $(RESULTS)/clique-par/t$(N_THREADS)
+	ulimit -s $(STACK_SPACE) ; ../parallel-clique-code/solve_max_common_subgraph --timeout $(TIMEOUT) --threads $(N_THREADS) --no-edge-labels $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f2-3 ) > >(tee $@ ) 2>&1
+
