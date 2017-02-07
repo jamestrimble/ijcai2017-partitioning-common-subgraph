@@ -9,6 +9,7 @@ GRAPHS = \
 	 gen-graph-plain-cumulative.pdf \
 	 gen-graph-33ved-cumulative.pdf \
 	 gen-graph-33ve-cumulative.pdf \
+	 gen-graph-33v-cumulative.pdf \
 	 gen-graph-33ve-connected-cumulative.pdf \
 	 gen-graph-plain-connected-cumulative.pdf \
 	 gen-graph-sip-cumulative.pdf \

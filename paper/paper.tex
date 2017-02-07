@@ -260,9 +260,11 @@ all 16 physical cores with hyper-threading enabled.
 
 \paragraph{No labels, undirected} are in \cref{figure:plain-cumulative}.
 
-\paragraph{Vertex and edge labels, directed} are in \cref{figure:33ved-cumulative}.
+\paragraph{Vertex labels but no edge labels, undirected} are in \cref{figure:33v-cumulative}, and are not in other papers so we should omit this unless we see something interesting.
 
 \paragraph{Vertex and edge labels, not directed} are in \cref{figure:33ve-cumulative}, and are not in other papers so we should omit this unless we see something interesting.
+
+\paragraph{Vertex and edge labels, directed} are in \cref{figure:33ved-cumulative}.
 
 \paragraph{No labels, undirected, connected} are in \cref{figure:plain-connected-cumulative}.
 
@@ -282,14 +284,20 @@ all 16 physical cores with hyper-threading enabled.
 
 \begin{figure}
     \centering
-    \includegraphics*{gen-graph-33ved-cumulative.pdf}
-    \caption{MCS 33\% vertex and edge labelled directed instances, cumulative runtimes}\label{figure:33ved-cumulative}
+    \includegraphics*{gen-graph-33v-cumulative.pdf}
+    \caption{MCS 33\% vertex labelled, no edge labels, undirected instances, cumulative runtimes}\label{figure:33v-cumulative}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics*{gen-graph-33ve-cumulative.pdf}
     \caption{MCS 33\% vertex and edge labelled undirected instances, cumulative runtimes}\label{figure:33ve-cumulative}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics*{gen-graph-33ved-cumulative.pdf}
+    \caption{MCS 33\% vertex and edge labelled directed instances, cumulative runtimes}\label{figure:33ved-cumulative}
 \end{figure}
 
 \begin{figure}
