@@ -45,7 +45,6 @@ static struct argp_option options[] = {
     {"directed", 'i', 0, 0, "Use directed graphs"},
     {"labelled", 'a', 0, 0, "Use edge and vertex labels"},
     {"vertex-labelled-only", 'x', 0, 0, "Use vertex labels, but not edge labels"},
-    {"big-first", 'b', 0, 0, "First try to find an induced subgraph isomorphism, then decrement the target size"},
     {"timeout", 't', "timeout", 0, "Specify a timeout (seconds)"},
     { 0 }
 };
@@ -59,7 +58,6 @@ static struct {
     bool directed;
     bool edge_labelled;
     bool vertex_labelled;
-    bool big_first;
     Heuristic heuristic;
     char *filename1;
     char *filename2;
@@ -78,7 +76,6 @@ void set_default_arguments() {
     arguments.directed = false;
     arguments.edge_labelled = false;
     arguments.vertex_labelled = false;
-    arguments.big_first = false;
     arguments.filename1 = NULL;
     arguments.filename2 = NULL;
     arguments.timeout = 0;
@@ -123,9 +120,6 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
             if (arguments.edge_labelled)
                 fail("The -a and -x options can't be used together.");
             arguments.vertex_labelled = true;
-            break;
-        case 'b':
-            arguments.big_first = true;
             break;
         case 't':
             arguments.timeout = std::stoi(arg);
@@ -370,8 +364,8 @@ void remove_bidomain(vector<Bidomain>& domains, int idx) {
 }
 
 void solve(const Graph & g0, const Graph & g1, vector<VtxPair> & incumbent,
-        vector<VtxPair> & current, vector<Bidomain> & domains,
-        vector<int> & left, vector<int> & right, unsigned int matching_size_goal)
+        vector<VtxPair> & current, vector<vector<VtxPair>>& solutions,
+        vector<Bidomain> & domains, vector<int> & left, vector<int> & right)
 {
     if (abort_due_to_timeout)
         return;
@@ -379,16 +373,15 @@ void solve(const Graph & g0, const Graph & g1, vector<VtxPair> & incumbent,
     if (arguments.verbose) show(current, domains, left, right);
     nodes++;
 
-    if (current.size() > incumbent.size()) {
+    if (current.size() >= incumbent.size()) {
+        if (current.size() > incumbent.size())
+            solutions.clear();
+        solutions.push_back(current);
         incumbent = current;
-        if (!arguments.quiet) cout << "Incumbent size: " << incumbent.size() << endl;
     }
 
     unsigned int bound = current.size() + calc_bound(domains);
-    if (bound <= incumbent.size() || bound < matching_size_goal)
-        return;
-
-    if (arguments.big_first && incumbent.size()==matching_size_goal)
+    if (bound < incumbent.size())
         return;
 
     int bd_idx = select_bidomain(domains, left, current.size());
@@ -413,16 +406,16 @@ void solve(const Graph & g0, const Graph & g1, vector<VtxPair> & incumbent,
         auto new_domains = filter_domains(domains, left, right, g0, g1, v, w,
                 arguments.directed || arguments.edge_labelled);
         current.push_back(VtxPair(v, w));
-        solve(g0, g1, incumbent, current, new_domains, left, right, matching_size_goal);
+        solve(g0, g1, incumbent, current, solutions, new_domains, left, right);
         current.pop_back();
     }
     bd.right_len++;
     if (bd.left_len == 0)
         remove_bidomain(domains, bd_idx);
-    solve(g0, g1, incumbent, current, domains, left, right, matching_size_goal);
+    solve(g0, g1, incumbent, current, solutions, domains, left, right);
 }
 
-vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
+vector<vector<VtxPair>> mcs(const Graph & g0, const Graph & g1) {
     vector<int> left;  // the buffer of vertex indices for the left partitions
     vector<int> right;  // the buffer of vertex indices for the right partitions
 
@@ -457,25 +450,11 @@ vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
     }
 
     vector<VtxPair> incumbent;
+    vector<VtxPair> current;
+    vector<vector<VtxPair>> solutions;
+    solve(g0, g1, incumbent, current, solutions, domains, left, right);
 
-    if (arguments.big_first) {
-        for (int k=0; k<g0.n; k++) {
-            unsigned int goal = g0.n - k;
-            auto left_copy = left;
-            auto right_copy = right;
-            auto domains_copy = domains;
-            vector<VtxPair> current;
-            solve(g0, g1, incumbent, current, domains_copy, left_copy, right_copy, goal);
-            if (incumbent.size() == goal) break;
-            if (!arguments.quiet) cout << "Upper bound: " << goal-1 << std::endl;
-        }
-
-    } else {
-        vector<VtxPair> current;
-        solve(g0, g1, incumbent, current, domains, left, right, 1);
-    }
-
-    return incumbent;
+    return solutions;
 }
 
 vector<int> calculate_degrees(const Graph & g) {
@@ -550,12 +529,14 @@ int main(int argc, char** argv) {
     struct Graph g0_sorted = induced_subgraph(g0, vv0);
     struct Graph g1_sorted = induced_subgraph(g1, vv1);
 
-    vector<VtxPair> solution = mcs(g0_sorted, g1_sorted);
+    vector<vector<VtxPair>> solutions = mcs(g0_sorted, g1_sorted);
 
     // Convert to indices from original, unsorted graphs
-    for (auto& vtx_pair : solution) {
-        vtx_pair.v = vv0[vtx_pair.v];
-        vtx_pair.w = vv1[vtx_pair.w];
+    for (auto& solution : solutions) {
+        for (auto& vtx_pair : solution) {
+            vtx_pair.v = vv0[vtx_pair.v];
+            vtx_pair.w = vv1[vtx_pair.w];
+        }
     }
 
     auto stop = std::chrono::steady_clock::now();
@@ -571,15 +552,16 @@ int main(int argc, char** argv) {
         timeout_thread.join();
     }
 
-    if (!check_sol(g0, g1, solution))
-        fail("*** Error: Invalid solution\n");
+    for (auto& solution : solutions) {
+        if (!check_sol(g0, g1, solution))
+            fail("*** Error: Invalid solution\n");
 
-    cout << "Solution size " << solution.size() << std::endl;
-    for (int i=0; i<g0.n; i++)
-        for (unsigned int j=0; j<solution.size(); j++)
-            if (solution[j].v == i)
-                cout << "(" << solution[j].v << " -> " << solution[j].w << ") ";
-    cout << std::endl;
+        for (int i=0; i<g0.n; i++)
+            for (unsigned int j=0; j<solution.size(); j++)
+                if (solution[j].v == i)
+                    cout << "(" << solution[j].v << " -> " << solution[j].w << ") ";
+        cout << std::endl;
+    }
 
     cout << "Nodes:                      " << nodes << endl;
     cout << "CPU time (ms):              " << time_elapsed << endl;
