@@ -1,0 +1,110 @@
+SHELL := /bin/bash
+INSTANCES_FILE := mcsplaininstances.txt
+INSTANCES := $(shell cut -d' ' -f1 $(INSTANCES_FILE) )
+ALGORITHMS := clique james-cpp-max james-cpp-max-down cp-branching-fc cp-branching-filtering-fc cp-filtering-fc clique-par/t32
+RESULTS := gpgnode-results/mcsplain-connected
+
+all : $(RESULTS)/runtimes.data $(RESULTS)/nodes.data
+
+runtimes : $(foreach i, $(INSTANCES), $(foreach a, $(ALGORITHMS), $(RESULTS)/$(a)/$i.runtime ))
+
+nodes : $(foreach i, $(INSTANCES), $(foreach a, $(ALGORITHMS), $(RESULTS)/$(a)/$i.nodes ))
+
+$(RESULTS)/clique/%.runtime : $(RESULTS)/clique/%.out
+	tail -n1 < $^ | cut -d' ' -f1 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/clique-par/t16/%.runtime : $(RESULTS)/clique-par/t16/%.out
+	tail -n1 < $^ | cut -d' ' -f1 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/clique-par/t32/%.runtime : $(RESULTS)/clique-par/t32/%.out
+	tail -n1 < $^ | cut -d' ' -f1 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/kdown/%.runtime : $(RESULTS)/kdown/%.out
+	tail -n2 < $^ | head -n1 | cut -d' ' -f1 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/cp-branching-fc/%.runtime : $(RESULTS)/cp-branching-fc/%.out
+	grep '^time :' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/cp-branching-filtering-fc/%.runtime : $(RESULTS)/cp-branching-filtering-fc/%.out
+	grep '^time :' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/cp-filtering-fc/%.runtime : $(RESULTS)/cp-filtering-fc/%.out
+	grep '^time :' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-max/%.runtime : $(RESULTS)/james-cpp-max/%.out
+	grep '^CPU time (ms):' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-max-down/%.runtime : $(RESULTS)/james-cpp-max-down/%.out
+	grep '^CPU time (ms):' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-product/%.runtime : $(RESULTS)/james-cpp-product/%.out
+	grep '^CPU time (ms):' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-product-down/%.runtime : $(RESULTS)/james-cpp-product-down/%.out
+	grep '^CPU time (ms):' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/clique/%.nodes : $(RESULTS)/clique/%.out
+	if grep -q aborted $^ ; then echo NaN ; else tail -n3 < $^ | head -n1 | cut -d' ' -f2 ; fi > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/clique-par/t16/%.nodes : $(RESULTS)/clique-par/t16/%.out
+	if grep -q aborted $^ ; then echo NaN ; else tail -n3 < $^ | head -n1 | cut -d' ' -f2 ; fi > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/clique-par/t32/%.nodes : $(RESULTS)/clique-par/t32/%.out
+	if grep -q aborted $^ ; then echo NaN ; else tail -n3 < $^ | head -n1 | cut -d' ' -f2 ; fi > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/kdown/%.nodes : $(RESULTS)/kdown/%.out
+	if grep -q aborted %^ ; then echo NaN ; else tail -n4 < $^ | head -n1 | cut -d' ' -f2 ; fi > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/cp-branching-fc/%.nodes : $(RESULTS)/cp-branching-fc/%.out
+	if grep -q TIMEOUT $^ ; then echo NaN ; else grep '^nodes :' < $^ | cut -d':' -f2 ; fi > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/cp-branching-filtering-fc/%.nodes : $(RESULTS)/cp-branching-filtering-fc/%.out
+	if grep -q TIMEOUT $^ ; then echo NaN ; else grep '^nodes :' < $^ | cut -d':' -f2 ; fi > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/cp-filtering-fc/%.nodes : $(RESULTS)/cp-filtering-fc/%.out
+	if grep -q TIMEOUT $^ ; then echo NaN ; else grep '^nodes :' < $^ | cut -d':' -f2 ; fi > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-max/%.nodes : $(RESULTS)/james-cpp-max/%.out
+	if grep -q TIMEOUT $^ ; then echo NaN ; else grep '^Nodes:' < $^ | cut -d':' -f2 ; fi > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-max-down/%.nodes : $(RESULTS)/james-cpp-max-down/%.out
+	if grep -q TIMEOUT $^ ; then echo NaN ; else grep '^Nodes:' < $^ | cut -d':' -f2 ; fi > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-product/%.nodes : $(RESULTS)/james-cpp-product/%.out
+	if grep -q TIMEOUT $^ ; then echo NaN ; else grep '^Nodes:' < $^ | cut -d':' -f2 ; fi > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-product-down/%.nodes : $(RESULTS)/james-cpp-product-down/%.out
+	if grep -q TIMEOUT $^ ; then echo NaN ; else grep '^Nodes:' < $^ | cut -d':' -f2 ; fi > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/runtimes.data : runtimes
+	{ echo instance $(ALGORITHMS) ; cut -d' ' -f1 < $(INSTANCES_FILE) | while read a ; do \
+	    echo $$a $$(cat $(foreach a, $(ALGORITHMS), $(RESULTS)/$(a)/$$a.runtime ) ) ; \
+	done ; } | tee $@
+
+$(RESULTS)/nodes.data : nodes
+	{ echo instance $(ALGORITHMS) ; cut -d' ' -f1 < $(INSTANCES_FILE) | while read a ; do \
+	    echo $$a $$(cat $(foreach a, $(ALGORITHMS), $(RESULTS)/$(a)/$$a.nodes ) ) ; \
+	done ; } | tee $@
+

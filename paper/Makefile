@@ -10,6 +10,7 @@ GRAPHS = \
 	 gen-graph-33ved-cumulative.pdf \
 	 gen-graph-33ve-cumulative.pdf \
 	 gen-graph-33ve-connected-cumulative.pdf \
+	 gen-graph-plain-connected-cumulative.pdf \
 	 gen-graph-sip-cumulative.pdf \
 	 gen-graph-sip-james-versus-kdown-nodes-scatter.pdf
 
