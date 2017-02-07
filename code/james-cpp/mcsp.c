@@ -57,8 +57,8 @@ static struct {
     bool lad;
     bool connected;
     bool directed;
-    bool labelled;
-    bool vertex_labelled_only;
+    bool edge_labelled;
+    bool vertex_labelled;
     bool big_first;
     Heuristic heuristic;
     char *filename1;
@@ -76,8 +76,8 @@ void set_default_arguments() {
     arguments.lad = false;
     arguments.connected = false;
     arguments.directed = false;
-    arguments.labelled = false;
-    arguments.vertex_labelled_only = false;
+    arguments.edge_labelled = false;
+    arguments.vertex_labelled = false;
     arguments.big_first = false;
     arguments.filename1 = NULL;
     arguments.filename2 = NULL;
@@ -114,14 +114,15 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
             arguments.directed = true;
             break;
         case 'a':
-            if (arguments.vertex_labelled_only)
+            if (arguments.vertex_labelled)
                 fail("The -a and -x options can't be used together.");
-            arguments.labelled = true;
+            arguments.edge_labelled = true;
+            arguments.vertex_labelled = true;
             break;
         case 'x':
-            if (arguments.labelled)
+            if (arguments.edge_labelled)
                 fail("The -a and -x options can't be used together.");
-            arguments.vertex_labelled_only = true;
+            arguments.vertex_labelled = true;
             break;
         case 'b':
             arguments.big_first = true;
@@ -410,7 +411,7 @@ void solve(const Graph & g0, const Graph & g1, vector<VtxPair> & incumbent,
         right[bd.r + bd.right_len] = w;
 
         auto new_domains = filter_domains(domains, left, right, g0, g1, v, w,
-                arguments.directed || arguments.labelled);
+                arguments.directed || arguments.edge_labelled);
         current.push_back(VtxPair(v, w));
         solve(g0, g1, incumbent, current, new_domains, left, right, matching_size_goal);
         current.pop_back();
@@ -499,9 +500,9 @@ int main(int argc, char** argv) {
 
     char format = arguments.dimacs ? 'D' : arguments.lad ? 'L' : 'B';
     struct Graph g0 = readGraph(arguments.filename1, format, arguments.directed,
-            arguments.labelled, arguments.labelled || arguments.vertex_labelled_only);
+            arguments.edge_labelled, arguments.vertex_labelled);
     struct Graph g1 = readGraph(arguments.filename2, format, arguments.directed,
-            arguments.labelled, arguments.labelled || arguments.vertex_labelled_only);
+            arguments.edge_labelled, arguments.vertex_labelled);
 
     std::thread timeout_thread;
     std::mutex timeout_mutex;
