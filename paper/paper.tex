@@ -17,8 +17,11 @@
 \newcommand{\citet}[1]{\citeauthor{#1} \shortcite{#1}}
 \newcommand{\citep}[1]{\cite{#1}}
 
+% TODO: use operatorname for these
 \DeclareMathOperator{\V}{V}
 \DeclareMathOperator{\E}{E}
+
+\newcommand{\BigO}[1]{\ensuremath{\operatorname{O}\left(#1\right)}}
 
 \newcommand{\examplexG}[5] {
     \begin{minipage}{.2\textwidth}
@@ -195,49 +198,102 @@ $\V(G)$ to assign.
 \label{jtAlg}
 \end{algorithm}
 
-\noindent
 Now, let's try and explain this. First, assume we have two graph G and H and there are no more vertices in G than in H (think of G as the pattern graph and H as the target).
 future is a list of pairs, where the first element of a pair is a set of pattern vertices P and the second is a set of target vertices T. It is assumed that each pattern vertex in P 
 might be matched with any (all) of the target vertices in T, or be unmatched. Therefore we start our search via the function LilybankSplit (line 26). This returns an integer, the size of the largest matching.
 In line 29 a call is made to expand, where we have as arguments a list of pairs (called future, line 1) and a set of pairs of the form (v,w) where pattern vertex v is matched to target vertex w.
 
-\bigskip
-\noindent
 We now focus on expand (line (1)). This is initially called (line 29) with the future as a list containing the single pair $\langle V(G),V(H) \rangle$. Lines 4 to 7 define the conditions 
 where we return, i.e. when the incumbent cannot be improved. In line 3, a new incumbent might be saved. Lines 8 to 24 perform the search.
 
-\bigskip
-\noindent
 A pair is selected from the future (line 8) using some heuristic. Note that this pair is not removed from the future, and that P and T can be considered as pointers to sets. A pattern vertex is then selected, possibly using a heuristic (line 9). We now iterate over all possible target vertices in T (lines 10 to 21). A target vertex w is selected and a matching produced (line 11). A new future is created (using {\bf Let} to signify a new variable, line 12). Every pair in the future can now be split (lines 13 to 19) into pattern vertices adjacent to the selected pattern vertex v and target vertices adjacent to the selected target vertex w (lines 14 to 15) and this is added to the new future if both sets are not null (line 16) i.e. there is a potential for more matchings. This is then repeated symmetrically for non-adjacency (lines 17 to 19) using the compliments of the graphs.
 A recursive call is then made using the new future and the increased matching (line 20). On return from that call we remove the matching (v,w) (line 21). Having explored all matchings with v in its target set we now consider what happens if the selected pattern vertex v is not matched (line 22 to 24), where that set of matchings does not contain a pair (v,*).
 
-\bigskip
-\bigskip
-\bigskip
 \bigskip
 \noindent
 Phew!
 
 \section{Heuristics}
 
+We ran a small experiment comparing lots of heuristics such as \dots on random
+instances. The one where you choose a colour class with as small a max(left size,
+right size) as possible seemed to work best. ? Why?
 
+\section{Comparison with Existing Algorithms}
+
+? Describe CP-FC and clique encodings
+
+The Lilybank algorithm explores exactly the same search tree as CP-FC, because \dots
+
+The new algorithm takes $\BigO{n}$ time at each search node. CP-FC takes $\BigO{?}$ time,
+and clique takes $\BigO{n^4}$ time.
+
+Our data structure lets us compute good heuristics cheaply, which is why we take
+slightly fewer search nodes than CP-FC.
+
+Clique gives us very strong propagation.
+
+Our algorithm needs less space than CP-FC ($\BigO{n^2}$ rather than $\BigO{n^3}$?) and
+much less than clique ($\BigO{n^4}$?).
 
 \section{Extensions}
 
 So far, we have considered only unlabelled, undirected graphs. In this section, we
 describe some straightforward changes to the algorithm that relax these restrictions.
 
-For the case of unlabelled, directed graphs, each adjacency-matrix entry for a vertex
-pair $(u,v)$ in graph $G$ or $H$ takes the value 0 if the vertices are not adjacent,
-1 if there is an edge $u \rightarrow v$ but no edge $v \rightarrow u$, 2 if there is a
-edge in the opposite direction, and 3 if there are edges in both directions. In lines
-14-19 of the algorithm .......
+If we have vertex labels, we replace ${\langle V(G),V(H) \rangle}$ in line 28 of
+the algorithm with a set containing a colour class for each label that appears in
+both $\V(G)$ and $\V(H)$. In the remainder of this section, \textit{labels} refers to
+edge labels.
 
-Labelled, undirected .......
+For the unlabelled, directed case, let $A_G$ and $A_H$ be the adjacency matrices
+of $G$ and $H$ respectively, as stored in memory. For each
+vertex pair $(t,u)$ in graph $G$ or $H$, the adjacency matrix entry 
+takes the value 0 if the vertices are
+not adjacent, 1 if the two vertices share a single edge in the direction $t
+\rightarrow u$, 2 if they share a single edge in the direction $u \rightarrow
+t$, and 3 if there are edges in both directions. Where lines 14-19 of the
+basic algorithm split the pair $\langle P',T' \rangle$ two ways, according to whether
+vertices are ajacent to $v$ (resp. $w$), we now perform a four-way split where
+each vertex is classified according to the label on its adjacency matrix from $v$
+(resp. $w$). This is shown in Algorithm~\ref{labDirAlg}, where $L=\{0,1,2,3\}$.
 
-Labelled, directed ......
+\begin{algorithm}
+\DontPrintSemicolon
+\nl    \For {$l \in L$}{
+\nl        \bf{Let} $P^{''} \gets \{ u \in P^{'} \mid u \neq v \wedge A_G[v][u] = l \}$ \;
+\nl        \bf{Let} $T^{''} \gets \{ u \in T^{'} \mid u \neq w \wedge A_H[w][u] = l \}$ \;
+\nl        \lIf {$P^{''} \neq \emptyset$ \bf{and} $T^{''} \neq \emptyset$}{$future^{'} \gets future^{'} + \langle P^{''} , T^{''} \rangle$}
+       }
+\caption{Replacement for lines 14--19 in directed in labelled cases}
+\label{labDirAlg}
+\end{algorithm}
 
-Connected ........
+In the labelled, undirected case, each adjacency-matrix entry contains the edge
+label, or a null entry 0 if no edge exists between the pair of vertices.  we
+can also use Algorithm~\ref{labDirAlg}, by letting $L$ be the union of $\{0\}$
+with the set of all labels that appear in the input graphs. Since there may be
+up to $n_G + n_H$ distinct labels, the loop in Algorithm~\ref{labDirAlg} may
+execute up to $n_G + n_H$ times, and this variation of the algorithm therefore
+requires $\BigO{n^2}$ time per search node.  It is possible to modify the
+algorithms to run in $\BigO{n \log n}$ per search node; we will give a brief
+outline of the method. First, run lines 17-19 of Algorithm~\ref{jtAlg} to
+create a new label-class of vertices that are not adjacent to $v$ or $w$, and
+remove these vertices from $\langle P',T' \rangle$. Next, sort $P'$ and $T'$ in
+ascending order of the label on the edge from $v$ or $w$ to each vertex. We can
+then create the colour classes corresponding to each edge label by
+simulataneously traversing $P'$ and $T'$ from left to right.
+
+The labelled, directed case is similar to its undirected counterpart, except that
+each element $A[u][v]$ in an adjacency matrix is a pair $(l_1, l_2)$, where
+$l_1$ is the label on the edge $u \rightarrow v$ (or 0 if no edge exists) and $l_2$
+is the label on the reverse edge.
+
+For the variant in which the common subgraph must be connected, we consider
+only undirected graphs. We modify the algorithm by permitting branching only on
+a vertex $v$ that has at least one non-zero element in its bitstring label.
+(Cite the first paper that did this.) ? Should we say that smarter propagation
+might be possible?
 
 \section{Future Work}
 
