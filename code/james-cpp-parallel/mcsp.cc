@@ -416,7 +416,13 @@ void solve(const Graph & g0, const Graph & g1, AtomicIncumbent & global_incumben
         auto new_domains = filter_domains(domains, left, right, g0, g1, v, w,
                 arguments.directed || arguments.edge_labelled);
         current.push_back(VtxPair(v, w));
-        solve(g0, g1, global_incumbent, this_thread_incumbent, current, new_domains, left, right, matching_size_goal, this_thread_nodes);
+
+        auto left_copy = left;
+        auto right_copy = right;
+        auto current_copy = current;
+
+        solve(g0, g1, global_incumbent, this_thread_incumbent, current_copy, new_domains, left_copy, right_copy, matching_size_goal, this_thread_nodes);
+
         current.pop_back();
     }
     bd.right_len++;
