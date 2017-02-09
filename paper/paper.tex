@@ -25,6 +25,7 @@
 % TODO: use operatorname for these
 \DeclareMathOperator{\V}{V}
 \DeclareMathOperator{\E}{E}
+\DeclareMathOperator{\N}{N}
 
 \newcommand{\BigO}[1]{\ensuremath{\operatorname{O}\left(#1\right)}}
 
@@ -87,9 +88,9 @@ j.trimble.1@research.gla.ac.uk}
 
 \citet{DBLP:conf/cp/NdiayeS11}
 
-Given graphs $G=(\V(G), \E(G))$ and $H=(\V(H), \E(H))$, the \emph{Maximum Common
-Subgraph (MCS)} problem is to find a graph with as many vertices as possible
-that is isomorphic to induced subgraphs of both $G$ and $H$. 
+Given graphs $G$ and $H$, the \emph{Maximum Common Subgraph (MCS)} problem is
+to find a graph with as many vertices as possible that is isomorphic to induced
+subgraphs of both $G$ and $H$. 
 
 MCS has numerous applications, including finding the similarity between organic
 molecules, \dots
@@ -136,8 +137,10 @@ mapping $\{1a, 2f, 3d, 5b\}$ is one example.
 
 \begin{figure}[ht]
 \centering
-    \examplexG{}{}{}{}{}
-    \examplexH{}{}{}{}{}{}
+    \includegraphics{graph_G}
+    \includegraphics{graph_H}
+%    \examplexG{}{}{}{}{}
+%    \examplexH{}{}{}{}{}{}
 \caption{Graphs $G$ and $H$}
 \label{fig:alg1}
 \end{figure}
@@ -153,9 +156,43 @@ property is the algorithm's key invariant.
 
 \begin{figure}[ht]
 \centering
-    \examplexG{$(1a)$}{0}{0}{1}{1}
-    \examplexH{$(1a)$}{1}{1}{0}{1}{0}
-\caption{Step 2}
+\begin{minipage}[t]{0.15\linewidth}
+    Mapping
+
+    \bigskip
+
+    $\{1a\}$
+\end{minipage}
+\quad
+\begin{minipage}[t]{0.3\linewidth}
+    Labelling of $G$
+    \begin{tabular}[t]{cc}
+    \hline
+        Vertex & Label\\
+    \hline
+        $2$ & 0 \\
+        $3$ & 0 \\
+        $4$ & 1 \\
+        $5$ & 1 \\
+    \hline
+    \end{tabular}
+\end{minipage}
+\quad
+\begin{minipage}[t]{0.3\linewidth}
+    Labelling of $H$
+    \begin{tabular}[t]{cc}
+    \hline
+        Vertex & Label\\
+    \hline
+        $b$ & 1 \\
+        $c$ & 1 \\
+        $d$ & 0 \\
+        $e$ & 1 \\
+        $f$ & 0 \\
+    \hline
+    \end{tabular}
+\end{minipage}
+    \caption{Labels on vertices after mapping $1$ to $a$}
 \label{fig:alg2}
 \end{figure}
 
@@ -173,8 +210,40 @@ and only if the two vertices have the same colour.
 
 \begin{figure}[ht]
 \centering
-    \examplexG{$(1a)$}{$(2d)$}{01}{10}{11}
-    \examplexH{$(1a)$}{11}{11}{$(2d)$}{10}{01}
+\begin{minipage}[t]{0.15\linewidth}
+    Mapping
+
+    \bigskip
+
+    $\{1a, 2d\}$
+\end{minipage}
+\quad
+\begin{minipage}[t]{0.3\linewidth}
+    Labelling of $G$
+    \begin{tabular}[t]{cc}
+    \hline
+        Vertex & Label\\
+    \hline
+        $3$ & 01 \\
+        $4$ & 10 \\
+        $5$ & 11 \\
+    \hline
+    \end{tabular}
+\end{minipage}
+\quad
+\begin{minipage}[t]{0.3\linewidth}
+    Labelling of $H$
+    \begin{tabular}[t]{cc}
+    \hline
+        Vertex & Label\\
+    \hline
+        $b$ & 11 \\
+        $c$ & 11 \\
+        $e$ & 10 \\
+        $f$ & 01 \\
+    \hline
+    \end{tabular}
+\end{minipage}
 \caption{Step 3}
 \label{fig:alg3}
 \end{figure}
