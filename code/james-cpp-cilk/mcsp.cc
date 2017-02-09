@@ -23,6 +23,7 @@
 
 #include <cilk/cilk.h>
 #include <cilk/reducer_max.h>
+#include <cilk/reducer_opadd.h>
 
 using std::vector;
 using std::cout;
@@ -167,7 +168,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
                                      Stats
 *******************************************************************************/
 
-std::atomic<unsigned long long> global_nodes{ 0 };
+unsigned long long global_nodes{ 0 };
 
 /*******************************************************************************
                                  MCS functions
@@ -415,12 +416,12 @@ void solve(const Graph & g0, const Graph & g1, AtomicIncumbent & global_incumben
         ThisThreadIncumbent & this_thread_incumbent,
         vector<VtxPair> & current, vector<Bidomain> & domains,
         vector<int> & left, vector<int> & right, unsigned int matching_size_goal,
-        unsigned long long & this_thread_nodes)
+        cilk::reducer<cilk::op_add<unsigned long long> > & this_thread_nodes)
 {
     if (abort_due_to_timeout)
         return;
 
-    this_thread_nodes++;
+    *this_thread_nodes += 1;
 
     this_thread_incumbent.update(current);
     global_incumbent.update(current.size());
@@ -517,21 +518,21 @@ vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
             auto domains_copy = domains;
             vector<VtxPair> current;
             ThisThreadIncumbent this_thread_incumbent;
-            unsigned long long this_thread_nodes = 0;
+            cilk::reducer<cilk::op_add<unsigned long long> > this_thread_nodes{ 0 };
             solve(g0, g1, global_incumbent, this_thread_incumbent, current, domains_copy, left_copy, right_copy, goal, this_thread_nodes);
             incumbent = this_thread_incumbent.get_value();
-            global_nodes += this_thread_nodes;
+            global_nodes += this_thread_nodes.get_value();
             if (global_incumbent.value == goal) break;
             if (!arguments.quiet) cout << "Upper bound: " << goal-1 << std::endl;
         }
 
     } else {
         vector<VtxPair> current;
-        unsigned long long this_thread_nodes = 0;
+        cilk::reducer<cilk::op_add<unsigned long long> > this_thread_nodes{ 0 };
         ThisThreadIncumbent this_thread_incumbent;
         solve(g0, g1, global_incumbent, this_thread_incumbent, current, domains, left, right, 1, this_thread_nodes);
         incumbent = this_thread_incumbent.get_value();
-        global_nodes += this_thread_nodes;
+        global_nodes += this_thread_nodes.get_value();
     }
 
     return incumbent;
