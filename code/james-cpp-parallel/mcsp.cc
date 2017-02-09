@@ -221,9 +221,9 @@ namespace
         }
     };
 
-    using ThisThreadIncumbent = vector<VtxPair>;
+    using PerThreadIncumbents = std::map<std::thread::id, vector<VtxPair> >;
 
-    const constexpr int split_levels = 8;
+    const constexpr int split_levels = 3;
 
     struct Position
     {
@@ -267,11 +267,14 @@ namespace
 
         std::vector<std::thread> threads;
 
+        std::list<std::chrono::milliseconds> times;
+
         HelpMe(int n_threads) :
             finish(false)
         {
             for (int t = 0 ; t < n_threads ; ++t)
                 threads.emplace_back([this, n_threads, t] {
+                        std::chrono::milliseconds total_work_time = std::chrono::milliseconds::zero();
                         while (! finish.load()) {
                             std::unique_lock<std::mutex> guard(mutex);
                             bool did_something = false;
@@ -281,7 +284,12 @@ namespace
                                     ++task->second.pending;
                                     guard.unlock();
 
+                                    auto start_work_time = std::chrono::steady_clock::now(); // local start time
+
                                     (*f)();
+
+                                    auto work_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start_work_time);
+                                    total_work_time += work_time;
 
                                     guard.lock();
                                     task->second.func = nullptr;
@@ -296,6 +304,9 @@ namespace
                             if (! did_something)
                                 cv.wait(guard);
                         }
+
+                        std::unique_lock<std::mutex> guard(mutex);
+                        times.push_back(total_work_time);
                         });
         }
 
@@ -311,6 +322,14 @@ namespace
                 t.join();
 
             threads.clear();
+
+            if (! times.empty()) {
+                cout << "Worker thread times (ms):  ";
+                for (auto & t : times)
+                    cout << " " << t.count();
+                cout << endl;
+                times.clear();
+            }
         }
 
         ~HelpMe()
@@ -502,8 +521,64 @@ void remove_bidomain(vector<Bidomain>& domains, int idx) {
     domains.pop_back();
 }
 
-void solve(const Graph & g0, const Graph & g1, AtomicIncumbent & global_incumbent,
-        ThisThreadIncumbent & this_thread_incumbent,
+void solve_nopar(const Graph & g0, const Graph & g1,
+        AtomicIncumbent & global_incumbent,
+        vector<VtxPair> & this_thread_incumbent,
+        vector<VtxPair> & current, vector<Bidomain> & domains,
+        vector<int> & left, vector<int> & right, unsigned int matching_size_goal,
+        unsigned long long & this_thread_nodes)
+{
+    if (abort_due_to_timeout)
+        return;
+
+    ++this_thread_nodes;
+
+    if (this_thread_incumbent.size() < current.size()) {
+        this_thread_incumbent = current;
+        global_incumbent.update(current.size());
+    }
+
+    unsigned int bound = current.size() + calc_bound(domains);
+    if (bound <= global_incumbent.value || bound < matching_size_goal)
+        return;
+
+    if (arguments.big_first && global_incumbent.value == matching_size_goal)
+        return;
+
+    int bd_idx = select_bidomain(domains, left, current.size());
+    if (bd_idx == -1)   // In the MCCS case, there may be nothing we can branch on
+        return;
+    Bidomain &bd = domains[bd_idx];
+
+    int v = find_min_value(left, bd.l, bd.left_len);
+    remove_vtx_from_left_domain(left, domains[bd_idx], v);
+
+    // Try assigning v to each vertex w in the colour class beginning at bd.r, in turn
+    int w = -1;
+    bd.right_len--;
+    for (int i=0; i<=bd.right_len; i++) {
+        int idx = index_of_next_smallest(right, bd.r, bd.right_len+1, w);
+        w = right[bd.r + idx];
+
+        // swap w to the end of its colour class
+        right[bd.r + idx] = right[bd.r + bd.right_len];
+        right[bd.r + bd.right_len] = w;
+
+        auto new_domains = filter_domains(domains, left, right, g0, g1, v, w,
+                arguments.directed || arguments.edge_labelled);
+        current.push_back(VtxPair(v, w));
+        solve_nopar(g0, g1, global_incumbent, this_thread_incumbent, current, new_domains, left, right, matching_size_goal, this_thread_nodes);
+        current.pop_back();
+    }
+    bd.right_len++;
+    if (bd.left_len == 0)
+        remove_bidomain(domains, bd_idx);
+    solve_nopar(g0, g1, global_incumbent, this_thread_incumbent, current, domains, left, right, matching_size_goal, this_thread_nodes);
+}
+
+void solve(const Graph & g0, const Graph & g1,
+        AtomicIncumbent & global_incumbent,
+        PerThreadIncumbents & per_thread_incumbents,
         vector<VtxPair> & current, vector<Bidomain> & domains,
         vector<int> & left, vector<int> & right, unsigned int matching_size_goal,
         unsigned long long & this_thread_nodes,
@@ -516,8 +591,8 @@ void solve(const Graph & g0, const Graph & g1, AtomicIncumbent & global_incumben
 
     ++this_thread_nodes;
 
-    if (this_thread_incumbent.size() < current.size()) {
-        this_thread_incumbent = current;
+    if (per_thread_incumbents.find(std::this_thread::get_id())->second.size() < current.size()) {
+        per_thread_incumbents.find(std::this_thread::get_id())->second = current;
         global_incumbent.update(current.size());
     }
 
@@ -549,7 +624,7 @@ void solve(const Graph & g0, const Graph & g1, AtomicIncumbent & global_incumben
         right[bd.r + idx] = right[bd.r + bd.right_len];
         right[bd.r + bd.right_len] = w;
 
-        funcs.emplace_back([&g0, &g1, &global_incumbent, &this_thread_incumbent, &matching_size_goal, &this_thread_nodes, &domains, &help_me,
+        funcs.emplace_back([&g0, &g1, &global_incumbent, &per_thread_incumbents, &matching_size_goal, &this_thread_nodes, &domains, &help_me,
              /* these are copied --> */ v, w, left, right, current, position, i, depth]() mutable {
             auto new_domains = filter_domains(domains, left, right, g0, g1, v, w, arguments.directed || arguments.edge_labelled);
             current.push_back(VtxPair(v, w));
@@ -557,7 +632,12 @@ void solve(const Graph & g0, const Graph & g1, AtomicIncumbent & global_incumben
             auto new_position = position;
             new_position.add(depth + 1, i + 1);
 
-            solve(g0, g1, global_incumbent, this_thread_incumbent, current, new_domains, left, right, matching_size_goal, this_thread_nodes, depth + 1, new_position, help_me);
+            if (depth > split_levels)
+                solve_nopar(g0, g1, global_incumbent, per_thread_incumbents.find(std::this_thread::get_id())->second,
+                        current, new_domains, left, right, matching_size_goal, this_thread_nodes);
+            else
+                solve(g0, g1, global_incumbent, per_thread_incumbents,
+                        current, new_domains, left, right, matching_size_goal, this_thread_nodes, depth + 1, new_position, help_me);
         });
     }
 
@@ -580,7 +660,12 @@ void solve(const Graph & g0, const Graph & g1, AtomicIncumbent & global_incumben
         remove_bidomain(domains, bd_idx);
     auto new_position = position;
     new_position.add(depth + 1, bd.right_len + 1);
-    solve(g0, g1, global_incumbent, this_thread_incumbent, current, domains, left, right, matching_size_goal, this_thread_nodes, depth + 1, new_position, help_me);
+
+    if (depth > split_levels)
+        solve_nopar(g0, g1, global_incumbent, per_thread_incumbents.find(std::this_thread::get_id())->second,
+                current, domains, left, right, matching_size_goal, this_thread_nodes);
+    else
+        solve(g0, g1, global_incumbent, per_thread_incumbents, current, domains, left, right, matching_size_goal, this_thread_nodes, depth + 1, new_position, help_me);
 }
 
 vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
@@ -621,32 +706,42 @@ vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
     vector<VtxPair> incumbent;
 
     if (arguments.big_first) {
-        HelpMe help_me(arguments.threads - 1);
         for (int k=0; k<g0.n; k++) {
+            HelpMe help_me(arguments.threads - 1);
             unsigned int goal = g0.n - k;
             auto left_copy = left;
             auto right_copy = right;
             auto domains_copy = domains;
             vector<VtxPair> current;
-            ThisThreadIncumbent this_thread_incumbent;
+            PerThreadIncumbents per_thread_incumbents;
+            for (auto & t : help_me.threads)
+                per_thread_incumbents.emplace(t.get_id(), vector<VtxPair>());
+            per_thread_incumbents.emplace(std::this_thread::get_id(), vector<VtxPair>());
             unsigned long long this_thread_nodes{ 0 };
             Position position;
-            solve(g0, g1, global_incumbent, this_thread_incumbent, current, domains_copy, left_copy, right_copy, goal, this_thread_nodes, 0, position, help_me);
-            incumbent = this_thread_incumbent;
+            solve(g0, g1, global_incumbent, per_thread_incumbents, current, domains_copy, left_copy, right_copy, goal, this_thread_nodes, 0, position, help_me);
+            for (auto & i : per_thread_incumbents)
+                if (i.second.size() > incumbent.size())
+                    incumbent = i.second;
             global_nodes += this_thread_nodes;
             if (global_incumbent.value == goal) break;
             if (!arguments.quiet) cout << "Upper bound: " << goal-1 << std::endl;
+            help_me.kill_workers();
         }
-        help_me.kill_workers();
 
     } else {
         HelpMe help_me(arguments.threads - 1);
         vector<VtxPair> current;
         unsigned long long this_thread_nodes{ 0 };
-        ThisThreadIncumbent this_thread_incumbent;
+        PerThreadIncumbents per_thread_incumbents;
+        for (auto & t : help_me.threads)
+            per_thread_incumbents.emplace(t.get_id(), vector<VtxPair>());
+        per_thread_incumbents.emplace(std::this_thread::get_id(), vector<VtxPair>());
         Position position;
-        solve(g0, g1, global_incumbent, this_thread_incumbent, current, domains, left, right, 1, this_thread_nodes, 0, position, help_me);
-        incumbent = this_thread_incumbent;
+        solve(g0, g1, global_incumbent, per_thread_incumbents, current, domains, left, right, 1, this_thread_nodes, 0, position, help_me);
+            for (auto & i : per_thread_incumbents)
+                if (i.second.size() > incumbent.size())
+                    incumbent = i.second;
         global_nodes += this_thread_nodes;
         help_me.kill_workers();
     }
