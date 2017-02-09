@@ -5,7 +5,7 @@ CATTER := cat
 INSTANCES_FILE := mcs33vedinstances.txt
 INSTANCES := $(shell cut -d' ' -f1 $(INSTANCES_FILE) | if [[ $(FILTER) == -1 ]] ; then cat ; else awk "(NR % $(MODULUS)) == ($(FILTER) % $(MODULUS))" ; fi | $(CATTER) )
 TIMEOUT := 1000
-ALGORITHMS := clique james-cpp-max cp-fc
+ALGORITHMS := clique james-cpp-max cp-fc cp-mac
 STACK_SPACE := 10485760
 RESULTS := gpgnode-results/mcs33v
 
@@ -26,3 +26,7 @@ $(RESULTS)/james-cpp-max-down/%.out :
 $(RESULTS)/cp-fc/%.out :
 	mkdir -p $(RESULTS)/cp-fc
 	ulimit -s $(STACK_SPACE) ; ../french-code/mcis_fc/executable.out -d 0 -l 0 -x 1 -p $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f2 ) -t $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f3 ) > >(tee $@ ) 2>&1
+
+$(RESULTS)/cp-mac/%.out :
+	mkdir -p $(RESULTS)/cp-mac
+	ulimit -s $(STACK_SPACE) ; ../french-code/mcis/executable.out -d 0 -l 0 -x 1 -p $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f2 ) -t $(shell grep "^`basename $*` " < $(INSTANCES_FILE) | cut -d' ' -f3 ) > >(tee $@ ) 2>&1

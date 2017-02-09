@@ -2,7 +2,7 @@ SHELL := /bin/bash
 INSTANCES_FILE := mcs33vedinstances.txt
 CATTER := cat
 INSTANCES := $(shell cut -d' ' -f1 $(INSTANCES_FILE) | $(CATTER) )
-ALGORITHMS := clique cp-fc james-cpp-max
+ALGORITHMS := clique cp-fc cp-mac james-cpp-max
 RESULTS := gpgnode-results/mcs33v
 
 all : $(RESULTS)/runtimes.data $(RESULTS)/nodes.data
