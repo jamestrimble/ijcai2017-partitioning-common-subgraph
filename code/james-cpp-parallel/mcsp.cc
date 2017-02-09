@@ -23,6 +23,32 @@ using std::vector;
 using std::cout;
 using std::endl;
 
+namespace
+{
+    struct AtomicIncumbent
+    {
+        std::atomic<unsigned> value;
+
+        AtomicIncumbent()
+        {
+            value.store(0, std::memory_order_seq_cst);
+        }
+
+        bool update(unsigned v)
+        {
+            while (true) {
+                unsigned cur_v = value.load(std::memory_order_seq_cst);
+                if (v > cur_v) {
+                    if (value.compare_exchange_strong(cur_v, v, std::memory_order_seq_cst))
+                        return true;
+                }
+                else
+                    return false;
+            }
+        }
+    };
+}
+
 static void fail(std::string msg) {
     std::cerr << msg << std::endl;
     exit(1);
@@ -162,7 +188,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
                                      Stats
 *******************************************************************************/
 
-unsigned long long nodes{ 0 };
+std::atomic<unsigned long long> global_nodes{ 0 };
 
 /*******************************************************************************
                                  MCS functions
@@ -185,30 +211,6 @@ struct Bidomain {
             right_len (right_len),
             is_adjacent (is_adjacent) { };
 };
-
-void show(const vector<VtxPair>& current, const vector<Bidomain> &domains,
-        const vector<int>& left, const vector<int>& right)
-{
-    cout << "Nodes: " << nodes << std::endl;
-    cout << "Length of current assignment: " << current.size() << std::endl;
-    cout << "Current assignment:";
-    for (unsigned int i=0; i<current.size(); i++) {
-        cout << "  (" << current[i].v << " -> " << current[i].w << ")";
-    }
-    cout << std::endl;
-    for (unsigned int i=0; i<domains.size(); i++) {
-        struct Bidomain bd = domains[i];
-        cout << "Left  ";
-        for (int j=0; j<bd.left_len; j++)
-            cout << left[bd.l + j] << " ";
-        cout << std::endl;
-        cout << "Right  ";
-        for (int j=0; j<bd.right_len; j++)
-            cout << right[bd.r + j] << " ";
-        cout << std::endl;
-    }
-    cout << "\n" << std::endl;
-}
 
 bool check_sol(const Graph & g0, const Graph & g1 , const vector<VtxPair> & solution) {
     return true;
@@ -369,26 +371,27 @@ void remove_bidomain(vector<Bidomain>& domains, int idx) {
     domains.pop_back();
 }
 
-void solve(const Graph & g0, const Graph & g1, vector<VtxPair> & incumbent,
+void solve(const Graph & g0, const Graph & g1, AtomicIncumbent & global_incumbent,
+        vector<VtxPair> & this_thread_incumbent,
         vector<VtxPair> & current, vector<Bidomain> & domains,
-        vector<int> & left, vector<int> & right, unsigned int matching_size_goal)
+        vector<int> & left, vector<int> & right, unsigned int matching_size_goal,
+        unsigned long long & this_thread_nodes)
 {
     if (abort_due_to_timeout)
         return;
 
-    if (arguments.verbose) show(current, domains, left, right);
-    nodes++;
+    this_thread_nodes++;
 
-    if (current.size() > incumbent.size()) {
-        incumbent = current;
-        if (!arguments.quiet) cout << "Incumbent size: " << incumbent.size() << endl;
+    if (current.size() > this_thread_incumbent.size()) {
+        this_thread_incumbent = current;
+        global_incumbent.update(current.size());
     }
 
     unsigned int bound = current.size() + calc_bound(domains);
-    if (bound <= incumbent.size() || bound < matching_size_goal)
+    if (bound <= global_incumbent.value || bound < matching_size_goal)
         return;
 
-    if (arguments.big_first && incumbent.size()==matching_size_goal)
+    if (arguments.big_first && global_incumbent.value == matching_size_goal)
         return;
 
     int bd_idx = select_bidomain(domains, left, current.size());
@@ -413,13 +416,13 @@ void solve(const Graph & g0, const Graph & g1, vector<VtxPair> & incumbent,
         auto new_domains = filter_domains(domains, left, right, g0, g1, v, w,
                 arguments.directed || arguments.edge_labelled);
         current.push_back(VtxPair(v, w));
-        solve(g0, g1, incumbent, current, new_domains, left, right, matching_size_goal);
+        solve(g0, g1, global_incumbent, this_thread_incumbent, current, new_domains, left, right, matching_size_goal, this_thread_nodes);
         current.pop_back();
     }
     bd.right_len++;
     if (bd.left_len == 0)
         remove_bidomain(domains, bd_idx);
-    solve(g0, g1, incumbent, current, domains, left, right, matching_size_goal);
+    solve(g0, g1, global_incumbent, this_thread_incumbent, current, domains, left, right, matching_size_goal, this_thread_nodes);
 }
 
 vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
@@ -456,6 +459,7 @@ vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
         domains.push_back({start_l, start_r, left_len, right_len, false});
     }
 
+    AtomicIncumbent global_incumbent;
     vector<VtxPair> incumbent;
 
     if (arguments.big_first) {
@@ -465,14 +469,20 @@ vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
             auto right_copy = right;
             auto domains_copy = domains;
             vector<VtxPair> current;
-            solve(g0, g1, incumbent, current, domains_copy, left_copy, right_copy, goal);
-            if (incumbent.size() == goal) break;
+            vector<VtxPair> this_thread_incumbent;
+            unsigned long long this_thread_nodes = 0;
+            solve(g0, g1, global_incumbent, this_thread_incumbent, current, domains_copy, left_copy, right_copy, goal, this_thread_nodes);
+            incumbent = this_thread_incumbent;
+            global_nodes += this_thread_nodes;
+            if (global_incumbent.value == goal) break;
             if (!arguments.quiet) cout << "Upper bound: " << goal-1 << std::endl;
         }
 
     } else {
         vector<VtxPair> current;
-        solve(g0, g1, incumbent, current, domains, left, right, 1);
+        unsigned long long this_thread_nodes = 0;
+        solve(g0, g1, global_incumbent, incumbent, current, domains, left, right, 1, this_thread_nodes);
+        global_nodes += this_thread_nodes;
     }
 
     return incumbent;
@@ -581,7 +591,7 @@ int main(int argc, char** argv) {
                 cout << "(" << solution[j].v << " -> " << solution[j].w << ") ";
     cout << std::endl;
 
-    cout << "Nodes:                      " << nodes << endl;
+    cout << "Nodes:                      " << global_nodes << endl;
     cout << "CPU time (ms):              " << time_elapsed << endl;
     if (aborted)
         cout << "TIMEOUT" << endl;
