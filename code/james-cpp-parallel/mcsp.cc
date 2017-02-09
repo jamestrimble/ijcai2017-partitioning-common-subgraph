@@ -301,7 +301,7 @@ namespace
                                 }
                             }
 
-                            if (! did_something)
+                            if ((! did_something) && (! finish.load()))
                                 cv.wait(guard);
                         }
 
