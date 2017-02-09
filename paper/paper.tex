@@ -1,5 +1,5 @@
 \documentclass[letterpaper]{article}
-\usepackage[pass,showframe]{geometry}
+%\usepackage[pass,showframe]{geometry}
 
 \usepackage{ijcai17}
 \usepackage{times}
@@ -9,6 +9,7 @@
 \usepackage[ruled,vlined]{algorithm2e}
 \usepackage{MnSymbol,wasysym}
 \usepackage{latexsym}
+\usepackage{algpseudocode}
 
 \usepackage{tikz}
 
@@ -16,6 +17,10 @@
 
 \newcommand{\citet}[1]{\citeauthor{#1} \shortcite{#1}}
 \newcommand{\citep}[1]{\cite{#1}}
+
+\newcommand{\McSplit}{\textproc{McSplit}}
+
+\newcommand{\nmax}{n_{\max}}
 
 % TODO: use operatorname for these
 \DeclareMathOperator{\V}{V}
@@ -58,9 +63,20 @@ j.trimble.1@research.gla.ac.uk}
 \maketitle
 
 \begin{abstract}
-    We came up with an important new algorithm for the maximum common (connected)
-    subgraph problem. This is an important problem, with at least two important
-    applications.
+    Maximium Common Subgraph (MCS) is the problem of finding a
+    graph of maximium size that is an induced subgraph of each of the two input
+    graphs.  We introduce \McSplit, a branch and bound algorithm that
+    uses a vertex-labelling scheme to compactly represent the subsets of
+    vertices that may be matched together to create a larger common subgraph.
+    The new algorithm explores the same search space as the existing CP-FC
+    algorithm, but requires only \BigO{n^2} space in total and \BigO{n} time
+    for each recursive call, greatly improving on all existing algorithms for
+    the problem.
+
+    Experimental results using two large graph databases show that \McSplit\ is
+    more than an order of magnitude faster than the leading existing algorithms
+    on instances involving undirected, unlabelled graphs, including the problem
+    variant in which the subgraph must be connected.
 \end{abstract}
 
 \section{Introduction}
@@ -73,33 +89,50 @@ j.trimble.1@research.gla.ac.uk}
 
 Given graphs $G=(\V(G), \E(G))$ and $H=(\V(H), \E(H))$, the \emph{Maximum Common
 Subgraph (MCS)} problem is to find a graph with as many vertices as possible
-that is isomorphic to induced subgraphs of both $G$ and $H$. Equivalently, MCS
-is the problem of finding a maximum-cardinality set of pairs $M = \{(v_1, w_1),
-\dots, (v_{|M|}, w_{|M|})\}$, with $v_i \in V(G)$ and $v_i \in V(H)$ for all $i$,
-such that for each pair $i,j$ ($1 \leq i < j
-\leq |M|$), $v_i$ and $v_j$ are adjacent in $G$ if and only if $w_i$ and $w_j$
-are adjacent in $H$.
+that is isomorphic to induced subgraphs of both $G$ and $H$. 
 
-The most successful existing approaches to optimally solving MCS are
-reformulation to the maximum clique problem and constraint programming
-\cite{DBLP:conf/cp/McCreeshNPS16}. In this paper, we introduce a new branch and bound
-algorithm for MCS which does not require a domain to be explicity maintained in
-memory for each vertex in $\V(G)$. The algorithm maintains labellings of the
-unmatched vertices in $\V(G)$ and $\V(H)$ such that a pair $(v, w)$ with $v \in \V(G)$
-and $w \in \V(H)$ can be added to the matching if and only if $v$ and $w$ have the
-same label.
+MCS has numerous applications, including finding the similarity between organic
+molecules, \dots
 
 \section{Preliminaries}
+
+MCS is the problem of finding a maximum-cardinality set of pairs $M = \{(v_1,
+w_1), \dots, (v_{|M|}, w_{|M|})\}$, with $v_i \in V(G)$ and $v_i \in V(H)$ for
+all $i$, such that for each pair $i,j$ ($1 \leq i < j \leq |M|$), $v_i$ and
+$v_j$ are adjacent in $G$ if and only if $w_i$ and $w_j$ are adjacent in $H$.
 
 Let $N(v, G)$ denote the neighbourhood of a vertex $v$ in a graph $G$.  We
 extend this notation to denote the set of vertices that are adjacent to all
 vertices in a set $U$: $N(U, G) = \bigcap_{v \in U} N_G(v)$.
 
+\section{Prior Work}
+
+The most successful existing approaches to solving MCS are reformulation to the
+maximum clique problem on one hand, and constraint programming
+\cite{DBLP:conf/cp/McCreeshNPS16} on the other. In the clique
+\textit{association graph} encoding, a graph is created with one node for each
+pair in the set $\{(u,v) \mid u \in \V(G), v \in \V(H) \}$ and edges representing
+pairs of mappings that may be chosen together. A maximum clique in this graph
+represents a maximum common subgraph of $G$ and $H$.
+
+In the constraint programming approach, we have a variable corresponding to each
+vertex in $G$, and each variable initially has a value in its domain for each vertex
+in $H$ to which it may be mapped, plus an additional value $\bot$ signifying that
+the vertex remains unmapped. A backtracking search is performed in which values
+are assigned to variables, and the domains of unassigned variables are pruned.
+
+In this paper, we introduce a
+new branch and bound algorithm for MCS which does not require a domain to be
+explicity maintained in memory for each vertex in $\V(G)$. The algorithm
+maintains labellings of the unmatched vertices in $\V(G)$ and $\V(H)$ such that
+a pair $(v, w)$ with $v \in \V(G)$ and $w \in \V(H)$ can be added to the
+mapping if and only if $v$ and $w$ have the same label.
+
 \section{Walkthrough}
 
-Suppose we are given the graphs $G$ and $H$ in Figure~\ref{fig:alg1}.  Graphs $G$ and $H$
-have no common subgraph with five vertices. However, they do have common
-subgraphs with four vertices; the mapping $\{1a, 2f, 3d, 5b\}$ is one example.
+We will use the graphs $G$ and $H$ in Figure~\ref{fig:alg1} to demonstrate the
+algorithm.  These graphs have a maximum common subgraph with four vertices; the
+mapping $\{1a, 2f, 3d, 5b\}$ is one example.
 
 \begin{figure}[ht]
 \centering
@@ -209,15 +242,9 @@ where we return, i.e. when the incumbent cannot be improved. In line 3, a new in
 A pair is selected from the future (line 8) using some heuristic. Note that this pair is not removed from the future, and that P and T can be considered as pointers to sets. A pattern vertex is then selected, possibly using a heuristic (line 9). We now iterate over all possible target vertices in T (lines 10 to 21). A target vertex w is selected and a matching produced (line 11). A new future is created (using {\bf Let} to signify a new variable, line 12). Every pair in the future can now be split (lines 13 to 19) into pattern vertices adjacent to the selected pattern vertex v and target vertices adjacent to the selected target vertex w (lines 14 to 15) and this is added to the new future if both sets are not null (line 16) i.e. there is a potential for more matchings. This is then repeated symmetrically for non-adjacency (lines 17 to 19) using the compliments of the graphs.
 A recursive call is then made using the new future and the increased matching (line 20). On return from that call we remove the matching (v,w) (line 21). Having explored all matchings with v in its target set we now consider what happens if the selected pattern vertex v is not matched (line 22 to 24), where that set of matchings does not contain a pair (v,*).
 
-\bigskip
-\noindent
-Phew!
-
-\section{Heuristics}
-
-We ran a small experiment comparing lots of heuristics such as \dots on random
-instances. The one where you choose a colour class with as small a max(left size,
-right size) as possible seemed to work best. ? Why?
+\paragraph{Heuristics} We ran a small experiment comparing lots of heuristics
+such as \dots on random instances. The one where you choose a colour class with
+as small a max(left size, right size) as possible seemed to work best. ? Why?
 
 \section{Comparison with Existing Algorithms}
 
@@ -294,20 +321,6 @@ only undirected graphs. We modify the algorithm by permitting branching only on
 a vertex $v$ that has at least one non-zero element in its bitstring label.
 (Cite the first paper that did this.) ? Should we say that smarter propagation
 might be possible?
-
-\section{Future Work}
-
-Instead of branching on vertices in $\V(G)$, it would be equally valid to branch on
-a vertex in $\V(H)$ in lines 9-23 of the algorithm, since our data structure treats the
-two graphs symmetrically. More interestingly, we could choose which graph to branch on
-at each search node using some heuristic (perhaps choosing based on whether the $P$ or
-$T$ set is smaller).
-
-We could create a hybrid of Lilybank and clique (for example, using Lilybank near the
-top of the search tree, but switching to a clique encoding when fewer than some threshold
-number of vertices remain to be selected). This might give us most of the benefits of
-the clique encoding for labelled graphs, while avoiding the high memory cost and colouring
-time of encoding the full instance.
 
 \section{Computational Experiments}
 
@@ -397,6 +410,25 @@ all 16 physical cores with hyper-threading enabled.
 \end{figure}
 
 \section{Conclusion}
+
+We have introduced the \McSplit\ algorithm for Max Common Subgraph, and shown
+that it explores the same search tree as CP-FC with greatly reduced effort at
+each search node.  The new algorithm is more than an order of
+magnitude faster than the previous state of the art for unlabelled, undirected
+instances.
+
+\paragraph{Future work} We could create a hybrid of Lilybank and clique (for
+example, using Lilybank near the top of the search tree, but switching to a
+clique encoding when fewer than some threshold number of vertices remain to be
+selected). This might give us most of the benefits of the clique encoding for
+labelled graphs, while avoiding the high memory cost and colouring time of
+encoding the full instance.
+
+Instead of branching on vertices in $\V(G)$, it would be equally valid to branch on
+a vertex in $\V(H)$ in lines 9-23 of the algorithm, since our data structure treats the
+two graphs symmetrically. More interestingly, we could choose which graph to branch on
+at each search node using some heuristic (perhaps choosing based on whether the $P$ or
+$T$ set is smaller).
 
 \bibliographystyle{named}
 \bibliography{paper}
