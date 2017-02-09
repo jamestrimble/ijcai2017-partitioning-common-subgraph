@@ -12,6 +12,8 @@
 #include <thread>
 #include <condition_variable>
 #include <atomic>
+#include <list>
+#include <functional>
 
 #include <argp.h>
 #include <limits.h>
@@ -19,35 +21,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <cilk/cilk.h>
+#include <cilk/reducer_max.h>
+
 using std::vector;
 using std::cout;
 using std::endl;
-
-namespace
-{
-    struct AtomicIncumbent
-    {
-        std::atomic<unsigned> value;
-
-        AtomicIncumbent()
-        {
-            value.store(0, std::memory_order_seq_cst);
-        }
-
-        bool update(unsigned v)
-        {
-            while (true) {
-                unsigned cur_v = value.load(std::memory_order_seq_cst);
-                if (v > cur_v) {
-                    if (value.compare_exchange_strong(cur_v, v, std::memory_order_seq_cst))
-                        return true;
-                }
-                else
-                    return false;
-            }
-        }
-    };
-}
 
 static void fail(std::string msg) {
     std::cerr << msg << std::endl;
@@ -212,6 +191,67 @@ struct Bidomain {
             is_adjacent (is_adjacent) { };
 };
 
+namespace
+{
+    struct AtomicIncumbent
+    {
+        std::atomic<unsigned> value;
+
+        AtomicIncumbent()
+        {
+            value.store(0, std::memory_order_seq_cst);
+        }
+
+        bool update(unsigned v)
+        {
+            while (true) {
+                unsigned cur_v = value.load(std::memory_order_seq_cst);
+                if (v > cur_v) {
+                    if (value.compare_exchange_strong(cur_v, v, std::memory_order_seq_cst))
+                        return true;
+                }
+                else
+                    return false;
+            }
+        }
+    };
+
+    struct ThisThreadIncumbent
+    {
+        struct View
+        {
+            vector<VtxPair> v;
+        };
+
+        struct Monoid : cilk::monoid_base<View>
+        {
+            void identity(View * v) const
+            {
+                new (v) View();
+            };
+
+            void reduce(View * left, View * right)
+            {
+                if (right->v.size() > left->v.size())
+                    *left = *right;
+            }
+        };
+
+        cilk::reducer<Monoid> impl;
+
+        void update(const vector<VtxPair> & v)
+        {
+            if (impl.view().v.size() < v.size())
+                impl.view().v = v;
+        }
+
+        vector<VtxPair> get_value() const
+        {
+            return impl.view().v;
+        }
+    };
+}
+
 bool check_sol(const Graph & g0, const Graph & g1 , const vector<VtxPair> & solution) {
     return true;
     vector<bool> used_left(g0.n, false);
@@ -372,7 +412,7 @@ void remove_bidomain(vector<Bidomain>& domains, int idx) {
 }
 
 void solve(const Graph & g0, const Graph & g1, AtomicIncumbent & global_incumbent,
-        vector<VtxPair> & this_thread_incumbent,
+        ThisThreadIncumbent & this_thread_incumbent,
         vector<VtxPair> & current, vector<Bidomain> & domains,
         vector<int> & left, vector<int> & right, unsigned int matching_size_goal,
         unsigned long long & this_thread_nodes)
@@ -382,10 +422,8 @@ void solve(const Graph & g0, const Graph & g1, AtomicIncumbent & global_incumben
 
     this_thread_nodes++;
 
-    if (current.size() > this_thread_incumbent.size()) {
-        this_thread_incumbent = current;
-        global_incumbent.update(current.size());
-    }
+    this_thread_incumbent.update(current);
+    global_incumbent.update(current.size());
 
     unsigned int bound = current.size() + calc_bound(domains);
     if (bound <= global_incumbent.value || bound < matching_size_goal)
@@ -405,6 +443,7 @@ void solve(const Graph & g0, const Graph & g1, AtomicIncumbent & global_incumben
     // Try assigning v to each vertex w in the colour class beginning at bd.r, in turn
     int w = -1;
     bd.right_len--;
+    std::list<std::function<void ()> > funcs;
     for (int i=0; i<=bd.right_len; i++) {
         int idx = index_of_next_smallest(right, bd.r, bd.right_len+1, w);
         w = right[bd.r + idx];
@@ -413,18 +452,20 @@ void solve(const Graph & g0, const Graph & g1, AtomicIncumbent & global_incumben
         right[bd.r + idx] = right[bd.r + bd.right_len];
         right[bd.r + bd.right_len] = w;
 
-        auto new_domains = filter_domains(domains, left, right, g0, g1, v, w,
-                arguments.directed || arguments.edge_labelled);
-        current.push_back(VtxPair(v, w));
+        funcs.push_back([&g0, &g1, &global_incumbent, &this_thread_incumbent, &matching_size_goal, &this_thread_nodes, &domains,
+             /* these are copied --> */ v, w, left, right, current]() mutable {
+            auto new_domains = filter_domains(domains, left, right, g0, g1, v, w, arguments.directed || arguments.edge_labelled);
+            current.push_back(VtxPair(v, w));
 
-        auto left_copy = left;
-        auto right_copy = right;
-        auto current_copy = current;
-
-        solve(g0, g1, global_incumbent, this_thread_incumbent, current_copy, new_domains, left_copy, right_copy, matching_size_goal, this_thread_nodes);
-
-        current.pop_back();
+            solve(g0, g1, global_incumbent, this_thread_incumbent, current, new_domains, left, right, matching_size_goal, this_thread_nodes);
+        });
     }
+
+    for (auto & f : funcs)
+        cilk_spawn f();
+
+    cilk_sync;
+
     bd.right_len++;
     if (bd.left_len == 0)
         remove_bidomain(domains, bd_idx);
@@ -475,10 +516,10 @@ vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
             auto right_copy = right;
             auto domains_copy = domains;
             vector<VtxPair> current;
-            vector<VtxPair> this_thread_incumbent;
+            ThisThreadIncumbent this_thread_incumbent;
             unsigned long long this_thread_nodes = 0;
             solve(g0, g1, global_incumbent, this_thread_incumbent, current, domains_copy, left_copy, right_copy, goal, this_thread_nodes);
-            incumbent = this_thread_incumbent;
+            incumbent = this_thread_incumbent.get_value();
             global_nodes += this_thread_nodes;
             if (global_incumbent.value == goal) break;
             if (!arguments.quiet) cout << "Upper bound: " << goal-1 << std::endl;
@@ -487,7 +528,9 @@ vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
     } else {
         vector<VtxPair> current;
         unsigned long long this_thread_nodes = 0;
-        solve(g0, g1, global_incumbent, incumbent, current, domains, left, right, 1, this_thread_nodes);
+        ThisThreadIncumbent this_thread_incumbent;
+        solve(g0, g1, global_incumbent, this_thread_incumbent, current, domains, left, right, 1, this_thread_nodes);
+        incumbent = this_thread_incumbent.get_value();
         global_nodes += this_thread_nodes;
     }
 
