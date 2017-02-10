@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 INSTANCES_FILE := mcsplaininstances.txt
 INSTANCES := $(shell cut -d' ' -f1 $(INSTANCES_FILE) )
-ALGORITHMS := clique cp-fc cp-mac kdown james-cpp-product james-cpp-product-down james-cpp-max james-cpp-max-down clique-par/t16 clique-par/t32
+ALGORITHMS := clique cp-fc cp-mac kdown james-cpp-product james-cpp-product-down james-cpp-max james-cpp-max-down clique-par/t16 clique-par/t32 james-cpp-max-par/t16 james-cpp-max-par/t32
 RESULTS := gpgnode-results/mcsplain
 
 all : $(RESULTS)/runtimes.data $(RESULTS)/nodes.data
@@ -32,6 +32,14 @@ $(RESULTS)/cp-fc/%.runtime : $(RESULTS)/cp-fc/%.out
 
 $(RESULTS)/cp-mac/%.runtime : $(RESULTS)/cp-mac/%.out
 	grep '^time :' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-max-par/t16/%.runtime : $(RESULTS)/james-cpp-max-par/t16/%.out
+	grep '^CPU time (ms):' < $^ | cut -d':' -f2 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-max-par/t32/%.runtime : $(RESULTS)/james-cpp-max-par/t32/%.out
+	grep '^CPU time (ms):' < $^ | cut -d':' -f2 > $@
 	[[ -s $@ ]]
 
 $(RESULTS)/james-cpp-max/%.runtime : $(RESULTS)/james-cpp-max/%.out
@@ -75,6 +83,14 @@ $(RESULTS)/cp-mac/%.nodes : $(RESULTS)/cp-mac/%.out
 	[[ -s $@ ]]
 
 $(RESULTS)/james-cpp-max/%.nodes : $(RESULTS)/james-cpp-max/%.out
+	if grep -q TIMEOUT $^ ; then echo NaN ; else grep '^Nodes:' < $^ | cut -d':' -f2 ; fi > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-max-par/t16/%.nodes : $(RESULTS)/james-cpp-max-par/t16/%.out
+	if grep -q TIMEOUT $^ ; then echo NaN ; else grep '^Nodes:' < $^ | cut -d':' -f2 ; fi > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/james-cpp-max-par/t32/%.nodes : $(RESULTS)/james-cpp-max-par/t32/%.out
 	if grep -q TIMEOUT $^ ; then echo NaN ; else grep '^Nodes:' < $^ | cut -d':' -f2 ; fi > $@
 	[[ -s $@ ]]
 
