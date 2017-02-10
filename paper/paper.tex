@@ -91,12 +91,6 @@ j.trimble.1@research.gla.ac.uk}
 
 \section{Introduction}
 
-\citet{UpcomingAAAIPaper}
-
-\citet{DBLP:conf/cp/McCreeshNPS16}
-
-\citet{DBLP:conf/cp/NdiayeS11}
-
 Given graphs $G$ and $H$, the \emph{Maximum Common Subgraph (MCS)} problem is
 to find a graph with as many vertices as possible that is isomorphic to induced
 subgraphs of both $G$ and $H$. 
@@ -528,16 +522,44 @@ counterpart, except that each element $A[u][v]$ in an adjacency matrix is a
 pair $(l_1, l_2)$, where $l_1$ is the label on the edge $u \rightarrow v$ (or 0
 if no edge exists) and $l_2$ is the label on the reverse edge.
 
-For the variant in which the common subgraph must be connected, we consider
-only undirected graphs. We modify the algorithm by permitting branching only on
-a vertex $v$ that has at least one non-zero element in its bitstring label.
-(Cite the first paper that did this.) ? Should we say that smarter propagation
-might be possible?
+\paragraph{Maximum Common \emph{Connected} Subgraph} For the variant in which
+the common subgraph must be connected, we consider only undirected graphs. We
+modify the algorithm by permitting branching only on a vertex $v$ that has at
+least one non-zero element in its bitstring label.  (Cite the first paper that
+did this.) ? Should we say that smarter propagation might be possible?
+
+\paragraph{Almost Subgraph Isomorphism} \citet{UpcomingAAAIPaper} present a
+``top-down'' algorithm for Maximum Common Subgraph in which a solution of size
+$n_G$ is initially sought; if such a solution does not exist then this
+solutions of size $n_G-1, n_G-2, \dots$ are sought in sequence.  This strategy,
+when used with techniques based on a state-of-the-art subgraph isomorphism
+solver, outperformed CP and clique encodings on a large benchmark set of graph
+pairs.  We can modify the \McSplit\ algorithm to use the top-down strategy by
+calling the main \FuncSty{McSplit} method once per goal size ($n_G, n_G-1,
+n_G-2, \dots$).  We backtrack (\lineref{PruneSearch} of Algorithm~\ref{jtAlg})
+when the bound is strictly less than the goal size, and terminate when a
+solution of the goal size is found.
 
 \section{Computational Experiments}
 
-Dual Xeon E5-2640 v2 CPUs, 64GBytes RAM. Parallel experiments 32 threads, using
-all 16 physical cores with hyper-threading enabled.
+Our experiments were performed on a cluster of machines with Dual Xeon E5-2640
+v2 CPUs and 64GBytes RAM. Parallel experiments used 32 threads per machine,
+using all 16 physical cores with hyper-threading enabled.
+
+For all experiments except the top-down ones, we used a database of
+randomly-generated Maximum Common Subgraph instances, which contains graphs of
+order ranging from 10 to 100 vertices
+\cite{DBLP:journals/prl/SantoFSV03,DBLP:journals/jgaa/ConteFV07}.  For
+unlabelled instances, we selected 10 per cent of the 41,100 instances with up
+to 40 vertices; labels were discarded. For labelled instances, we selected 10
+per cent of the full database of 81,400 instances, and used a labelling scheme
+in which then number of distict vertex labels and the number of distinct edge
+labels is approximately equal to 33 per cent of the number of vertices in each
+graph (? re-word, give original reference for labelling scheme).
+
+(? Ciaran, while I remember to ask: what should a program do if it is running
+undirected, labelled and the same edge appears twice in the input in opposite
+directions? My program just uses the one that appears later in the input file.)
 
 \paragraph{No labels, undirected} are in \cref{figure:plain-cumulative}.
 
