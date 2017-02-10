@@ -18,9 +18,16 @@
 \newcommand{\citet}[1]{\citeauthor{#1} \shortcite{#1}}
 \newcommand{\citep}[1]{\cite{#1}}
 
+\newcommand{\AlgVar}[1]{\mathit{#1}}
+
 \newcommand{\McSplit}{\textproc{McSplit}}
 
 \newcommand{\nmax}{n_{\max}}
+
+\newcommand{\lineref}[1]{line~\ref{#1}}
+\newcommand{\twolinesref}[2]{lines~\ref{#1} and~\ref{#2}}
+\newcommand{\Lineref}[1]{Line~\ref{#1}}
+\newcommand{\Twolinesref}[2]{Lines~\ref{#1} and~\ref{#2}}
 
 % TODO: use operatorname for these
 \DeclareMathOperator{\V}{V}
@@ -343,78 +350,90 @@ any label-class that has an empty $P$ or $T$ set.
 
 \begin{algorithm}
 \DontPrintSemicolon
-\nl $\FuncSty{expand}(\mathit{future},matching)$ \;
+\nl $\FuncSty{expand}(\AlgVar{future},M)$ \;
 \nl \Begin{
-\nl \lIf {$future = \emptyset$ \bf{and} $|matching|  > |incumbent|$}{$save(matching)$}
-\nl \lIf {$future = \emptyset$}{return}
-\nl $bestFuture \gets 0$ \;
-\nl \lFor {$\langle P,T \rangle \in future$}{$bestFuture \gets bestFuture + min(|P|,|T|)$}
-\nl \lIf {$|matching|  + bestFuture \leq |incumbent|$}{return}
+%\nl \lIf {$\AlgVar{future} = \emptyset$ \bf{and} $|M| > |\AlgVar{incumbent}|$}
+\nl \lIf {$|M| > |\AlgVar{incumbent}|$}
+    {$save(matching)$} \label{StoreIncumbent}
+%\nl \lIf {$\AlgVar{future} = \emptyset$}{return}
+\nl $bestFuture \gets 0$ \label{SetBestFutureToZero} \;
+\nl \lFor {$\langle P,T \rangle \in \AlgVar{future}$}
+    {$\AlgVar{bestFuture} \gets \AlgVar{bestFuture} + \min(|P|,|T|)$}
+\nl \lIf {$|M|  + \AlgVar{bestFuture} \leq |\AlgVar{incumbent}|$}{return} \label{PruneSearch}
 \bigskip
-\nl $\langle P,T \rangle \gets select(future)$ \;
-\nl $v \gets select(P)$ \;
-\nl \For {$w \in T$}{
-\nl    $matching \gets matching + (v,w)$\;
-\nl    \bf{Let} $future^{'} \gets \emptyset$ \;
-\nl    \For {$\langle P^{'},T'^{'}\rangle \in future$}{
-\nl        \bf{Let} $P^{''} \gets P^{'} \cap N(v,G) \setminus \{v\}$ \;
-\nl        \bf{Let} $T^{''} \gets T^{'} \cap N(w,H) \setminus \{w\}$ \;
-\nl        \lIf {$P^{''} \neq \emptyset$ \bf{and} $T^{''} \neq \emptyset$}{$future^{'} \gets future^{'} + \langle P^{''} , T^{''} \rangle$}
-\nl        \bf{Let} $P^{''} \gets P^{'} \cap N(v,\overline{G}) \setminus \{v\}$ \;
-\nl        \bf{Let} $T^{''} \gets T^{'} \cap N(w,\overline{H}) \setminus \{w\}$ \;
-\nl        \lIf {$P^{''} \neq \emptyset$ \bf{and} $T^{''} \neq \emptyset$}{$future^{'} \gets future^{'} + \langle P^{''} , T^{''} \rangle$}
+\nl $\langle P,T \rangle \gets \FuncSty{SelectLabelClass}(\AlgVar{future})$ \label{SelectClass} \;
+\nl $v \gets \FuncSty{SelectVertex}(P)$ \label{SelectVertex} \;
+\nl \For {$w \in T$ \label{WLoop}} {
+\nl    $M \gets M \cup (v,w)$ \label{GrowM} \;
+\nl    \bf{Let} $\AlgVar{future'} \gets \emptyset$ \label{NewFuture} \;
+\nl    \For {$\langle P',T'\rangle \in future$ \label{InnerLoop}}{
+\nl        \bf{Let} $P'' \gets P' \cap N(v,G) \setminus \{v\}$ \label{NewPWithEdge} \;
+\nl        \bf{Let} $T'' \gets T' \cap N(w,H) \setminus \{w\}$ \;
+\nl        \lIf {$P'' \neq \emptyset$ \bf{and} $T'' \neq \emptyset$}
+        {$\AlgVar{future'} \gets \AlgVar{future'} + \langle P'' , T'' \rangle$ \label{AddToFutureWithEdge}}
+\nl        \bf{Let} $P'' \gets P' \cap N(v,\overline{G}) \setminus \{v\}$ \label{NewPWithoutEdge}  \;
+\nl        \bf{Let} $T'' \gets T' \cap N(w,\overline{H}) \setminus \{w\}$ \;
+\nl        \lIf {$P'' \neq \emptyset$ \bf{and} $T'' \neq \emptyset$}
+        {$\AlgVar{future'} \gets \AlgVar{future'} + \langle P'' , T'' \rangle$} \label{InnerLoopEnd}
        }
-\nl   $\FuncSty{expand}(future^{'},matching)$ \;
-\nl   $matching \gets matching \setminus \{(v,w)\}$ \;
+\nl   $\FuncSty{expand}(\AlgVar{future'},M)$ \label{ExpandWithV} \;
+\nl   $M \gets M \setminus \{(v,w)\}$ \label{ShrinkM} \;
   }
-\nl $P \gets P \setminus \{v\}$\;
-\nl \lIf {$P = \emptyset$} {$future \gets future \setminus \{\langle P,T \rangle \}$}
-\nl $\FuncSty{expand}(future,matching)$ \;
+\nl $P' \gets P \setminus \{v\}$ \label{RemoveV} \;
+\nl $\AlgVar{future} \gets \AlgVar{future} \setminus \{\langle P,T \rangle\} \cup \{\langle P', T \rangle\}$\;
+\nl \lIf {$P' = \emptyset$} {$\AlgVar{future} \gets \AlgVar{future} \setminus \{\langle P',T \rangle \}$}
+\nl $\FuncSty{expand}(\AlgVar{future},M)$ \label{ExpandWithoutV} \;
 }
 \;
-\nl $\FuncSty{McSplit}(G,H)$ \;
+\nl $\FuncSty{McSplit}(G,H)$ \label{McSplitFun} \;
 \nl \Begin{
-\nl $incumbent \gets \emptyset$ \;
-\nl $\FuncSty{expand}(\{\langle V(G),V(H) \rangle \},\emptyset)$ \;
-\nl return $|incubent|$ \;
+\nl $\AlgVar{incumbent} \gets \emptyset$ \;
+\nl $\FuncSty{expand}(\{\langle V(G),V(H) \rangle \},\emptyset)$ \label{FirstExpandCall} \;
+\nl return $|\AlgVar{incubent}|$ \;
 }
 \caption{\McSplit\ algorithm for Maximum Common Subgraph}
 \label{jtAlg}
 \end{algorithm}
 
-The full algorithm is shown as Algorithm~\ref{jtAlg}, with input graphs $G$ and $H$.
-The main recursive procedure, future is a list of pairs, where the first element of a pair
-is a set of pattern vertices P and the second is a set of target vertices T. It
-is assumed that each pattern vertex in P might be matched with any (all) of the
-target vertices in T, or be unmatched. Therefore we start our search via the
-function LilybankSplit (line 26). This returns an integer, the size of the
-largest matching.  In line 29 a call is made to expand, where we have as
-arguments a list of pairs (called future, line 1) and a set of pairs of the
-form (v,w) where pattern vertex v is matched to target vertex w.
+\paragraph{Full algorithm} The full algorithm is shown as
+Algorithm~\ref{jtAlg}.  The main recursive procedure, $\FuncSty{expand}$, has
+two parameters.  The parameter $\AlgVar{future}$ is a list of label classes,
+each represented as a $\langle P, T \rangle$ pair as described above.  The
+parameter $M$ is the current mapping of vertices.  On each call to
+$\FuncSty{expand}$, the invariant holds that a $(v,w)$ pair may be added to $M$
+if and only if $v$ and $w$ belong to the same label class in $M$.
 
-We now focus on expand (line (1)). This is initially called (line 29) with the
-future as a list containing the single pair $\langle V(G),V(H) \rangle$. Lines
-4 to 7 define the conditions where we return, i.e. when the incumbent cannot be
-improved. In line 3, a new incumbent might be saved. Lines 8 to 24 perform the
-search.
+\Lineref{StoreIncumbent} stores the current mapping $M$ if it is large enough
+to unseat the incumbent.  \Twolinesref{SetBestFutureToZero}{PruneSearch} prune
+the search when a calculated upper bound ($\AlgVar{bestFuture}$) is not larger
+than the incumbent.
 
-A pair is selected from the future (line 8) using some heuristic. Note that
-this pair is not removed from the future, and that P and T can be considered as
-pointers to sets. A pattern vertex is then selected, possibly using a heuristic
-(line 9). We now iterate over all possible target vertices in T (lines 10 to
-21). A target vertex w is selected and a matching produced (line 11). A new
-future is created (using {\bf Let} to signify a new variable, line 12). Every
-pair in the future can now be split (lines 13 to 19) into pattern vertices
-adjacent to the selected pattern vertex v and target vertices adjacent to the
-selected target vertex w (lines 14 to 15) and this is added to the new future
-if both sets are not null (line 16) i.e. there is a potential for more
-matchings. This is then repeated symmetrically for non-adjacency (lines 17 to
-19) using the compliments of the graphs.  A recursive call is then made using
-the new future and the increased matching (line 20). On return from that call
-we remove the matching (v,w) (line 21). Having explored all matchings with v in
-its target set we now consider what happens if the selected pattern vertex v is
-not matched (line 22 to 24), where that set of matchings does not contain a
-pair (v,*).
+The remainder of $\FuncSty{expand}$ performs the search.  A label-class
+$\langle P, T \rangle$ is selected from $\AlgVar{future}$
+(\lineref{SelectClass}) using some heuristic.  From this class, a pattern
+vertex $v$ is selected using a heuristic (\lineref{SelectVertex}). We now
+iterate over all possible vertices in $T$ (\twolinesref{WLoop}{ShrinkM}). A
+vertex $w \in \V(H)$ is selected mapping $M$ is extended (\lineref{GrowM}). A
+new set of label-classes, $\AlgVar{future'}$, is created (\lineref{NewFuture}).
+Every label-class in $\AlgVar{future}$ can now be split
+(\twolinesref{InnerLoop}{InnerLoopEnd}) into two new classes. The first of
+these classes (\twolinesref{NewPWithEdge}{AddToFutureWithEdge}) contains
+pattern vertices adjacent to $v$ and target vertices adjacent to $w$.  This is
+added to $\AlgVar{future'}$ if both sets contain at least one vertex.  This is
+then repeated symmetrically for non-adjacency
+(\twolinesref{NewPWithoutEdge}{InnerLoopEnd}) using the compliments of the
+graphs.  A recursive call is then made (\lineref{ExpandWithV}), on return from
+which we remove the mapping $(v,w)$.  Having explored all possible mappings of
+$v$ its target set we now consider what happens if $v$ is not matched
+(\twolinesref{RemoveV}{ExpandWithoutV}). Note that removing $v$ from its label
+class is equivalent in effect to assigning it the label $\bot$, which is never
+taken by any vertex in $\V(H)$.
+
+We start our search at the function $\FuncSty{McSplit}$ (\lineref{McSplitFun}),
+with graphs $G$ and $H$ as inputs.  This function returns the size of the
+largest mapping.  In \lineref{FirstExpandCall} a call is made to
+$\FuncSty{expand}$; at this point we have a single label-class containing all
+vertices, and the mapping $M$ is empty.
 
 \paragraph{Heuristics} We ran a small experiment comparing lots of heuristics
 such as \dots on random instances. The one where you choose a label class with
