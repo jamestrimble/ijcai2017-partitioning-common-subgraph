@@ -111,7 +111,7 @@ graphs, allowing us to solve larger instances than previously possible.
 
 \section{Preliminaries}
 
-We assume that $G$ and $H$ are unlabelled, undirected graphs without loops
+We initially assume that $G$ and $H$ are unlabelled, undirected graphs without loops
 (Section~\ref{sec:extensions} describes how these restrictions may be relaxed).
 
 The vertices and edge sets of a graph $G$ are denoted $\V(G)$ and $\E(G)$.
@@ -119,24 +119,25 @@ The set of vertices adjacent to vertex $v$ in graph $G$ is called the
 \emph{neighbourhood} of $v$, and denoted $\N(v, G)$.
 
 We use $n_G$ and $n_H$ to denote $|\V(G)|$ and $|\V(H)|$. We will occasionally use
-and $n$ in complexity results to denote $n_G + n_H$.
+$n$ in complexity results to denote $n_G + n_H$.
 
 \section{Prior Work}
 
 The most successful existing approaches to solving MCS are reformulation to the
-maximum clique problem on one hand, and constraint programming
-\cite{DBLP:conf/cp/McCreeshNPS16} on the other. In the clique encoding, an
-association graph is created with one node for each pair in the set $\{(u,v)
-\mid u \in \V(G), v \in \V(H) \}$ and an edge for each pair of mappings that
-may be chosen together. A maximum clique in this graph corresponds directly to
-a maximum common subgraph of $G$ and $H$.
+maximum clique problem on one hand \cite{DBLP:conf/cp/McCreeshNPS16}, and
+constraint programming on the other \cite{DBLP:conf/cp/NdiayeS11}. In the
+clique encoding, an association graph is created with one node for each pair in
+the set $\{(u,v) \mid u \in \V(G), v \in \V(H) \}$ and an edge for each pair of
+mappings that may be chosen together. A maximum clique in this graph
+corresponds directly to a maximum common subgraph of $G$ and $H$.
 
 In the constraint programming approach, we have a variable corresponding to
 each vertex in $G$, and each variable initially has one value in its domain for
 each vertex in $H$ to which it may be mapped, plus an additional value $\bot$
 signifying that the vertex remains unmapped. A backtracking search is performed
 in which values are assigned to variables, and propagation rules are used to
-remove infeasible values from domains.
+remove infeasible values from domains.  A matching algorithm is used to propagate
+a soft $\mathit{allDifferent}$ constraint. ? Say this better
 
 \section{The \McSplit\ algorithm}
 
