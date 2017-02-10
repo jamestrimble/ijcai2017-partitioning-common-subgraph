@@ -26,31 +26,32 @@
 \DeclareMathOperator{\V}{V}
 \DeclareMathOperator{\E}{E}
 \DeclareMathOperator{\N}{N}
+\DeclareMathOperator{\vtxlabel}{label}
 
 \newcommand{\BigO}[1]{\ensuremath{\operatorname{O}\left(#1\right)}}
 
-\newcommand{\examplexG}[5] {
-    \begin{minipage}{.2\textwidth}
-    \tikz {
-        \graph [nodes={draw, circle, minimum width=.6cm}, circular placement, radius=1cm,
-                clockwise=5] {
-                    1[label=90:#1],2[label=0:#2],3[label=0:#3],4[label=180:#4],5[label=180:#5];
-            1--4; 1--5; 2--3; 2--5; 3--5;
-        };
-    }
-    \end{minipage}
-}
-\newcommand{\examplexH}[6] {
-    \begin{minipage}{.2\textwidth}
-    \tikz {
-        \graph [nodes={draw, circle, minimum width=.6cm}, circular placement, radius=1.1cm,
-                clockwise=6, phase=60] {
-                    a[label=0:#1],b[label=0:#2],c[label=0:#3],d[label=180:#4],e[label=180:#5],f[label=180:#6];
-            a--b; a--c; a--e; b--d; b--f; c--d; c--e; c--f; d--f; e--f;
-        };
-    }
-    \end{minipage}
-}
+%\newcommand{\examplexG}[5] {
+%    \begin{minipage}{.2\textwidth}
+%    \tikz {
+%        \graph [nodes={draw, circle, minimum width=.6cm}, circular placement, radius=1cm,
+%                clockwise=5] {
+%                    1[label=90:#1],2[label=0:#2],3[label=0:#3],4[label=180:#4],5[label=180:#5];
+%            1--4; 1--5; 2--3; 2--5; 3--5;
+%        };
+%    }
+%    \end{minipage}
+%}
+%\newcommand{\examplexH}[6] {
+%    \begin{minipage}{.2\textwidth}
+%    \tikz {
+%        \graph [nodes={draw, circle, minimum width=.6cm}, circular placement, radius=1.1cm,
+%                clockwise=6, phase=60] {
+%                    a[label=0:#1],b[label=0:#2],c[label=0:#3],d[label=180:#4],e[label=180:#5],f[label=180:#6];
+%            a--b; a--c; a--e; b--d; b--f; c--d; c--e; c--f; d--f; e--f;
+%        };
+%    }
+%    \end{minipage}
+%}
 
 \title{A Partitioning Algorithm for Maximum Common (Connected) Subgraphs\thanks{This work
 was supported by the Engineering and Physical Sciences Research Council [grant
@@ -97,43 +98,61 @@ molecules, \dots
 
 \section{Preliminaries}
 
-MCS is the problem of finding a maximum-cardinality set of pairs $M = \{(v_1,
-w_1), \dots, (v_{|M|}, w_{|M|})\}$, with $v_i \in V(G)$ and $v_i \in V(H)$ for
-all $i$, such that for each pair $i,j$ ($1 \leq i < j \leq |M|$), $v_i$ and
-$v_j$ are adjacent in $G$ if and only if $w_i$ and $w_j$ are adjacent in $H$.
+We assume that $G$ and $H$ are unlabelled, undirected graphs without loops
+(Section~\ref{sec:extensions} describes how these restrictions may be relaxed).
 
-Let $N(v, G)$ denote the neighbourhood of a vertex $v$ in a graph $G$.  We
-extend this notation to denote the set of vertices that are adjacent to all
-vertices in a set $U$: $N(U, G) = \bigcap_{v \in U} N_G(v)$.
+The vertices and edge sets of a graph $G$ are denoted $\V(G)$ and $\E(G)$.
+The set of vertices adjacent to vertex $v$ in graph $G$ is called the
+\emph{neighbourhood} of $v$, and denoted $\N(v, G)$.
+
+We use $n_G$ and $n_H$ to denote $|\V(G)|$ and $|\V(H)|$. We will occasionally use
+and $n$ in complexity results to denote $n_G + n_H$.
 
 \section{Prior Work}
 
 The most successful existing approaches to solving MCS are reformulation to the
 maximum clique problem on one hand, and constraint programming
-\cite{DBLP:conf/cp/McCreeshNPS16} on the other. In the clique
-encoding, an \textit{association graph} is created with one node for each
-pair in the set $\{(u,v) \mid u \in \V(G), v \in \V(H) \}$ and edges representing
-pairs of mappings that may be chosen together. A maximum clique in this graph
-represents a maximum common subgraph of $G$ and $H$.
+\cite{DBLP:conf/cp/McCreeshNPS16} on the other. In the clique encoding, an
+\textit{association graph} is created with one node for each pair in the set
+$\{(u,v) \mid u \in \V(G), v \in \V(H) \}$ and and edges for each pair of
+mappings that may be chosen together. A maximum clique in this graph represents
+a maximum common subgraph of $G$ and $H$.
 
-In the constraint programming approach, we have a variable corresponding to each
-vertex in $G$, and each variable initially has a value in its domain for each vertex
-in $H$ to which it may be mapped, plus an additional value $\bot$ signifying that
-the vertex remains unmapped. A backtracking search is performed in which values
-are assigned to variables, and the domains of unassigned variables are pruned.
+In the constraint programming approach, we have a variable corresponding to
+each vertex in $G$, and each variable initially has one value in its domain for
+each vertex in $H$ to which it may be mapped, plus an additional value $\bot$
+signifying that the vertex remains unmapped. A backtracking search is performed
+in which values are assigned to variables, and propagation rules are used to
+remove values from the domains of unassigned variables.
 
-In this paper, we introduce a
-new branch and bound algorithm for MCS which does not require a domain to be
-explicity maintained in memory for each vertex in $\V(G)$. The algorithm
-maintains labellings of the unmatched vertices in $\V(G)$ and $\V(H)$ such that
-a pair $(v, w)$ with $v \in \V(G)$ and $w \in \V(H)$ can be added to the
-mapping if and only if $v$ and $w$ have the same label.
+\section{The \McSplit\ algorithm}
 
-\section{Walkthrough}
+We introduce a branch and bound algorithm, \McSplit, which uses a new
+vertex-labelling scheme to avoid explicitly maintaining the set of feasible
+mappings for each vertex in $\V(G)$. As we will explore in
+Section~\ref{sec:comparison}, the algorithm may be viewed as a version of the
+constraint programming forward-checking (CP-FC) algorithm using a compact data
+structure that exploits the nature of the MCS problem.  It is sufficiently
+different, however, that it is helpful to describe the algorithm without
+reference to previous approaches.
+
+%At each node of the search tree, the algorithm
+%labels vertices in $\V(G)$ and $\V(H)$ such that a pair $(v, w)$ with $v \in
+%\V(G)$ and $w \in \V(H)$ can be added to the mapping if and only if $v$ and $w$
+%have the same label.
+
+The \McSplit\ algorithm finds a maximum-cardinality mapping $M^* = \{(v_1, w_1), \dots,
+(v_{|M^*|}, w_{|M^*|})\}$, where the $v_i$ are distinct members of $\V(G)$ and the
+$w_i$ are distinct members of $\V(H)$, such that $v_i$ and $v_j$ are adjacent
+in $G$ if and only if $w_i$ and $w_j$ are adjacent in $H$. It is clear that,
+given such a mapping, the subgraph of $G$ induced by $\{v_i, \dots, v_{|M^*|}\}$
+and the subgraph of $H$ induced by $\{w_i, \dots, w_{|M^*|}\}$ are a maximum
+common subgraph.
 
 We will use the graphs $G$ and $H$ in Figure~\ref{fig:alg1} to demonstrate the
 algorithm.  These graphs have a maximum common subgraph with four vertices; the
-mapping $\{1a, 2f, 3d, 5b\}$ is one example.
+mapping $\{1a, 2f, 3d, 5b\}$ (where vertex $1$ is assigned to vertex $a$ and so
+on) is one example.
 
 \begin{figure}[ht]
 \centering
@@ -146,13 +165,19 @@ mapping $\{1a, 2f, 3d, 5b\}$ is one example.
 \end{figure}
 
 The algorithm proceeds by building up a mapping $M$, starting with the empty
-mapping $\{\}$. Begin by (arbitrarily) mapping vertex $1$ in $G$ to vertex $a$
-in $H$, giving $M=\{1a\}$.  Label each unmatched vertex according to whether it
-is adjacent to $1$ (in $G$) or $a$ (in $H$), as shown in Figure~\ref{fig:alg2}.
-Adjacent vertices have label 1; non-adjacent vertices have label 0.  It is
-straightforward to see that we can extend $M$ with a vertex mapping $vw$, with
-$v \in \V(G)$ and $w \in \V(H)$, if and only if $v$ and $w$ have the same label.  This
-property is the algorithm's key invariant.
+mapping $\{\}$. Select a vertex in $\V(G)$ as the first vertex to
+be mapped; we will arbitrarily choose vertex $1$. Each of the vertices in $\V(H)$
+to which $1$ may be mapped will be tried in turn, and finally the possibility where
+$1$ remains unmatched will be tried.
+
+We will begin by mapping vertex $1$ to vertex $a$, giving $M=\{1a\}$.  Label
+each unmatched vertex according to whether it is adjacent to $1$ (in $G$) or
+$a$ (in $H$), as shown in Figure~\ref{fig:alg2}.  Adjacent vertices have label
+1; non-adjacent vertices have label 0.  It is straightforward to see that we
+can extend $M$ with a vertex mapping $vw$, with $v \in \V(G)$ and $w \in
+\V(H)$, if and only if $v$ and $w$ have the same label.  This property that
+two vertices may be mapped together if and only if they share a label is the
+algorithm's main invariant.
 
 \begin{figure}[ht]
 \centering
@@ -206,7 +231,8 @@ to $2$.  Labels are given to vertices in $\V(H)$ in a similar fashion, showing
 whether each vertex is adjacent to $a$ and $d$.
 
 Observe that our invariant is maintained: we can extend $M$ by a vertex pairing if
-and only if the two vertices have the same colour.
+and only if the two vertices have the same label. Note also that each label is prefixed
+by the label at the previous level of the search tree (Figure~\ref{fig:alg2}).
 
 \begin{figure}[ht]
 \centering
@@ -244,24 +270,80 @@ and only if the two vertices have the same colour.
     \hline
     \end{tabular}
 \end{minipage}
-\caption{Step 3}
+\caption{After mapping $2$ to $d$}
 \label{fig:alg3}
 \end{figure}
 
-The algorithm proceeds by backtracking search. When we have explored the full
-search space of matchings containing $\{1a, 2d\}$, we try reassigning $2$ to
-$f$.  Since $d$ and $f$ are the only vertices to which $2$ can be matched given
-the decision to match $1$ to $a$, we lastly explore the possibility that $2$ is
-left unmatched, by giving $2$ the label $\bot$ and selecting another vertex in
-$\V(G)$ to assign.
+The algorithm backtracks when the incumbent best mapping is at least as large
+as a calculated bound given $M$ and the current labelling. To demonstrate how
+this bound is calculated, we consider the situation one level deeper in the search
+tree shown in Figure~\ref{fig:alg4}. Three vertex labels are used: 100, 101, and 111.
+The first two of these only appear in one graph, and therefore vertices with these
+labels cannot be added to the mapping. The final label, 111, appears once in $G$ and
+twice in $H$, and therefore at most one pair with this label can be added to $M$.
+Thus, the upper bound on matching size is $4$. In general, for each label $l$
+we add to the bound $\min(|\{ v \in \V(G) : \vtxlabel(v)=l\}|,
+|\{ v \in \V(H) : \vtxlabel(v)=l \}|)$.
 
 
+\begin{figure}[ht]
+\centering
+\begin{minipage}[t]{0.2\linewidth}
+    Mapping
 
-\section{The Lilybank Algorithm}
+    \bigskip
+
+    $\{1a, 2d, 3f\}$
+\end{minipage}
+\quad
+\begin{minipage}[t]{0.3\linewidth}
+    Labelling of $G$
+    \begin{tabular}[t]{cc}
+    \hline
+        Vertex & Label\\
+    \hline
+        $4$ & 100 \\
+        $5$ & 111 \\
+    \hline
+    \end{tabular}
+\end{minipage}
+\quad
+\begin{minipage}[t]{0.3\linewidth}
+    Labelling of $H$
+    \begin{tabular}[t]{cc}
+    \hline
+        Vertex & Label\\
+    \hline
+        $b$ & 111 \\
+        $c$ & 111 \\
+        $e$ & 101 \\
+    \hline
+    \end{tabular}
+\end{minipage}
+\caption{After mapping $3$ to $f$}
+\label{fig:alg4}
+\end{figure}
+
+%When we have explored the full
+%search space of matchings containing $\{1a, 2d\}$, we try reassigning $2$ to
+%$f$.  Since $d$ and $f$ are the only vertices to which $2$ can be matched given
+%the decision to match $1$ to $a$, we lastly explore the possibility that $2$ is
+%left unmatched, by giving $2$ the label $\bot$ and selecting another vertex in
+%$\V(G)$ to assign.
+
+\paragraph{Efficient representation of label classes} The algorithm as
+described so far requires $\BigO{n^2}$ space at each node of the search tree,
+since labels may be up to $n_G$ in length. We can reduce this to $\BigO{n}$
+by storing a pair $\langle P,T \rangle$ for each label $l$ that is used, where $P$
+is the set of vertices in $\V(G)$ labelled $l$, and $T$ is the set of vertices
+in $\V(H)$ labelled $l$. Since there are $n_G + n_H$ vertices, at most this number
+of label-classes can exist at once, and the total length of the $P$ and $T$ sets
+is at most $n_G + n_H$. We can gain further efficiency by discarding during search
+any label-class that has an empty $P$ or $T$ set.
 
 \begin{algorithm}
 \DontPrintSemicolon
-\nl $expand(\mathit{future},matching)$ \;
+\nl $\FuncSty{expand}(\mathit{future},matching)$ \;
 \nl \Begin{
 \nl \lIf {$future = \emptyset$ \bf{and} $|matching|  > |incumbent|$}{$save(matching)$}
 \nl \lIf {$future = \emptyset$}{return}
@@ -282,40 +364,63 @@ $\V(G)$ to assign.
 \nl        \bf{Let} $T^{''} \gets T^{'} \cap N(w,\overline{H}) \setminus \{w\}$ \;
 \nl        \lIf {$P^{''} \neq \emptyset$ \bf{and} $T^{''} \neq \emptyset$}{$future^{'} \gets future^{'} + \langle P^{''} , T^{''} \rangle$}
        }
-\nl   $expand(future^{'},matching)$ \;
+\nl   $\FuncSty{expand}(future^{'},matching)$ \;
 \nl   $matching \gets matching \setminus \{(v,w)\}$ \;
   }
 \nl $P \gets P \setminus \{v\}$\;
 \nl \lIf {$P = \emptyset$} {$future \gets future \setminus \{\langle P,T \rangle \}$}
-\nl $expand(future,matching)$ \;
+\nl $\FuncSty{expand}(future,matching)$ \;
 }
 \;
-\nl $Split(G,H)$ \;
+\nl $\FuncSty{McSplit}(G,H)$ \;
 \nl \Begin{
 \nl $incumbent \gets \emptyset$ \;
-\nl $expand(\{\langle V(G),V(H) \rangle \},\emptyset)$ \;
+\nl $\FuncSty{expand}(\{\langle V(G),V(H) \rangle \},\emptyset)$ \;
 \nl return $|incubent|$ \;
 }
-\caption{Lilybank splitting algorithm}
+\caption{\McSplit\ algorithm for Maximum Common Subgraph}
 \label{jtAlg}
 \end{algorithm}
 
-Now, let's try and explain this. First, assume we have two graph G and H and there are no more vertices in G than in H (think of G as the pattern graph and H as the target).
-future is a list of pairs, where the first element of a pair is a set of pattern vertices P and the second is a set of target vertices T. It is assumed that each pattern vertex in P 
-might be matched with any (all) of the target vertices in T, or be unmatched. Therefore we start our search via the function LilybankSplit (line 26). This returns an integer, the size of the largest matching.
-In line 29 a call is made to expand, where we have as arguments a list of pairs (called future, line 1) and a set of pairs of the form (v,w) where pattern vertex v is matched to target vertex w.
+The full algorithm is shown as Algorithm~\ref{jtAlg}, with input graphs $G$ and $H$.
+The main recursive procedure, future is a list of pairs, where the first element of a pair
+is a set of pattern vertices P and the second is a set of target vertices T. It
+is assumed that each pattern vertex in P might be matched with any (all) of the
+target vertices in T, or be unmatched. Therefore we start our search via the
+function LilybankSplit (line 26). This returns an integer, the size of the
+largest matching.  In line 29 a call is made to expand, where we have as
+arguments a list of pairs (called future, line 1) and a set of pairs of the
+form (v,w) where pattern vertex v is matched to target vertex w.
 
-We now focus on expand (line (1)). This is initially called (line 29) with the future as a list containing the single pair $\langle V(G),V(H) \rangle$. Lines 4 to 7 define the conditions 
-where we return, i.e. when the incumbent cannot be improved. In line 3, a new incumbent might be saved. Lines 8 to 24 perform the search.
+We now focus on expand (line (1)). This is initially called (line 29) with the
+future as a list containing the single pair $\langle V(G),V(H) \rangle$. Lines
+4 to 7 define the conditions where we return, i.e. when the incumbent cannot be
+improved. In line 3, a new incumbent might be saved. Lines 8 to 24 perform the
+search.
 
-A pair is selected from the future (line 8) using some heuristic. Note that this pair is not removed from the future, and that P and T can be considered as pointers to sets. A pattern vertex is then selected, possibly using a heuristic (line 9). We now iterate over all possible target vertices in T (lines 10 to 21). A target vertex w is selected and a matching produced (line 11). A new future is created (using {\bf Let} to signify a new variable, line 12). Every pair in the future can now be split (lines 13 to 19) into pattern vertices adjacent to the selected pattern vertex v and target vertices adjacent to the selected target vertex w (lines 14 to 15) and this is added to the new future if both sets are not null (line 16) i.e. there is a potential for more matchings. This is then repeated symmetrically for non-adjacency (lines 17 to 19) using the compliments of the graphs.
-A recursive call is then made using the new future and the increased matching (line 20). On return from that call we remove the matching (v,w) (line 21). Having explored all matchings with v in its target set we now consider what happens if the selected pattern vertex v is not matched (line 22 to 24), where that set of matchings does not contain a pair (v,*).
+A pair is selected from the future (line 8) using some heuristic. Note that
+this pair is not removed from the future, and that P and T can be considered as
+pointers to sets. A pattern vertex is then selected, possibly using a heuristic
+(line 9). We now iterate over all possible target vertices in T (lines 10 to
+21). A target vertex w is selected and a matching produced (line 11). A new
+future is created (using {\bf Let} to signify a new variable, line 12). Every
+pair in the future can now be split (lines 13 to 19) into pattern vertices
+adjacent to the selected pattern vertex v and target vertices adjacent to the
+selected target vertex w (lines 14 to 15) and this is added to the new future
+if both sets are not null (line 16) i.e. there is a potential for more
+matchings. This is then repeated symmetrically for non-adjacency (lines 17 to
+19) using the compliments of the graphs.  A recursive call is then made using
+the new future and the increased matching (line 20). On return from that call
+we remove the matching (v,w) (line 21). Having explored all matchings with v in
+its target set we now consider what happens if the selected pattern vertex v is
+not matched (line 22 to 24), where that set of matchings does not contain a
+pair (v,*).
 
 \paragraph{Heuristics} We ran a small experiment comparing lots of heuristics
-such as \dots on random instances. The one where you choose a colour class with
+such as \dots on random instances. The one where you choose a label class with
 as small a max(left size, right size) as possible seemed to work best. ? Why?
 
-\section{Comparison with Existing Algorithms}
+\section{Comparison with Existing Algorithms}\label{sec:comparison}
 
 ? Describe CP-FC and clique encodings
 
@@ -332,13 +437,15 @@ Clique gives us very strong propagation.
 Our algorithm needs less space than CP-FC ($\BigO{n^2}$ rather than $\BigO{n^3}$?) and
 much less than clique ($\BigO{n^4}$?).
 
-\section{Extensions}
+? Mention partition backtracking
+
+\section{Extensions}\label{sec:extensions}
 
 So far, we have considered only unlabelled, undirected graphs. In this section, we
 describe some straightforward changes to the algorithm that relax these restrictions.
 
 If we have vertex labels, we replace ${\langle V(G),V(H) \rangle}$ in line 28 of
-the algorithm with a set containing a colour class for each label that appears in
+the algorithm with a set containing a label class for each label that appears in
 both $\V(G)$ and $\V(H)$. In the remainder of this section, \textit{labels} refers to
 edge labels.
 
@@ -377,7 +484,7 @@ outline of the method. First, run lines 17-19 of Algorithm~\ref{jtAlg} to
 create a new label-class of vertices that are not adjacent to $v$ or $w$, and
 remove these vertices from $\langle P',T' \rangle$. Next, sort $P'$ and $T'$ in
 ascending order of the label on the edge from $v$ or $w$ to each vertex. We can
-then create the colour classes corresponding to each edge label by
+then create the label classes corresponding to each edge label by
 simulataneously traversing $P'$ and $T'$ from left to right.
 
 The labelled, directed case is similar to its undirected counterpart, except that
@@ -500,6 +607,9 @@ at each search node using some heuristic (perhaps choosing based on whether the 
 $T$ set is smaller).
 
 Parallel versions: bitset and multithreaded
+
+Application to induced subgraph isomorphism (with almost no changes). Applications
+of a similar technique to other problems???
 
 \bibliographystyle{named}
 \bibliography{paper}
