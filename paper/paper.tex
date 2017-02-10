@@ -25,9 +25,9 @@
 \newcommand{\nmax}{n_{\max}}
 
 \newcommand{\lineref}[1]{line~\ref{#1}}
-\newcommand{\twolinesref}[2]{lines~\ref{#1} and~\ref{#2}}
+\newcommand{\linerangeref}[2]{lines~\ref{#1} to~\ref{#2}}
 \newcommand{\Lineref}[1]{Line~\ref{#1}}
-\newcommand{\Twolinesref}[2]{Lines~\ref{#1} and~\ref{#2}}
+\newcommand{\Linerangeref}[2]{Lines~\ref{#1} to~\ref{#2}}
 
 % TODO: use operatorname for these
 \DeclareMathOperator{\V}{V}
@@ -404,7 +404,7 @@ $\FuncSty{expand}$, the invariant holds that a $(v,w)$ pair may be added to $M$
 if and only if $v$ and $w$ belong to the same label class in $M$.
 
 \Lineref{StoreIncumbent} stores the current mapping $M$ if it is large enough
-to unseat the incumbent.  \Twolinesref{SetBestFutureToZero}{PruneSearch} prune
+to unseat the incumbent.  \Linerangeref{SetBestFutureToZero}{PruneSearch} prune
 the search when a calculated upper bound ($\AlgVar{bestFuture}$) is not larger
 than the incumbent.
 
@@ -412,20 +412,20 @@ The remainder of $\FuncSty{expand}$ performs the search.  A label-class
 $\langle P, T \rangle$ is selected from $\AlgVar{future}$
 (\lineref{SelectClass}) using some heuristic.  From this class, a pattern
 vertex $v$ is selected using a heuristic (\lineref{SelectVertex}). We now
-iterate over all possible vertices in $T$ (\twolinesref{WLoop}{ShrinkM}). A
+iterate over all possible vertices in $T$ (\linerangeref{WLoop}{ShrinkM}). A
 vertex $w \in \V(H)$ is selected mapping $M$ is extended (\lineref{GrowM}). A
 new set of label-classes, $\AlgVar{future'}$, is created (\lineref{NewFuture}).
 Every label-class in $\AlgVar{future}$ can now be split
-(\twolinesref{InnerLoop}{InnerLoopEnd}) into two new classes. The first of
-these classes (\twolinesref{NewPWithEdge}{AddToFutureWithEdge}) contains
+(\linerangeref{InnerLoop}{InnerLoopEnd}) into two new classes. The first of
+these classes (\linerangeref{NewPWithEdge}{AddToFutureWithEdge}) contains
 pattern vertices adjacent to $v$ and target vertices adjacent to $w$.  This is
 added to $\AlgVar{future'}$ if both sets contain at least one vertex.  This is
 then repeated symmetrically for non-adjacency
-(\twolinesref{NewPWithoutEdge}{InnerLoopEnd}) using the compliments of the
+(\linerangeref{NewPWithoutEdge}{InnerLoopEnd}) using the compliments of the
 graphs.  A recursive call is then made (\lineref{ExpandWithV}), on return from
 which we remove the mapping $(v,w)$.  Having explored all possible mappings of
 $v$ its target set we now consider what happens if $v$ is not matched
-(\twolinesref{RemoveV}{ExpandWithoutV}). Note that removing $v$ from its label
+(\linerangeref{RemoveV}{ExpandWithoutV}). Note that removing $v$ from its label
 class is equivalent in effect to assigning it the label $\bot$, which is never
 taken by any vertex in $\V(H)$.
 
