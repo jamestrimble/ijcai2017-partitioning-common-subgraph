@@ -10,6 +10,7 @@
 \usepackage{MnSymbol,wasysym}
 \usepackage{latexsym}
 \usepackage{algpseudocode}
+\usepackage{amsmath}
 
 \usepackage{tikz}
 
@@ -103,6 +104,11 @@ subgraphs of both $G$ and $H$.
 MCS has numerous applications, including finding the similarity between organic
 molecules, \dots
 
+This paper introduces a new branch and bound algorithm for MCS that improves
+state-of-the-art run times on unlabelled, undirected instances by well over an
+order of magnitude, and uses only quadratic memory in the order of the input
+graphs, allowing us to solve larger instances than previously possible.
+
 \section{Preliminaries}
 
 We assume that $G$ and $H$ are unlabelled, undirected graphs without loops
@@ -120,9 +126,9 @@ and $n$ in complexity results to denote $n_G + n_H$.
 The most successful existing approaches to solving MCS are reformulation to the
 maximum clique problem on one hand, and constraint programming
 \cite{DBLP:conf/cp/McCreeshNPS16} on the other. In the clique encoding, an
-\textit{association graph} is created with one node for each pair in the set
-$\{(u,v) \mid u \in \V(G), v \in \V(H) \}$ and and edges for each pair of
-mappings that may be chosen together. A maximum clique in this graph represents
+association graph is created with one node for each pair in the set $\{(u,v)
+\mid u \in \V(G), v \in \V(H) \}$ and an edge for each pair of mappings that
+may be chosen together. A maximum clique in this graph corresponds directly to
 a maximum common subgraph of $G$ and $H$.
 
 In the constraint programming approach, we have a variable corresponding to
@@ -130,13 +136,13 @@ each vertex in $G$, and each variable initially has one value in its domain for
 each vertex in $H$ to which it may be mapped, plus an additional value $\bot$
 signifying that the vertex remains unmapped. A backtracking search is performed
 in which values are assigned to variables, and propagation rules are used to
-remove values from the domains of unassigned variables.
+remove infeasible values from domains.
 
 \section{The \McSplit\ algorithm}
 
-We introduce a branch and bound algorithm, \McSplit, which uses a new
-vertex-labelling scheme to avoid explicitly maintaining the set of feasible
-mappings for each vertex in $\V(G)$. As we will explore in
+This paper's main contribution is a branch and bound algorithm, \McSplit,
+which uses a new vertex-labelling scheme to avoid explicitly maintaining the
+set of feasible mappings for each vertex in $\V(G)$. As we will explore in
 Section~\ref{sec:comparison}, the algorithm may be viewed as a version of the
 constraint programming forward-checking (CP-FC) algorithm using a compact data
 structure that exploits the nature of the MCS problem.  It is sufficiently
@@ -157,9 +163,9 @@ and the subgraph of $H$ induced by $\{w_i, \dots, w_{|M^*|}\}$ are a maximum
 common subgraph.
 
 We will use the graphs $G$ and $H$ in Figure~\ref{fig:alg1} to demonstrate the
-algorithm.  These graphs have a maximum common subgraph with four vertices; the
-mapping $\{1a, 2f, 3d, 5b\}$ (where vertex $1$ is assigned to vertex $a$ and so
-on) is one example.
+algorithm.  These graphs have a maximum common subgraph with four vertices; one
+example is the mapping $\{1a, 2f, 3d, 5b\}$ (where vertex $1$ is assigned to
+vertex $a$, $2$ is assigned to $f$, and so on).
 
 \begin{figure}[ht]
 \centering
@@ -171,11 +177,11 @@ on) is one example.
 \label{fig:alg1}
 \end{figure}
 
-The algorithm proceeds by building up a mapping $M$, starting with the empty
-mapping $\{\}$. Select a vertex in $\V(G)$ as the first vertex to
-be mapped; we will arbitrarily choose vertex $1$. Each of the vertices in $\V(H)$
-to which $1$ may be mapped will be tried in turn, and finally the possibility where
-$1$ remains unmatched will be tried.
+The algorithm builds up a mapping $M$, starting with the empty mapping
+$\emptyset$. Select a vertex in $\V(G)$ as the first vertex to be mapped; in
+our example we will arbitrarily choose vertex $1$. Each of the vertices in
+$\V(H)$ to which $1$ may be mapped will be tried in turn, and finally the
+possibility where $1$ remains unmatched will be tried.
 
 We will begin by mapping vertex $1$ to vertex $a$, giving $M=\{1a\}$.  Label
 each unmatched vertex according to whether it is adjacent to $1$ (in $G$) or
@@ -230,14 +236,14 @@ algorithm's main invariant.
 
 Next, extend the mapping by pairing a vertex in $G$ with a vertex in $H$ of the
 same label; we will choose to map vertex $2$ to vertex $d$, giving $M=\{1a,
-2d\}$ (Figure~\ref{fig:alg3}).  Each unmatched vertex $v \in \V(G)$ is labelled
+2d\}$ (Figure~\ref{fig:alg3}).  Each unmapped vertex $v \in \V(G)$ is labelled
 with a two-character bit string, indicating whether $v$ is adjacent to each of
-the two matched vertices in $\V(G)$ (vertices $1$ and $2$).  For example, vertex
+the two mapped vertices in $\V(G)$ (vertices $1$ and $2$).  For example, vertex
 $3$ is labelled $01$, indicating that it is not adjacent to $1$ but is adjacent
-to $2$.  Labels are given to vertices in $\V(H)$ in a similar fashion, showing
-whether each vertex is adjacent to $a$ and $d$.
+to $2$.  Labels are given to unmapped vertices in $\V(H)$ in a similar fashion,
+showing whether each vertex is adjacent to $a$ and $d$.
 
-Observe that our invariant is maintained: we can extend $M$ by a vertex pairing if
+Our invariant is maintained: we can extend $M$ by a vertex pairing if
 and only if the two vertices have the same label. Note also that each label is prefixed
 by the label at the previous level of the search tree (Figure~\ref{fig:alg2}).
 
@@ -283,15 +289,8 @@ by the label at the previous level of the search tree (Figure~\ref{fig:alg2}).
 
 The algorithm backtracks when the incumbent best mapping is at least as large
 as a calculated bound given $M$ and the current labelling. To demonstrate how
-this bound is calculated, we consider the situation one level deeper in the search
-tree shown in Figure~\ref{fig:alg4}. Three vertex labels are used: 100, 101, and 111.
-The first two of these only appear in one graph, and therefore vertices with these
-labels cannot be added to the mapping. The final label, 111, appears once in $G$ and
-twice in $H$, and therefore at most one pair with this label can be added to $M$.
-Thus, the upper bound on matching size is $4$. In general, for each label $l$
-we add to the bound $\min(|\{ v \in \V(G) : \vtxlabel(v)=l\}|,
-|\{ v \in \V(H) : \vtxlabel(v)=l \}|)$.
-
+this bound is calculated, we consider the situation one level deeper in the
+search tree shown in Figure~\ref{fig:alg4}.
 
 \begin{figure}[ht]
 \centering
@@ -331,6 +330,20 @@ we add to the bound $\min(|\{ v \in \V(G) : \vtxlabel(v)=l\}|,
 \label{fig:alg4}
 \end{figure}
 
+Three vertex labels are used: 100,
+101, and 111.  The first two of these only appear in one graph, and therefore
+there is no way to add a pair of vertices with label 100 or 101 to the mapping.
+The final label, 111, appears once in $G$ and twice in $H$, and therefore at
+most one pair with this label can be added to $M$.  Thus, the upper bound on
+matching size is $|M| + 1 = 4$. The general formula for the upper bound is
+as follows, where $L$ is the set of labels used in both graphs.
+
+\begin{multline*}
+    \mathit{bound} = |M| + \sum_{l \in L} \min\big(|\{ v \in \V(G) : \vtxlabel(v)=l\}|, \\
+        |\{ v \in \V(H) : \vtxlabel(v)=l \}|\big)
+\end{multline*}
+
+
 %When we have explored the full
 %search space of matchings containing $\{1a, 2d\}$, we try reassigning $2$ to
 %$f$.  Since $d$ and $f$ are the only vertices to which $2$ can be matched given
@@ -339,14 +352,15 @@ we add to the bound $\min(|\{ v \in \V(G) : \vtxlabel(v)=l\}|,
 %$\V(G)$ to assign.
 
 \paragraph{Efficient representation of label classes} The algorithm as
-described so far requires $\BigO{n^2}$ space at each node of the search tree,
-since labels may be up to $n_G$ in length. We can reduce this to $\BigO{n}$
-by storing a pair $\langle P,T \rangle$ for each label $l$ that is used, where $P$
-is the set of vertices in $\V(G)$ labelled $l$, and $T$ is the set of vertices
-in $\V(H)$ labelled $l$. Since there are $n_G + n_H$ vertices, at most this number
-of label-classes can exist at once, and the total length of the $P$ and $T$ sets
-is at most $n_G + n_H$. We can gain further efficiency by discarding during search
-any label-class that has an empty $P$ or $T$ set.
+described so far requires $\BigO{n^2}$ space at each level of the search tree,
+since labels may be up to $n_G$ bits in length. We can reduce the memory
+requirement to $\BigO{n}$ per level by storing a pair $\langle P,T \rangle$ for
+each label $l$ that is used, where $P$ is the set of vertices in $\V(G)$
+labelled $l$, and $T$ is the set of vertices in $\V(H)$ labelled $l$. Since
+there are $n_G + n_H$ vertices in the two graphs, at most $n_G + n_H$
+label-classes can exist at once, and the total length of the $P$ and $T$ sets
+is at most $n_G + n_H$.  We can gain further efficiency by discarding during
+search any label-class that has an empty $P$ or $T$ set.
 
 \begin{algorithm}
 \DontPrintSemicolon
@@ -396,7 +410,7 @@ any label-class that has an empty $P$ or $T$ set.
 \end{algorithm}
 
 \paragraph{Full algorithm} The full algorithm is shown as
-Algorithm~\ref{jtAlg}.  The main recursive procedure, $\FuncSty{expand}$, has
+Algorithm~\ref{jtAlg}.  The recursive procedure, $\FuncSty{expand}$, has
 two parameters.  The parameter $\AlgVar{future}$ is a list of label classes,
 each represented as a $\langle P, T \rangle$ pair as described above.  The
 parameter $M$ is the current mapping of vertices.  On each call to
@@ -431,7 +445,7 @@ taken by any vertex in $\V(H)$.
 
 We start our search at the function $\FuncSty{McSplit}$ (\lineref{McSplitFun}),
 with graphs $G$ and $H$ as inputs.  This function returns the size of the
-largest mapping.  In \lineref{FirstExpandCall} a call is made to
+largest mapping.  In \lineref{FirstExpandCall} the initial call is made to
 $\FuncSty{expand}$; at this point we have a single label-class containing all
 vertices, and the mapping $M$ is empty.
 
@@ -461,12 +475,16 @@ much less than clique ($\BigO{n^4}$?).
 So far, we have considered only unlabelled, undirected graphs. In this section, we
 describe some straightforward changes to the algorithm that relax these restrictions.
 
-If we have vertex labels, we replace ${\langle V(G),V(H) \rangle}$ in line 28 of
-the algorithm with a set containing a label class for each label that appears in
-both $\V(G)$ and $\V(H)$. In the remainder of this section, \textit{labels} refers to
-edge labels.
+\paragraph{Vertex labels} If we have vertex labels, we replace ${\langle
+V(G),V(H) \rangle}$ in \lineref{FirstExpandCall} of the algorithm with a set
+containing a label class for each label that appears in both $\V(G)$ and
+$\V(H)$. Loops on vertices can be handled without difficulty; assuming without
+loss of generality that all vertex labels are positive integers, we can negate
+the labels of all vertices that have loops.
 
-For the unlabelled, directed case, let $A_G$ and $A_H$ be the adjacency matrices
+The remainder of this section considers edges that are directed or labelled.
+
+\paragraph{Directed, without edge labels} Let $A_G$ and $A_H$ be the adjacency matrices
 of $G$ and $H$ respectively, as stored in memory. For each
 vertex pair $(t,u)$ in graph $G$ or $H$, the adjacency matrix entry 
 takes the value 0 if the vertices are
@@ -489,25 +507,25 @@ each vertex is classified according to the label on its adjacency matrix from $v
 \label{labDirAlg}
 \end{algorithm}
 
-In the labelled, undirected case, each adjacency-matrix entry contains the edge
-label, or a null entry 0 if no edge exists between the pair of vertices.  we
-can also use Algorithm~\ref{labDirAlg}, by letting $L$ be the union of $\{0\}$
-with the set of all labels that appear in the input graphs. Since there may be
-up to $n_G + n_H$ distinct labels, the loop in Algorithm~\ref{labDirAlg} may
-execute up to $n_G + n_H$ times, and this variation of the algorithm therefore
-requires $\BigO{n^2}$ time per search node.  It is possible to modify the
-algorithms to run in $\BigO{n \log n}$ per search node; we will give a brief
-outline of the method. First, run lines 17-19 of Algorithm~\ref{jtAlg} to
-create a new label-class of vertices that are not adjacent to $v$ or $w$, and
-remove these vertices from $\langle P',T' \rangle$. Next, sort $P'$ and $T'$ in
-ascending order of the label on the edge from $v$ or $w$ to each vertex. We can
-then create the label classes corresponding to each edge label by
-simulataneously traversing $P'$ and $T'$ from left to right.
+\paragraph{Undirected, with edge labels} In this case, each adjacency-matrix
+entry contains the edge label, or a null entry 0 if no edge exists between the
+pair of vertices.  we can also use Algorithm~\ref{labDirAlg}, by letting $L$ be
+the union of $\{0\}$ with the set of all labels that appear in the input
+graphs. Since there may be up to $n_G + n_H$ distinct labels, the loop in
+Algorithm~\ref{labDirAlg} may execute up to $n_G + n_H$ times, and this
+variation of the algorithm therefore requires $\BigO{n^2}$ time per search
+node.  It is possible to modify the algorithms to run in $\BigO{n \log n}$ per
+search node; we will give a brief outline of the method. First, run lines 17-19
+of Algorithm~\ref{jtAlg} to create a new label-class of vertices that are not
+adjacent to $v$ or $w$, and remove these vertices from $\langle P',T' \rangle$.
+Next, sort $P'$ and $T'$ in ascending order of the label on the edge from $v$
+or $w$ to each vertex. We can then create the label classes corresponding to
+each edge label by simulataneously traversing $P'$ and $T'$ from left to right.
 
-The labelled, directed case is similar to its undirected counterpart, except that
-each element $A[u][v]$ in an adjacency matrix is a pair $(l_1, l_2)$, where
-$l_1$ is the label on the edge $u \rightarrow v$ (or 0 if no edge exists) and $l_2$
-is the label on the reverse edge.
+\paragraph{Directed, with edge labels} This case is similar to its undirected
+counterpart, except that each element $A[u][v]$ in an adjacency matrix is a
+pair $(l_1, l_2)$, where $l_1$ is the label on the edge $u \rightarrow v$ (or 0
+if no edge exists) and $l_2$ is the label on the reverse edge.
 
 For the variant in which the common subgraph must be connected, we consider
 only undirected graphs. We modify the algorithm by permitting branching only on
