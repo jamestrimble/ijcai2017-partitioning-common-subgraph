@@ -61,7 +61,7 @@
 %    \end{minipage}
 %}
 
-\title{A Partitioning Algorithm for Maximum Common (Connected) Subgraphs\thanks{This work
+\title{A Partitioning Algorithm for Maximum Common Subgraphs\thanks{This work
 was supported by the Engineering and Physical Sciences Research Council [grant
 numbers EP/K503058/1 and EP/M508056/1]}}
 \author{Ciaran McCreesh \and Patrick Prosser \and James Trimble \\
@@ -74,16 +74,14 @@ j.trimble.1@research.gla.ac.uk}
 
 \begin{abstract}
     Maximium Common Subgraph (MCS) is the problem of finding a
-    graph of maximium size that is an induced subgraph of each of the two input
+    graph of maximium order that is an induced subgraph of each of the two input
     graphs.  We introduce \McSplit, a branch and bound algorithm that
     uses a vertex-labelling scheme to compactly represent the subsets of
     vertices that may be matched together to create a larger common subgraph.
     The new algorithm explores the same search space as the existing CP-FC
     algorithm, but requires only \BigO{n^2} space in total and \BigO{n} time
     for each recursive call, greatly improving on all existing algorithms for
-    the problem.
-
-    Experimental results using two large graph databases show that \McSplit\ is
+    the problem. Experimental results using two large graph databases show that \McSplit\ is
     more than an order of magnitude faster than the leading existing algorithms
     on undirected, unlabelled graphs, including the problem
     variant in which the subgraph must be connected.
@@ -105,15 +103,13 @@ graphs, allowing us to solve larger instances than previously possible.
 
 \section{Preliminaries}
 
-We initially assume that $G$ and $H$ are unlabelled, undirected graphs without loops
+We initially assume that graphs are unlabelled, undirected and without self-loops
 (Section~\ref{sec:extensions} describes how these restrictions may be relaxed).
-
 The vertices and edge sets of a graph $G$ are denoted $\V(G)$ and $\E(G)$.
 The set of vertices adjacent to vertex $v$ in graph $G$ is called the
 \emph{neighbourhood} of $v$, and denoted $\N(v, G)$.
-
 We use $n_G$ and $n_H$ to denote $|\V(G)|$ and $|\V(H)|$. We will occasionally use
-$n$ in complexity results to denote $n_G + n_H$.
+$n$ in complexity results to denote $n_G + n_H$.  The graph $\overline{G}$ is the complement (aka the inverse) of $G$.
 
 \section{Prior Work}
 
@@ -125,19 +121,22 @@ the set $\{(u,v) \mid u \in \V(G), v \in \V(H) \}$ and an edge for each pair of
 mappings that may be chosen together. A maximum clique in this graph
 corresponds directly to a maximum common subgraph of $G$ and $H$.
 
-In the constraint programming approach, we have a variable corresponding to
+In the constraint programming approach  \cite{DBLP:conf/cp/NdiayeS11}, a variable corresponds to
 each vertex in $G$, and each variable initially has one value in its domain for
 each vertex in $H$ to which it may be mapped, plus an additional value $\bot$
 signifying that the vertex remains unmapped. A backtracking search is performed
 in which values are assigned to variables, and propagation rules are used to
-remove infeasible values from domains.  A matching algorithm is used to propagate
-a soft $\mathit{allDifferent}$ constraint. ? Say this better
+remove infeasible values from domains.  A matching algorithm propagates
+a soft global allDifferent constraint which maximizes the number variables that are assigned to values different from $\bot$, while ensuring they are all different when they are not assigned to $\bot$.
+Different constraint propagation techniques are compared in \cite{DBLP:conf/cp/NdiayeS11}. The combination ``MAC+Bound'' (resp. ``FC+Bound'') obtains the best results on labelled (resp. non labelled) graphs and outperforms the approach of \cite{McGreg82} and the CP model of \cite{DBLP:conf/mco/VismaraV08}. The combination ``MAC+Bound'' maintains arc consistency~\cite{sabi94} of edge constraints, whereas the conbination ``FC+Bound'' simply performs forward-checking on these constraints. In both combinations, the ``Bound'' filtering checks whether it is possible to assign distinct values to enough variables to surpass the best cost found so far (it is a weaker version of GAC(\emph{softAllDiff}) \cite{peti01} which computes the maximum number of variables that can be assigned distinct values).
 
 \section{The \McSplit\ algorithm}
 
-This paper's main contribution is a branch and bound algorithm, \McSplit,
+We now present \McSplit, a branch and bound algorithm 
 which uses a new vertex-labelling scheme to avoid explicitly maintaining the
-set of feasible mappings for each vertex in $\V(G)$. As we will explore in
+set of feasible mappings for each vertex in $\V(G)$. 
+\iffalse
+As we will explore in
 Section~\ref{sec:comparison}, the algorithm may be viewed as a version of the
 constraint programming forward-checking (CP-FC) algorithm using a compact data
 structure that exploits the nature of the MCS problem.  It is sufficiently
@@ -148,10 +147,10 @@ reference to previous approaches.
 %labels vertices in $\V(G)$ and $\V(H)$ such that a pair $(v, w)$ with $v \in
 %\V(G)$ and $w \in \V(H)$ can be added to the mapping if and only if $v$ and $w$
 %have the same label.
-
-The \McSplit\ algorithm finds a maximum-cardinality mapping $M^* = \{(v_1, w_1), \dots,
+\fi
+\McSplit\ finds a maximum-cardinality mapping $M^* = \{(v_1, w_1), \dots,
 (v_{|M^*|}, w_{|M^*|})\}$, where the $v_i$ are distinct members of $\V(G)$ and the
-$w_i$ are distinct members of $\V(H)$, such that $v_i$ and $v_j$ are adjacent
+$w_i$ are distinct vertices of $\V(H)$, such that $v_i$ and $v_j$ are adjacent
 in $G$ if and only if $w_i$ and $w_j$ are adjacent in $H$. It is clear that,
 given such a mapping, the subgraph of $G$ induced by $\{v_i, \dots, v_{|M^*|}\}$
 and the subgraph of $H$ induced by $\{w_i, \dots, w_{|M^*|}\}$ are a maximum
@@ -159,8 +158,8 @@ common subgraph.
 
 We will use the graphs $G$ and $H$ in Figure~\ref{fig:alg1} to demonstrate the
 algorithm.  These graphs have a maximum common subgraph with four vertices; one
-example is the mapping $\{1a, 2f, 3d, 5b\}$ (where vertex $1$ is assigned to
-vertex $a$, $2$ is assigned to $f$, and so on).
+example is the mapping $\{1a, 2f, 3d, 5b\}$ where vertex $1$ is assigned to
+vertex $a$, $2$ is assigned to $f$, $3$ to $d$ and $5$ to $b$.
 
 \begin{figure}[ht]
 \centering
@@ -175,16 +174,16 @@ vertex $a$, $2$ is assigned to $f$, and so on).
 The algorithm builds up a mapping $M$, starting with the empty mapping
 $\emptyset$. Select a vertex in $\V(G)$ as the first vertex to be mapped; in
 our example we will arbitrarily choose vertex $1$. Each of the vertices in
-$\V(H)$ to which $1$ may be mapped will be tried in turn, and finally the
-possibility where $1$ remains unmatched will be tried.
+$\V(H)$ to which vertex $1$ may be mapped will be tried in turn, and finally the
+possibility where vertex $1$ remains unmatched will be tried.
 
-We will begin by mapping vertex $1$ to vertex $a$, giving $M=\{1a\}$.  Label
-each unmatched vertex according to whether it is adjacent to $1$ (in $G$) or
-$a$ (in $H$), as shown in Figure~\ref{fig:alg2}.  Adjacent vertices have label
+We begin by mapping vertex $1$ to vertex $a$, giving $M=\{1a\}$.  Now label
+each unmatched vertex according to whether it is adjacent to vertex $1$ (in $G$) or
+vertex $a$ (in $H$), as shown in Figure~\ref{fig:alg2}.  Adjacent vertices have label
 1; non-adjacent vertices have label 0.  It is straightforward to see that we
 can extend $M$ with a vertex mapping $vw$, with $v \in \V(G)$ and $w \in
-\V(H)$, if and only if $v$ and $w$ have the same label.  This property that
-two vertices may be mapped together if and only if they share a label is the
+\V(H)$, if and only if $v$ and $w$ have the same label.  This property, that
+two vertices may be mapped together if and only if they share a label, is the
 algorithm's main invariant.
 
 \begin{figure}[ht]
@@ -232,14 +231,14 @@ algorithm's main invariant.
 Next, extend the mapping by pairing a vertex in $G$ with a vertex in $H$ of the
 same label; we will choose to map vertex $2$ to vertex $d$, giving $M=\{1a,
 2d\}$ (Figure~\ref{fig:alg3}).  Each unmapped vertex $v \in \V(G)$ is labelled
-with a two-character bit string, indicating whether $v$ is adjacent to each of
+with a two-character bit string, indicating its adjacency to each of
 the two mapped vertices in $\V(G)$ (vertices $1$ and $2$).  For example, vertex
-$3$ is labelled $01$, indicating that it is not adjacent to $1$ but is adjacent
-to $2$.  Labels are given to unmapped vertices in $\V(H)$ in a similar fashion,
-showing whether each vertex is adjacent to $a$ and $d$.
+$3$ is labelled $01$, indicating that it is not adjacent to vertex $1$ but is adjacent
+to vertex $2$.  Labels are given to unmapped vertices in $\V(H)$ in a similar fashion,
+showing adjacency to matched vertices $a$ and $d$.
 
 Our invariant is maintained: we can extend $M$ by a vertex pairing if
-and only if the two vertices have the same label. Note also that each label is prefixed
+and only if the two vertices have the same label. Note also that each label (in Figure~\ref{fig:alg3}) is prefixed
 by the label at the previous level of the search tree (Figure~\ref{fig:alg2}).
 
 \begin{figure}[ht]
@@ -282,7 +281,7 @@ by the label at the previous level of the search tree (Figure~\ref{fig:alg2}).
 \label{fig:alg3}
 \end{figure}
 
-The algorithm backtracks when the incumbent best mapping is at least as large
+The algorithm backtracks when the incumbent, i.e. the largest matching found so far, is at least as large
 as a calculated bound given $M$ and the current labelling. To demonstrate how
 this bound is calculated, we consider the situation one level deeper in the
 search tree shown in Figure~\ref{fig:alg4}.
@@ -349,26 +348,23 @@ as follows, where $L$ is the set of labels used in both graphs.
 \paragraph{Efficient representation of label classes} The algorithm as
 described so far requires $\BigO{n^2}$ space at each level of the search tree,
 since labels may be up to $n_G$ bits in length. We can reduce the memory
-requirement to $\BigO{n}$ per level by storing a pair $\langle P,T \rangle$ for
+requirement to $\BigO{n}$ per level by storing a \emph{label class} as a pair $\langle P,T \rangle$ for
 each label $l$ that is used, where $P$ is the set of vertices in $\V(G)$
-labelled $l$, and $T$ is the set of vertices in $\V(H)$ labelled $l$. Since
-there are $n_G + n_H$ vertices in the two graphs, at most $n_G + n_H$
-label-classes can exist at once, and the total length of the $P$ and $T$ sets
+labelled $l$, and $T$ is the set of vertices in $\V(H)$ labelled $l$\footnote{We adopt terminology from subgraph isomorphism where one graph is a pattern graph $P$ and the other the target graph $T$.}. Since there are $n_G + n_H$ vertices in the two graphs, at most $n_G + n_H$
+label classes can exist at once, and the total length of the $P$ and $T$ sets
 is at most $n_G + n_H$.  We can gain further efficiency by discarding during
-search any label-class that has an empty $P$ or $T$ set.
+search any label class that has an empty $P$ or $T$ set.
 
 \begin{algorithm}
 \DontPrintSemicolon
 \nl $\FuncSty{expand}(\AlgVar{future},M)$ \;
 \nl \Begin{
 %\nl \lIf {$\AlgVar{future} = \emptyset$ \bf{and} $|M| > |\AlgVar{incumbent}|$}
-\nl \lIf {$|M| > |\AlgVar{incumbent}|$}
-    {$save(matching)$} \label{StoreIncumbent}
+\nl \lIf {$|M| > |\AlgVar{incumbent}|$}{$save(matching)$} \label{StoreIncumbent}
 %\nl \lIf {$\AlgVar{future} = \emptyset$}{return}
-\nl $bestFuture \gets 0$ \label{SetBestFutureToZero} \;
-\nl \lFor {$\langle P,T \rangle \in \AlgVar{future}$}
-    {$\AlgVar{bestFuture} \gets \AlgVar{bestFuture} + \min(|P|,|T|)$}
-\nl \lIf {$|M|  + \AlgVar{bestFuture} \leq |\AlgVar{incumbent}|$}{return} \label{PruneSearch}
+\nl $bf \gets 0$ \label{SetBestFutureToZero} \;
+\nl \lFor {$\langle P,T \rangle \in \AlgVar{future}$}{$\AlgVar{bf} \gets \AlgVar{bf} + \min(|P|,|T|)$}
+\nl \lIf {$|M|  + \AlgVar{bf} \leq |\AlgVar{incumbent}|$}{return} \label{PruneSearch}
 \bigskip
 \nl $\langle P,T \rangle \gets \FuncSty{SelectLabelClass}(\AlgVar{future})$ \label{SelectClass} \;
 \nl $v \gets \FuncSty{SelectVertex}(P)$ \label{SelectVertex} \;
@@ -378,19 +374,19 @@ search any label-class that has an empty $P$ or $T$ set.
 \nl    \For {$\langle P',T'\rangle \in future$ \label{InnerLoop}}{
 \nl        \bf{Let} $P'' \gets P' \cap N(v,G) \setminus \{v\}$ \label{NewPWithEdge} \;
 \nl        \bf{Let} $T'' \gets T' \cap N(w,H) \setminus \{w\}$ \;
-\nl        \lIf {$P'' \neq \emptyset$ \bf{and} $T'' \neq \emptyset$}
+\nl        \If {$P'' \neq \emptyset$ \bf{and} $T'' \neq \emptyset$}
         {$\AlgVar{future'} \gets \AlgVar{future'} + \langle P'' , T'' \rangle$ \label{AddToFutureWithEdge}}
 \nl        \bf{Let} $P'' \gets P' \cap N(v,\overline{G}) \setminus \{v\}$ \label{NewPWithoutEdge}  \;
 \nl        \bf{Let} $T'' \gets T' \cap N(w,\overline{H}) \setminus \{w\}$ \;
-\nl        \lIf {$P'' \neq \emptyset$ \bf{and} $T'' \neq \emptyset$}
+\nl        \If {$P'' \neq \emptyset$ \bf{and} $T'' \neq \emptyset$}
         {$\AlgVar{future'} \gets \AlgVar{future'} + \langle P'' , T'' \rangle$} \label{InnerLoopEnd}
        }
 \nl   $\FuncSty{expand}(\AlgVar{future'},M)$ \label{ExpandWithV} \;
 \nl   $M \gets M \setminus \{(v,w)\}$ \label{ShrinkM} \;
   }
 \nl $P' \gets P \setminus \{v\}$ \label{RemoveV} \;
-\nl $\AlgVar{future} \gets \AlgVar{future} \setminus \{\langle P,T \rangle\} \cup \{\langle P', T \rangle\}$\;
-\nl \lIf {$P' = \emptyset$} {$\AlgVar{future} \gets \AlgVar{future} \setminus \{\langle P',T \rangle \}$}
+\nl $\AlgVar{future} \gets \AlgVar{future} \setminus \{\langle P,T \rangle\}$\;
+\nl \lIf {$P' \neq \emptyset$} {$\AlgVar{future} \gets \AlgVar{future} \cup \{\langle P',T \rangle \}$}
 \nl $\FuncSty{expand}(\AlgVar{future},M)$ \label{ExpandWithoutV} \;
 }
 \;
@@ -404,8 +400,7 @@ search any label-class that has an empty $P$ or $T$ set.
 \label{jtAlg}
 \end{algorithm}
 
-\paragraph{Full algorithm} The full algorithm is shown as
-Algorithm~\ref{jtAlg}.  The recursive procedure, $\FuncSty{expand}$, has
+\paragraph{Algorithm \ref{jtAlg} Explained} The recursive procedure, $\FuncSty{expand}$, has
 two parameters.  The parameter $\AlgVar{future}$ is a list of label classes,
 each represented as a $\langle P, T \rangle$ pair as described above.  The
 parameter $M$ is the current mapping of vertices.  On each call to
@@ -414,29 +409,28 @@ if and only if $v$ and $w$ belong to the same label class in $M$.
 
 \Lineref{StoreIncumbent} stores the current mapping $M$ if it is large enough
 to unseat the incumbent.  \Linerangeref{SetBestFutureToZero}{PruneSearch} prune
-the search when a calculated upper bound ($\AlgVar{bestFuture}$) is not larger
+the search when a calculated upper bound (best future $\AlgVar{bf}$ plus $|M|$) is not larger
 than the incumbent.
 
-The remainder of $\FuncSty{expand}$ performs the search.  A label-class
-$\langle P, T \rangle$ is selected from $\AlgVar{future}$
-(\lineref{SelectClass}) using some heuristic.  From this class, a pattern
-vertex $v$ is selected using a heuristic (\lineref{SelectVertex}). We now
+The remainder of $\FuncSty{expand}$ performs the search.  A label class
+$\langle P, T \rangle$ is selected from $\AlgVar{future}$, where $P \subseteq V(G)$ and $T \subseteq V(H)$,
+using some heuristic (\lineref{SelectClass}).  From this label class, a
+vertex $v$ is selected from $P$ using a heuristic (\lineref{SelectVertex}). We now
 iterate over all possible vertices in $T$ (\linerangeref{WLoop}{ShrinkM}). A
-vertex $w \in \V(H)$ is selected mapping $M$ is extended (\lineref{GrowM}). A
+vertex $w \in T$ is selected and mapping $M$ is extended (\lineref{GrowM}). A
 new set of label-classes, $\AlgVar{future'}$, is created (\lineref{NewFuture}).
 Every label-class in $\AlgVar{future}$ can now be split
 (\linerangeref{InnerLoop}{InnerLoopEnd}) into two new classes. The first of
 these classes (\linerangeref{NewPWithEdge}{AddToFutureWithEdge}) contains
-pattern vertices adjacent to $v$ and target vertices adjacent to $w$.  This is
+vertices in $P$ adjacent to $v$ and vertices in $T$ adjacent to $w$.  This is
 added to $\AlgVar{future'}$ if both sets contain at least one vertex.  This is
 then repeated symmetrically for non-adjacency
 (\linerangeref{NewPWithoutEdge}{InnerLoopEnd}) using the compliments of the
 graphs.  A recursive call is then made (\lineref{ExpandWithV}), on return from
 which we remove the mapping $(v,w)$.  Having explored all possible mappings of
-$v$ its target set we now consider what happens if $v$ is not matched
+$v$ with vertices in $T$ we now consider what happens if $v$ is not matched
 (\linerangeref{RemoveV}{ExpandWithoutV}). Note that removing $v$ from its label
-class is equivalent in effect to assigning it the label $\bot$, which is never
-taken by any vertex in $\V(H)$.
+class is equivalent to matching vertex $v$ to the null vertex $\bot$.
 
 We start our search at the function $\FuncSty{McSplit}$ (\lineref{McSplitFun}),
 with graphs $G$ and $H$ as inputs.  This function returns the size of the
@@ -444,16 +438,22 @@ largest mapping.  In \lineref{FirstExpandCall} the initial call is made to
 $\FuncSty{expand}$; at this point we have a single label-class containing all
 vertices, and the mapping $M$ is empty.
 
+\iffalse
 \paragraph{Heuristics} We ran a small experiment comparing lots of heuristics
 such as \dots on random instances. The one where you choose a label class with
 as small a max(left size, right size) as possible seemed to work best. ? Why?
+\fi
 
 \section{Comparison with Existing Algorithms}\label{sec:comparison}
-
-The Lilybank algorithm explores exactly the same search tree as CP-FC, because \dots
-
-The new algorithm takes $\BigO{n}$ time at each search node. CP-FC takes $\BigO{?}$ time,
-and clique takes $\BigO{n^4}$ time.
+The  \McSplit\ algorithm may be considered as a version of the
+constraint programming, forward-checking (CP-FC) algorithm of \cite{DBLP:conf/cp/NdiayeS11}.
+The vertices in $P$ correspond to variables in CP-FC and the 
+vertices in $T$ to the domains of variables in CP-FC. A label class $\langle P,T \rangle$ then corresponds to a set 
+of variables ($P$) in CP-FC  with identical domains ($T$). Where CP-FC uses a soft allDifferent constraint to filter and compute 
+a bound, \McSplit\ computes a bound from each label class in the future, i.e. it performs Hall Set reasoning on the fly.
+\iffalse
+\McSplit\ takes $\BigO{n}$ time at each search node. Furthermore, \McSplit\ has a low start up cost. The clique encoding requires the
+construction of the association graph prior to search 
 
 Our data structure lets us compute good heuristics cheaply, which is why we take
 slightly fewer search nodes than CP-FC.
@@ -463,33 +463,26 @@ Clique gives us very strong propagation.
 Our algorithm needs less space than CP-FC ($\BigO{n^2}$ rather than $\BigO{n^3}$?) and
 much less than clique ($\BigO{n^4}$?).
 
-? Mention partition backtracking
+%? Mention partition backtracking
+\fi
 
 \section{Extensions}\label{sec:extensions}
+\paragraph{Vertex labels and self-loops} If vertices are labelled, replace ${\langle
+V(G),V(H) \rangle}$ in \lineref{FirstExpandCall} with a set of label classes, one for each label that appears in both $\V(G)$ and
+$\V(H)$. If vertex labels are represented as positive integers, represent self-loops
+as negative integers.
 
-So far, we have considered only unlabelled, undirected graphs. In this section, we
-describe some straightforward changes to the algorithm that relax these restrictions.
-
-\paragraph{Vertex labels} If we have vertex labels, we replace ${\langle
-V(G),V(H) \rangle}$ in \lineref{FirstExpandCall} of the algorithm with a set
-containing a label class for each label that appears in both $\V(G)$ and
-$\V(H)$. Loops on vertices can be handled without difficulty; assuming without
-loss of generality that all vertex labels are positive integers, we can negate
-the labels of all vertices that have loops.
-
-The remainder of this section considers edges that are directed or labelled.
-
-\paragraph{Directed, without edge labels} Let $A_G$ and $A_H$ be the adjacency matrices
-of $G$ and $H$ respectively, as stored in memory. For each
+\paragraph{Directed graphs without edge labels} Let $A_G$ and $A_H$ be adjacency matrices
+of $G$ and $H$. For each
 vertex pair $(t,u)$ in graph $G$ or $H$, the adjacency matrix entry 
 takes the value 0 if the vertices are
 not adjacent, 1 if the two vertices share a single edge in the direction $t
 \rightarrow u$, 2 if they share a single edge in the direction $u \rightarrow
 t$, and 3 if there are edges in both directions. Where lines 14-19 of the
-basic algorithm split the pair $\langle P',T' \rangle$ two ways, according to whether
-vertices are ajacent to $v$ (resp. $w$), we now perform a four-way split where
-each vertex is classified according to the label on its adjacency matrix from $v$
-(resp. $w$). This is shown in Algorithm~\ref{labDirAlg}, where $L=\{0,1,2,3\}$.
+basic algorithm split the label class $\langle P',T' \rangle$ according to whether
+vertices are adjacent to $v$ (resp. $w$), we now perform a four-way split where
+each vertex is classified according to the label on its adjacency matrix from $v$ (resp. $w$). 
+This is shown in Algorithm~\ref{labDirAlg}, where $L=\{0,1,2,3\}$.
 
 \begin{algorithm}
 \DontPrintSemicolon
@@ -502,32 +495,32 @@ each vertex is classified according to the label on its adjacency matrix from $v
 \label{labDirAlg}
 \end{algorithm}
 
-\paragraph{Undirected, with edge labels} In this case, each adjacency-matrix
-entry contains the edge label, or a null entry 0 if no edge exists between the
-pair of vertices.  we can also use Algorithm~\ref{labDirAlg}, by letting $L$ be
+\paragraph{Undirected with edge labels} Each adjacency matrix
+entry contains an edge label, or a null entry (non-adjacent) $0$.
+We use Algorithm~\ref{labDirAlg}, by letting $L$ be
 the union of $\{0\}$ with the set of all labels that appear in the input
 graphs. Since there may be up to $n_G + n_H$ distinct labels, the loop in
-Algorithm~\ref{labDirAlg} may execute up to $n_G + n_H$ times, and this
-variation of the algorithm therefore requires $\BigO{n^2}$ time per search
+Algorithm~\ref{labDirAlg} may execute up to $n_G + n_H$ times and
+requires $\BigO{n^2}$ time per search
 node.  It is possible to modify the algorithms to run in $\BigO{n \log n}$ per
-search node; we will give a brief outline of the method. First, run lines 17-19
+search node.  First, run lines 17-19
 of Algorithm~\ref{jtAlg} to create a new label-class of vertices that are not
 adjacent to $v$ or $w$, and remove these vertices from $\langle P',T' \rangle$.
 Next, sort $P'$ and $T'$ in ascending order of the label on the edge from $v$
 or $w$ to each vertex. We can then create the label classes corresponding to
-each edge label by simulataneously traversing $P'$ and $T'$ from left to right.
+each edge label by simultaneously traversing $P'$ and $T'$ from left to right.
 
-\paragraph{Directed, with edge labels} This case is similar to its undirected
+\paragraph{Directed with edge labels} This case is similar to its undirected
 counterpart, except that each element $A[u][v]$ in an adjacency matrix is a
 pair $(l_1, l_2)$, where $l_1$ is the label on the edge $u \rightarrow v$ (or 0
 if no edge exists) and $l_2$ is the label on the reverse edge.
 
-\paragraph{Maximum Common \emph{Connected} Subgraph} For the variant in which
-the common subgraph must be connected, we consider only undirected graphs. We
-modify the algorithm by permitting branching only on a vertex $v$ that has at
-least one non-zero element in its bitstring label.  (Cite the first paper that
-did this.) ? Should we say that smarter propagation might be possible?
+\paragraph{Maximum Common \emph{Connected} Subgraph} 
+The common subgraph must be connected. We consider only undirected graphs. 
+Modify \McSplit\ by permitting branching only on a vertex $v$ that has at
+least one non-zero element in its bit-string label. 
 
+\iffalse
 \paragraph{Almost Subgraph Isomorphism} \citet{UpcomingAAAIPaper} present a
 ``top-down'' algorithm for Maximum Common Subgraph in which a solution of size
 $n_G$ is initially sought; if such a solution does not exist then this
@@ -539,39 +532,39 @@ calling the main \FuncSty{McSplit} method once per goal size ($n_G, n_G-1,
 n_G-2, \dots$).  We backtrack (\lineref{PruneSearch} of Algorithm~\ref{jtAlg})
 when the bound is strictly less than the goal size, and terminate when a
 solution of the goal size is found.
+\fi
 
-\section{Computational Experiments}
+\section{A Computational Study}
 
-Our experiments were performed on a cluster of machines with Dual Xeon E5-2640
-v2 CPUs and 64GBytes RAM. Parallel experiments used 32 threads per machine,
-using all 16 physical cores with hyper-threading enabled.
-
-For all experiments except the top-down ones, we used a database of
+Experiments were performed on a cluster of machines with Dual Xeon E5-2640
+v2 CPUs and 64GBytes RAM. 
+%Parallel experiments used 32 threads per machine,
+%using all 16 physical cores with hyper-threading enabled.
+All experiments used a database of
 randomly-generated Maximum Common Subgraph instances, which contains graphs of
 order ranging from 10 to 100 vertices
 \cite{DBLP:journals/prl/SantoFSV03,DBLP:journals/jgaa/ConteFV07}.  For
 unlabelled instances, we selected 10 per cent of the 41,100 instances with up
 to 40 vertices; labels were discarded. For labelled instances, we selected 10
 per cent of the full database of 81,400 instances, and used a labelling scheme
-in which then number of distict vertex labels and the number of distinct edge
+in which the number of distinct vertex labels and the number of distinct edge
 labels is approximately equal to 33 per cent of the number of vertices in each
-graph (? re-word, give original reference for labelling scheme).
+graph.
+Small scale experiments (not presented here) were performed to identify a suitable heuristic for label class selection. The heuristic used selects the label class  with the smallest product $|P| \times |T|$ (a surrogate for expected branching factor) and from that selects the first vertex in $P$. 
 
-(? Ciaran, while I remember to ask: what should a program do if it is running
-undirected, labelled and the same edge appears twice in the input in opposite
-directions? My program just uses the one that appears later in the input file.)
+\paragraph{No vertex labels, no edge labels, undirected}
+\cref{figure:plain-cumulative} shows a plot of cumulative run times (x-axis) against number of problem instances solved (y-axis). There are five contours: 
+the clique encoding \cite{DBLP:conf/cp/McCreeshNPS16}, CP-FC \cite{DBLP:conf/cp/NdiayeS11}, \McSplit\, AND TWO OTHERS.  WE NEED CITATIONS FOR THESE AND ALSO NEED TO CLEAN UP THE LABELS ON THE GRAPHS. 	What we see is that \McSplit\ is typically more than one order of magnitude better than its nearest competitor.
 
-\paragraph{No labels, undirected} are in \cref{figure:plain-cumulative}.
+\paragraph{Vertex labels, no edge labels, undirected} are in \cref{figure:33v-cumulative}, and are not in other papers so we should omit this unless we see something interesting.
 
-\paragraph{Vertex labels but no edge labels, undirected} are in \cref{figure:33v-cumulative}, and are not in other papers so we should omit this unless we see something interesting.
+\paragraph{Vertex labels,  edge labels, undirected} are in \cref{figure:33ve-cumulative}, and are not in other papers so we should omit this unless we see something interesting.
 
-\paragraph{Vertex and edge labels, not directed} are in \cref{figure:33ve-cumulative}, and are not in other papers so we should omit this unless we see something interesting.
+\paragraph{Vertex labels, edge labels, directed} are in \cref{figure:33ved-cumulative}.
 
-\paragraph{Vertex and edge labels, directed} are in \cref{figure:33ved-cumulative}.
+\paragraph{No Vertex labels, no edge labels, undirected, connected} are in \cref{figure:plain-connected-cumulative}.
 
-\paragraph{No labels, undirected, connected} are in \cref{figure:plain-connected-cumulative}.
-
-\paragraph{Vertex and edge labels, undirected, connected} are in \cref{figure:33ve-connected-cumulative}.
+\paragraph{Vertex labels, edge labels, undirected, connected} are in \cref{figure:33ve-connected-cumulative}.
 
 \paragraph{Large subgraph isomorphism instances} are in \cref{figure:sip-cumulative}.
 
@@ -645,30 +638,31 @@ directions? My program just uses the one that appears later in the input file.)
 
 \section{Conclusion}
 
-We have introduced the \McSplit\ algorithm for Max Common Subgraph, and shown
-that it explores the same search tree as CP-FC with greatly reduced effort at
-each search node.  The new algorithm is more than an order of
-magnitude faster than the previous state of the art for unlabelled, undirected
-instances.
+We have introduced the \McSplit\ algorithm for Max Common Subgraph.
+The new algorithm is more than an order of
+magnitude faster than the previous state of the art for unlabelled and undirected
+instances. We have shown how the algorithm can be extended for graphs with labels on edges, labels on vertices, self-loops, directed edges and the requirement that the resultant graph be connected.
 
-\paragraph{Future work} We could create a hybrid of Lilybank and clique (for
-example, using Lilybank near the top of the search tree, but switching to a
+\paragraph{Future work} We could create a hybrid algorithm. This would use \McSplit\ near the top of the search tree, switching to a
 clique encoding when fewer than some threshold number of vertices remain to be
-selected). This might give us most of the benefits of the clique encoding for
+selected. This might deliver the benefits of the clique encoding for
 labelled graphs, while avoiding the high memory cost and colouring time of
 encoding the full instance.
 
-Instead of branching on vertices in $\V(G)$, it would be equally valid to branch on
-a vertex in $\V(H)$ in lines 9-23 of the algorithm, since our data structure treats the
+We have yet to fully investigate variable and value ordering heuristics, i.e. the selection of a label class and the selection of a vertex from that label class.
+There is also the potential to branch on both sides, that is instead of branching on vertices in $\V(G)$, it would be equally valid to branch on
+a vertex in $\V(H)$ , since our data structure treats the
 two graphs symmetrically. More interestingly, we could choose which graph to branch on
 at each search node using some heuristic (perhaps choosing based on whether the $P$ or
-$T$ set is smaller).
+$T$ set is smaller), so long as we can ensure that the search remains complete.
 
-Parallel versions: bitset and multithreaded
+We have not yet explored parallel versions of the algorithm. The first paralellism is \emph{within-core}, using bitsets to encode sets. The second parallelism  is  multithreaded,
+exploited the ubiquitous multicore architecture.
 
-Application to induced subgraph isomorphism (with almost no changes). Applications
-of a similar technique to other problems???
+%Application to induced subgraph isomorphism (with almost no changes). Applications
+%of a similar technique to other problems???
 
+\newpage
 \bibliographystyle{named}
 \bibliography{paper}
 
