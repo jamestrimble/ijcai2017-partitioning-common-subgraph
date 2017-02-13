@@ -89,17 +89,28 @@ j.trimble.1@research.gla.ac.uk}
 
 \section{Introduction}
 
-Given graphs $G$ and $H$, the \emph{Maximum Common Subgraph (MCS)} problem is
-to find a graph with as many vertices as possible that is isomorphic to induced
-subgraphs of both $G$ and $H$. 
-
-MCS has numerous applications, including finding the similarity between organic
-molecules, \dots
-
-This paper introduces a new branch and bound algorithm for MCS that improves
-state-of-the-art run times on unlabelled, undirected instances by well over an
-order of magnitude, and uses only quadratic memory in the order of the input
-graphs, allowing us to solve larger instances than previously possible.
+To determine the similarity or difference between two graphs, we must first
+find what they have in common
+\citep{DBLP:journals/prl/Bunke97,DBLP:journals/prl/FernandezV01,KriegeThesis}.
+The \emph{maximum common subgraph} family of problems involves finding a large
+graph which is isomorphic to subgraphs of two given graphs simultaneously.
+Because graphs are widely used to model real-world phenomena, maximum common
+subgraph problems have arisen in ...  The problems are NP-hard, and remain
+challenging computationally. Recent practical progress has been made by using
+constraint programming
+\citep{DBLP:conf/cp/NdiayeS11,DBLP:conf/cp/McCreeshNPS16}, by reducing to the
+maximum clique problem \citep{LeviG,DBLP:conf/cp/McCreeshNPS16}, and
+by adapting subgraph isomorphism algorithms \citep{UpcomingAAAIPaper}. This paper
+introduces a new branch and bound algorithm which exploits special properties
+of these problems to allow a much faster exploration of the search space,
+whilst retaining the filtering and bounding benefits of the constraint
+programming approach. We describe the algorithm for the basic maximum common
+subgraph problem, and discuss how it may be adapted to handle vertex labels,
+edge labels, and the requirement that the found subgraph be connected. We then
+present an empirical study of the algorithm, demonstrating that it improves the
+state of the art by more than an order of magnitude on the unlabelled variant
+of the problem, and showing that it can handle much larger instances than
+earlier constraint programming or clique approaches due to lower memory usage.
 
 \section{Preliminaries}
 
