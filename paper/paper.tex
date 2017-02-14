@@ -571,8 +571,30 @@ branching factor). From this class, a vertex is selected from $P$ with maximum
 degree if $H$ is sparse and with minimum degree if $H$ is dense. 
 
 \paragraph{No vertex labels, no edge labels, undirected}
-\cref{figure:plain-cumulative} shows a plot of cumulative run times (x-axis) against number of problem instances solved (y-axis). There are five contours: 
-the clique encoding \cite{DBLP:conf/cp/McCreeshNPS16}, CP-FC \cite{DBLP:conf/cp/NdiayeS11}, \McSplit\, AND TWO OTHERS.  WE NEED CITATIONS FOR THESE AND ALSO NEED TO CLEAN UP THE LABELS ON THE GRAPHS. 	What we see is that \McSplit\ is typically more than one order of magnitude better than its nearest competitor.
+\cref{figure:plain-cumulative} shows a plot of cumulative run times (x-axis)
+against number of problem instances solved (y-axis).  There are five contours:
+the clique encoding \cite{DBLP:conf/cp/McCreeshNPS16}, CP-FC
+\cite{DBLP:conf/cp/NdiayeS11}, \McSplit\, AND TWO OTHERS.  WE NEED CITATIONS
+FOR THESE AND ALSO NEED TO CLEAN UP THE LABELS ON THE GRAPHS.  We may compare
+the speed of two algorithms using the horizontal distance between their curves.
+For example, we could solve 2000 of the 4110 unlabelled undirected instances
+using the \McSplit\ algorithm if a time limit of 0.5 seconds per instance were
+imposed.  Its nearest competitor, CP-FC, would require a time limit of over 24
+seconds per instance to solve the same number of instances.  For any given
+number of instances, \McSplit\ is comfortably more than an order of magnitude
+faster than its nearer competitor.  Moreover, there are few instances in this
+set for which \McSplit\ is not the fastest solver; of the 3506 instances that
+could be solved by at least one of \McSplit, CP-FC and clique in less than than
+1000 seconds, there were only 126 instances on which \McSplit\ was not strictly
+faster than the other two solvers.
+
+\paragraph{Vertex labels, edge labels, directed}
+Cumulative run times for this class of instances are in \cref{figre:33ved-cumulative}.
+Again, \McClique\ is over an order of magnitude faster than the best CP algorithm,
+which is CP-MAC in this case.  The clique encoding, however, outperforms the other
+algorithms on these labelled instances, except in the easy region at the left
+of the graph.  
+
 
 \paragraph{Vertex labels, no edge labels, undirected} are in
 FIGURE REMOVED
@@ -583,8 +605,6 @@ and are not in other papers so we should omit this unless we see something inter
 FIGURE REMOVED
 %\cref{figure:33ve-cumulative},
 and are not in other papers so we should omit this unless we see something interesting.
-
-\paragraph{Vertex labels, edge labels, directed} are in \cref{figure:33ved-cumulative}.
 
 \paragraph{No Vertex labels, no edge labels, undirected, connected} are in \cref{figure:plain-connected-cumulative}.
 
@@ -601,7 +621,7 @@ and \cref{figure:33ved-james-versus-cp-fc-nodes-scatter}.
 
 \begin{figure}
     \centering
-    \subfigure[][MCS unlabelled unconnected instances] {
+    \subfigure[][MCS unlabelled undirected instances] {
         \centering
         \includegraphics*{gen-graph-plain-cumulative.pdf}
         \label{figure:plain-cumulative}
@@ -612,7 +632,7 @@ and \cref{figure:33ved-james-versus-cp-fc-nodes-scatter}.
         \includegraphics*{gen-graph-33ved-cumulative.pdf}
         \label{figure:33ved-cumulative}
     }
-    \caption{Cumulative runtimes}\label{figure:mcs-cumulative}
+    \caption{Cumulative run times}\label{figure:mcs-cumulative}
 \end{figure}
 
 \begin{figure}
@@ -628,14 +648,14 @@ and \cref{figure:33ved-james-versus-cp-fc-nodes-scatter}.
         \includegraphics*{gen-graph-33ve-connected-cumulative.pdf}
         \label{figure:33ve-connected-cumulative}
     }
-    \caption{Cumulative runtimes, connected variant}
+    \caption{Cumulative run times, connected variant}
     \label{figure:mcs-connected-cumulative}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics*{gen-graph-sip-cumulative.pdf}
-    \caption{Cumulative runtimes, SIP instances}\label{figure:sip-cumulative}
+    \caption{Cumulative run times, SIP instances}\label{figure:sip-cumulative}
 \end{figure}
 
 %\begin{figure}
