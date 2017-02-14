@@ -466,7 +466,7 @@ vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
             auto domains_copy = domains;
             vector<VtxPair> current;
             solve(g0, g1, incumbent, current, domains_copy, left_copy, right_copy, goal);
-            if (incumbent.size() == goal) break;
+            if (incumbent.size() == goal || abort_due_to_timeout) break;
             if (!arguments.quiet) cout << "Upper bound: " << goal-1 << std::endl;
         }
 
