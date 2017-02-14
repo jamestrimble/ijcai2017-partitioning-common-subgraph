@@ -465,20 +465,43 @@ The vertices in $P$ correspond to variables in CP-FC and the
 vertices in $T$ to the domains of variables in CP-FC. A label class $\langle P,T \rangle$ then corresponds to a set 
 of variables ($P$) in CP-FC  with identical domains ($T$). Where CP-FC uses a soft allDifferent constraint to filter and compute 
 a bound, \McSplit\ computes a bound from each label class in the future, i.e. it performs Hall Set reasoning on the fly.
-\iffalse
+
 \McSplit\ takes $\BigO{n}$ time at each search node. Furthermore, \McSplit\ has a low start up cost. The clique encoding requires the
 construction of the association graph prior to search 
-
-Our data structure lets us compute good heuristics cheaply, which is why we take
-slightly fewer search nodes than CP-FC.
-
-Clique gives us very strong propagation.
 
 Our algorithm needs less space than CP-FC ($\BigO{n^2}$ rather than $\BigO{n^3}$?) and
 much less than clique ($\BigO{n^4}$?).
 
-%? Mention partition backtracking
-\fi
+? Mention partition backtracking
+
+LARGELY FROM CIARAN'S EMAIL; NEEDS WORK:
+
+\begin{algorithm}
+\DontPrintSemicolon
+\nl    \For {$q \in \N(b,G)$}{
+\nl        remove $t$ from $D'_q$ \;
+\nl        remove the inverse neighbourhood of $t$ from $D'_q$ \;
+       }
+\nl    \For {$q \in \N(b,\overline{G})$}{
+\nl        remove $t$ from $D'_q$ \;
+\nl        remove the neighbourhood of $t$ from $D'_q$ \;
+       }
+\caption{Replacement for \linerangeref{NewPWithEdge}{InnerLoopEnd} in CP algorithm}
+\label{cpAlg}
+\end{algorithm}
+
+The first difference is in the underlying data structures: James uses a clever
+partitioning data structure, not a conventional domain store. With the
+algorithm described this way, I think the proof that domains are partitioned
+into disjoint sets is almost immediate.
+
+The second difference is in the bound function: the French code constructs a
+maximum cardinality matching, with some special weighting trickery for $\bot$,
+whilst James just sums the smaller of the two sides of each partition. If you
+think a bit about what the matching looks like, you can see that these two give
+the same answer, but at very different speeds.
+
+The third difference is in the details of the variable ordering heuristic.
 
 \section{Extensions}\label{sec:extensions}
 \paragraph{Vertex labels and self-loops} If vertices are labelled, replace ${\langle
@@ -486,16 +509,16 @@ V(G),V(H) \rangle}$ in \lineref{FirstExpandCall} with a set of label classes, on
 $\V(H)$. If vertex labels are represented as positive integers, represent self-loops
 as negative integers.
 
-\paragraph{Directed graphs without edge labels} Let $A_G$ and $A_H$ be adjacency matrices
-of $G$ and $H$. For each
-vertex pair $(t,u)$ in graph $G$ or $H$, the adjacency matrix entry 
-takes the value 0 if the vertices are
-not adjacent, 1 if the two vertices share a single edge in the direction $t
+\paragraph{Directed graphs without edge labels} Let $A_G$ and $A_H$ be
+adjacency matrices of $G$ and $H$. For each vertex pair $(t,u)$ in graph $G$ or
+$H$, the adjacency matrix entry takes the value 0 if the vertices are not
+adjacent, 1 if the two vertices share a single edge in the direction $t
 \rightarrow u$, 2 if they share a single edge in the direction $u \rightarrow
-t$, and 3 if there are edges in both directions. Where lines 14-19 of the
-basic algorithm split the label class $\langle P',T' \rangle$ according to whether
-vertices are adjacent to $v$ (resp. $w$), we now perform a four-way split where
-each vertex is classified according to the label on its adjacency matrix from $v$ (resp. $w$). 
+t$, and 3 if there are edges in both directions. Where
+\linerangeref{NewPWithEdge}{InnerLoopEnd} of the basic algorithm split the
+label class $\langle P',T' \rangle$ according to whether vertices are adjacent
+to $v$ (resp. $w$), we now perform a four-way split where each vertex is
+classified according to the label on its adjacency matrix from $v$ (resp. $w$).
 This is shown in Algorithm~\ref{labDirAlg}, where $L=\{0,1,2,3\}$.
 
 \begin{algorithm}
@@ -505,7 +528,7 @@ This is shown in Algorithm~\ref{labDirAlg}, where $L=\{0,1,2,3\}$.
 \nl        \bf{Let} $T^{''} \gets \{ u \in T^{'} \mid u \neq w \wedge A_H[w][u] = l \}$ \;
 \nl        \lIf {$P^{''} \neq \emptyset$ \bf{and} $T^{''} \neq \emptyset$}{$future^{'} \gets future^{'} + \langle P^{''} , T^{''} \rangle$}
        }
-\caption{Replacement for lines 14--19 in directed in labelled cases}
+\caption{Replacement for \linerangeref{NewPWithEdge}{InnerLoopEnd} in directed and labelled cases}
 \label{labDirAlg}
 \end{algorithm}
 
@@ -703,6 +726,8 @@ $T$ set is smaller), so long as we can ensure that the search remains complete.
 
 We have not yet explored parallel versions of the algorithm. The first paralellism is \emph{within-core}, using bitsets to encode sets. The second parallelism  is  multithreaded,
 exploited the ubiquitous multicore architecture.
+
+? Portfolio algorithms---finding out at what level of labelledness clique becomes best etc.
 
 %Application to induced subgraph isomorphism (with almost no changes). Applications
 %of a similar technique to other problems???
