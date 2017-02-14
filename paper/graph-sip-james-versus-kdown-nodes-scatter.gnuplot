@@ -1,6 +1,6 @@
 # vim: set et ft=gnuplot sw=4 :
 
-set terminal tikz standalone color size 8cm,6cm font '\scriptsize' preamble '\usepackage{times,microtype}'
+set terminal tikz standalone color size 6.5cm,6.5cm font '\scriptsize' preamble '\usepackage{times,microtype}'
 set output "gen-graph-sip-james-versus-kdown-nodes-scatter.tex"
 
 set xlabel "KDown Nodes"

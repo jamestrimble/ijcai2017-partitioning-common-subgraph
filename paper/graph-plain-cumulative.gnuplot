@@ -1,6 +1,6 @@
 # vim: set et ft=gnuplot sw=4 :
 
-set terminal tikz standalone color size 8cm,6cm font '\scriptsize' preamble '\usepackage{times,microtype}'
+set terminal tikz standalone color size 7cm,5cm font '\scriptsize' preamble '\usepackage{times,microtype}'
 set output "gen-graph-plain-cumulative.tex"
 
 set xlabel "Runtime (ms)"

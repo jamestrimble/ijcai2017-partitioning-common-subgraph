@@ -561,15 +561,26 @@ per cent of the full database of 81,400 instances, and used a labelling scheme
 in which the number of distinct vertex labels and the number of distinct edge
 labels is approximately equal to 33 per cent of the number of vertices in each
 graph.
-Small scale experiments (not presented here) were performed to identify a suitable heuristic for label class selection. The heuristic used selects the label class  with the smallest product $|P| \times |T|$ (a surrogate for expected branching factor) and from that selects the first vertex in $P$. 
+
+Small scale experiments (not presented here) were performed to identify a
+suitable heuristic for label class selection. The heuristic used selects the
+label class  with the smallest $\min(|P|,|T|)$ (a surrogate for expected
+branching factor). From this class, a vertex is selected from $P$ with maximum
+degree if $H$ is sparse and with minimum degree if $H$ is dense. 
 
 \paragraph{No vertex labels, no edge labels, undirected}
 \cref{figure:plain-cumulative} shows a plot of cumulative run times (x-axis) against number of problem instances solved (y-axis). There are five contours: 
 the clique encoding \cite{DBLP:conf/cp/McCreeshNPS16}, CP-FC \cite{DBLP:conf/cp/NdiayeS11}, \McSplit\, AND TWO OTHERS.  WE NEED CITATIONS FOR THESE AND ALSO NEED TO CLEAN UP THE LABELS ON THE GRAPHS. 	What we see is that \McSplit\ is typically more than one order of magnitude better than its nearest competitor.
 
-\paragraph{Vertex labels, no edge labels, undirected} are in \cref{figure:33v-cumulative}, and are not in other papers so we should omit this unless we see something interesting.
+\paragraph{Vertex labels, no edge labels, undirected} are in
+FIGURE REMOVED
+%\cref{figure:33v-cumulative},
+and are not in other papers so we should omit this unless we see something interesting.
 
-\paragraph{Vertex labels,  edge labels, undirected} are in \cref{figure:33ve-cumulative}, and are not in other papers so we should omit this unless we see something interesting.
+\paragraph{Vertex labels,  edge labels, undirected} are in
+FIGURE REMOVED
+%\cref{figure:33ve-cumulative},
+and are not in other papers so we should omit this unless we see something interesting.
 
 \paragraph{Vertex labels, edge labels, directed} are in \cref{figure:33ved-cumulative}.
 
@@ -579,7 +590,10 @@ the clique encoding \cite{DBLP:conf/cp/McCreeshNPS16}, CP-FC \cite{DBLP:conf/cp/
 
 \paragraph{Large subgraph isomorphism instances} are in \cref{figure:sip-cumulative}.
 
-\paragraph{Compared to CP FC} Nodes are in \cref{figure:plain-james-versus-cp-fc-nodes-scatter} and \cref{figure:33ved-james-versus-cp-fc-nodes-scatter}.
+\paragraph{Compared to CP FC} Nodes are in
+FIGURE REMOVED
+%\cref{figure:plain-james-versus-cp-fc-nodes-scatter}
+and \cref{figure:33ved-james-versus-cp-fc-nodes-scatter}.
 
 \paragraph{Nodes compared to kdown on SIP} are in \cref{figure:sip-james-versus-kdown-nodes-scatter}.
 
@@ -589,17 +603,17 @@ the clique encoding \cite{DBLP:conf/cp/McCreeshNPS16}, CP-FC \cite{DBLP:conf/cp/
     \caption{MCS Plain instances, cumulative runtimes}\label{figure:plain-cumulative}
 \end{figure}
 
-\begin{figure}
-    \centering
-    \includegraphics*{gen-graph-33v-cumulative.pdf}
-    \caption{MCS 33\% vertex labelled, no edge labels, undirected instances, cumulative runtimes}\label{figure:33v-cumulative}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics*{gen-graph-33ve-cumulative.pdf}
-    \caption{MCS 33\% vertex and edge labelled undirected instances, cumulative runtimes}\label{figure:33ve-cumulative}
-\end{figure}
+%\begin{figure}
+%    \centering
+%    \includegraphics*{gen-graph-33v-cumulative.pdf}
+%    \caption{MCS 33\% vertex labelled, no edge labels, undirected instances, cumulative runtimes}\label{figure:33v-cumulative}
+%\end{figure}
+%
+%\begin{figure}
+%    \centering
+%    \includegraphics*{gen-graph-33ve-cumulative.pdf}
+%    \caption{MCS 33\% vertex and edge labelled undirected instances, cumulative runtimes}\label{figure:33ve-cumulative}
+%\end{figure}
 
 \begin{figure}
     \centering
@@ -625,12 +639,12 @@ the clique encoding \cite{DBLP:conf/cp/McCreeshNPS16}, CP-FC \cite{DBLP:conf/cp/
     \caption{SIP instances, cumulative runtimes}\label{figure:sip-cumulative}
 \end{figure}
 
-\begin{figure}
-    \centering
-    \includegraphics*{gen-graph-plain-james-versus-cp-fc-nodes-scatter.pdf}
-    \caption{MCS Plain instances, James vs CP-FC, Nodes (TODO?? heatmapify this
-    and exclude timeouts)}\label{figure:plain-james-versus-cp-fc-nodes-scatter}
-\end{figure}
+%\begin{figure}
+%    \centering
+%    \includegraphics*{gen-graph-plain-james-versus-cp-fc-nodes-scatter.pdf}
+%    \caption{MCS Plain instances, James vs CP-FC, Nodes (TODO?? heatmapify this
+%    and exclude timeouts)}\label{figure:plain-james-versus-cp-fc-nodes-scatter}
+%\end{figure}
 
 \begin{figure}
     \centering
