@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 INSTANCES_FILE := mcsplaininstances.txt
 INSTANCES := $(shell cut -d' ' -f1 $(INSTANCES_FILE) )
-ALGORITHMS := clique cp-fc cp-mac kdown james-cpp-product james-cpp-product-down james-cpp-max james-cpp-max-down clique-par/t16 clique-par/t32 james-cpp-max-par/t16 james-cpp-max-par/t32
+ALGORITHMS := clique cp-fc cp-mac kdown james-cpp-product james-cpp-product-down james-cpp-max james-cpp-max-down clique-par/t16 clique-par/t32 james-cpp-max-par/t16 james-cpp-max-par/t32 kdown-par/t32
 RESULTS := gpgnode-results/mcsplain
 
 all : $(RESULTS)/runtimes.data $(RESULTS)/nodes.data
@@ -23,6 +23,10 @@ $(RESULTS)/clique-par/t32/%.runtime : $(RESULTS)/clique-par/t32/%.out
 	[[ -s $@ ]]
 
 $(RESULTS)/kdown/%.runtime : $(RESULTS)/kdown/%.out
+	tail -n2 < $^ | head -n1 | cut -d' ' -f1 > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/kdown-par/t32/%.runtime : $(RESULTS)/kdown-par/t32/%.out
 	tail -n2 < $^ | head -n1 | cut -d' ' -f1 > $@
 	[[ -s $@ ]]
 
@@ -71,6 +75,10 @@ $(RESULTS)/clique-par/t32/%.nodes : $(RESULTS)/clique-par/t32/%.out
 	[[ -s $@ ]]
 
 $(RESULTS)/kdown/%.nodes : $(RESULTS)/kdown/%.out
+	if grep -q aborted %^ ; then echo NaN ; else tail -n4 < $^ | head -n1 | cut -d' ' -f2 ; fi > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/kdown-par/t32/%.nodes : $(RESULTS)/kdown-par/t32/%.out
 	if grep -q aborted %^ ; then echo NaN ; else tail -n4 < $^ | head -n1 | cut -d' ' -f2 ; fi > $@
 	[[ -s $@ ]]
 
