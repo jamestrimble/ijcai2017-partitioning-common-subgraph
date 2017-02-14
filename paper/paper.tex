@@ -6,6 +6,8 @@
 \usepackage{graphicx}
 \usepackage{cleveref}
 
+\usepackage{subfigure}
+
 \usepackage[ruled,vlined]{algorithm2e}
 \usepackage{MnSymbol,wasysym}
 \usepackage{latexsym}
@@ -599,44 +601,41 @@ and \cref{figure:33ved-james-versus-cp-fc-nodes-scatter}.
 
 \begin{figure}
     \centering
-    \includegraphics*{gen-graph-plain-cumulative.pdf}
-    \caption{MCS Plain instances, cumulative runtimes}\label{figure:plain-cumulative}
-\end{figure}
+    \subfigure[][MCS unlabelled unconnected instances] {
+        \centering
+        \includegraphics*{gen-graph-plain-cumulative.pdf}
+        \label{figure:plain-cumulative}
+    }
 
-%\begin{figure}
-%    \centering
-%    \includegraphics*{gen-graph-33v-cumulative.pdf}
-%    \caption{MCS 33\% vertex labelled, no edge labels, undirected instances, cumulative runtimes}\label{figure:33v-cumulative}
-%\end{figure}
-%
-%\begin{figure}
-%    \centering
-%    \includegraphics*{gen-graph-33ve-cumulative.pdf}
-%    \caption{MCS 33\% vertex and edge labelled undirected instances, cumulative runtimes}\label{figure:33ve-cumulative}
-%\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics*{gen-graph-33ved-cumulative.pdf}
-    \caption{MCS 33\% vertex and edge labelled directed instances, cumulative runtimes}\label{figure:33ved-cumulative}
+    \subfigure[][MCS 33\% vertex and edge labelled directed instances] {
+        \centering
+        \includegraphics*{gen-graph-33ved-cumulative.pdf}
+        \label{figure:33ved-cumulative}
+    }
+    \caption{Cumulative runtimes}\label{figure:mcs-cumulative}
 \end{figure}
 
 \begin{figure}
     \centering
-    \includegraphics*{gen-graph-plain-connected-cumulative.pdf}
-    \caption{Unlabelled undirected instances, connected, cumulative runtimes}\label{figure:plain-connected-cumulative}
-\end{figure}
+    \subfigure[][MCS unlabelled undirected instances] {
+        \centering
+        \includegraphics*{gen-graph-plain-connected-cumulative.pdf}
+        \label{figure:plain-connected-cumulative}
+    }
 
-\begin{figure}
-    \centering
-    \includegraphics*{gen-graph-33ve-connected-cumulative.pdf}
-    \caption{MCS 33\% vertex and edge labelled undirected instances, connected, cumulative runtimes}\label{figure:33ve-connected-cumulative}
+    \subfigure[][MCS 33\% vertex and edge labelled undirected instances] {
+        \centering
+        \includegraphics*{gen-graph-33ve-connected-cumulative.pdf}
+        \label{figure:33ve-connected-cumulative}
+    }
+    \caption{Cumulative runtimes, connected variant}
+    \label{figure:mcs-connected-cumulative}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics*{gen-graph-sip-cumulative.pdf}
-    \caption{SIP instances, cumulative runtimes}\label{figure:sip-cumulative}
+    \caption{Cumulative runtimes, SIP instances}\label{figure:sip-cumulative}
 \end{figure}
 
 %\begin{figure}
