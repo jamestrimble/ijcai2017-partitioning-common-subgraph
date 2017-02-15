@@ -97,22 +97,30 @@ find what they have in common
 The \emph{maximum common subgraph} family of problems involves finding a large
 graph which is isomorphic to subgraphs of two given graphs simultaneously.
 Because graphs are widely used to model real-world phenomena, maximum common
-subgraph problems have arisen in ...  The problems are NP-hard, and remain
-challenging computationally. Recent practical progress has been made by using
-constraint programming
-\citep{DBLP:conf/cp/NdiayeS11,DBLP:conf/cp/McCreeshNPS16}, by reducing to the
-maximum clique problem \citep{LeviG,DBLP:conf/cp/McCreeshNPS16}, and
-by adapting subgraph isomorphism algorithms \citep{UpcomingAAAIPaper}. This paper
-introduces a new branch and bound algorithm which exploits special properties
-of these problems to allow a much faster exploration of the search space,
-whilst retaining the filtering and bounding benefits of the constraint
-programming approach. We describe the algorithm for the basic maximum common
-subgraph problem, and discuss how it may be adapted to handle vertex labels,
-edge labels, and the requirement that the found subgraph be connected. We then
-present an empirical study of the algorithm, demonstrating that it improves the
-state of the art by more than an order of magnitude on the unlabelled variant
-of the problem, and showing that it can handle much larger instances than
-earlier constraint programming or clique approaches due to lower memory usage.
+subgraph problems have arisen in molecular science (where graphs represent
+molecules)
+\citep{DBLP:journals/jcamd/RaymondW02a,Ehrlich:2011,DAM2014,Grindley1993707},
+computer vision \cite{DBLP:journals/jair/CookH94}, discovery of repeated
+patterns in source code \cite{DBLP:journals/tkde/DjokoCH97} and circuits
+\cite{DBLP:journals/jair/CookH94}, and recognition of handwritten characters
+\cite{SIWEILU1991617}.
+
+Maximum common subgraph problems are NP-hard, and remain challenging
+computationally. Recent practical progress has been made by using constraint
+programming \citep{DBLP:conf/cp/NdiayeS11,DBLP:conf/cp/McCreeshNPS16}, by
+reducing to the maximum clique problem
+\citep{LeviG,DBLP:conf/cp/McCreeshNPS16}, and by adapting subgraph isomorphism
+algorithms \citep{UpcomingAAAIPaper}. This paper introduces a new branch and
+bound algorithm which exploits special properties of these problems to allow a
+much faster exploration of the search space, whilst retaining the filtering and
+bounding benefits of the constraint programming approach. We describe the
+algorithm for the basic maximum common subgraph problem, and discuss how it may
+be adapted to handle vertex labels, edge labels, and the requirement that the
+found subgraph be connected. We then present an empirical study of the
+algorithm, demonstrating that it improves the state of the art by more than an
+order of magnitude on the unlabelled variant of the problem, and showing that
+it can handle much larger instances than earlier constraint programming or
+clique approaches due to lower memory usage.
 
 \section{Preliminaries}
 
@@ -369,7 +377,7 @@ label classes can exist at once, and the total length of the $P$ and $T$ sets
 is at most $n_G + n_H$.  We can gain further efficiency by discarding during
 search any label class that has an empty $P$ or $T$ set.
 
-\begin{algorithm}
+\begin{algorithm}[ht]
 \DontPrintSemicolon
 \nl $\FuncSty{expand}(\AlgVar{future},M)$ \;
 \nl \Begin{
@@ -594,7 +602,7 @@ label class  with the smallest $\min(|P|,|T|)$ (a surrogate for expected
 branching factor). From this class, a vertex is selected from $P$ with maximum
 degree if $H$ is sparse and with minimum degree if $H$ is dense. 
 
-\begin{figure}
+\begin{figure}[ht]
     \centering
     \subfigure[][MCS unlabelled undirected instances] {
         \centering
@@ -667,14 +675,15 @@ the curve for clique at a runtime just below 100 seconds.
 a set of 5725 larger instances used in recent studies of subgraph
 isomorphism~\cite{thelionpaper} and maximum common
 subgraph~\cite{UpcomingAAAIPaper}.  This benchmark set includes real-world
-graphs, along with graphs generated using several random models.  Pattern
-graphs range from 4 vertices to 900 with a median of 80; target graphs range
-from 10 vertices to 6671 with a median of 561.  Cumulative runtimes including
-top-down algorithm from~\cite{UpcomingAAAIPaper} which was the previous state
-of the art for this benchmark, are in \cref{figure:sip-cumulative}.  This is a
-challenging set of instances, and more than half of the instances cannot be
-solved within a timeout of 1000 seconds by any of the solvers. \McSplit\ is the
-strongest solver overall for these instances.
+graphs and graphs generated using random models.  Pattern graphs range from 4
+vertices to 900 with a median of 80; target graphs range from 10 vertices to
+6671 with a median of 561.  Cumulative runtimes including the kdown algorithm
+from~\cite{UpcomingAAAIPaper} which was the previous state of the art for this
+benchmark, are in \cref{figure:sip-cumulative}.  This is a challenging set of
+instances, and more than half of the instances cannot be solved within a
+timeout of 1000 seconds by any of the solvers. Moreover the CP-FC algorithm and
+the clique encoding run out of memory on many of the instances.  \McSplit\
+is the strongest solver overall for this dataset.
 
 \begin{figure}[h]
     \centering
