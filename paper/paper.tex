@@ -36,6 +36,7 @@
 \DeclareMathOperator{\V}{V}
 \DeclareMathOperator{\E}{E}
 \DeclareMathOperator{\N}{N}
+\DeclareMathOperator{\invN}{\overline{N}}
 \DeclareMathOperator{\vtxlabel}{label}
 
 \newcommand{\BigO}[1]{\ensuremath{\operatorname{O}\left(#1\right)}}
@@ -119,46 +120,23 @@ order of magnitude on the unlabelled variant of the problem, and showing that
 it can handle much larger instances than earlier constraint programming or
 clique approaches due to lower memory usage.
 
-\section{Preliminaries}
+\section{The \McSplit\ algorithm}
 
 We initially assume that graphs are unlabelled, undirected and without loops
 (Section~\ref{sec:extensions} describes how these restrictions may be relaxed).
 The vertices and edge sets of a graph $G$ are denoted $\V(G)$ and $\E(G)$.  The
 set of vertices adjacent to vertex $v$ in graph $G$ is called the
-\emph{neighbourhood} of $v$, and denoted $\N(v, G)$.  The graph $\overline{G}$
-is the complement of $G$, obtained copying the vertices of $G$ and adding an
-edge between each pair of distinct vertices if and only if $G$ does not
-have an edge between the corresponding pair.
+\emph{neighbourhood} of $v$, denoted $\N(G, v)$. We denote by $\invN(G, v)$ the
+\emph{inverse neighbourhood} of $v$, being the set of the vertices not adjacent
+to $v$ (excluding $v$ itself).
 
 Let $G$ and $H$ be the two input graphs to our maximum common subgraph problem.
 The orders (vertex counts) of these graphs are denoted $n_G$ and $n_H$. We will
 use $n$ in complexity results to denote $\max(n_G + n_H)$.
 
-\section{Prior Work}
-
-The most successful existing approaches to solving MCS are reformulation to the
-maximum clique problem on one hand \cite{DBLP:conf/cp/McCreeshNPS16}, and
-constraint programming on the other \cite{DBLP:conf/cp/NdiayeS11}. In the
-clique encoding, an association graph is created with one node for each pair in
-the set $\{(u,v) \mid u \in \V(G), v \in \V(H) \}$ and an edge for each pair of
-mappings that may be chosen together. A maximum clique in this graph
-corresponds directly to a maximum common subgraph of $G$ and $H$.
-
-In the constraint programming approach  \cite{DBLP:conf/cp/NdiayeS11}, a variable corresponds to
-each vertex in $G$, and each variable initially has one value in its domain for
-each vertex in $H$ to which it may be mapped, plus an additional value $\bot$
-signifying that the vertex remains unmapped. A backtracking search is performed
-in which values are assigned to variables, and propagation rules are used to
-remove infeasible values from domains.
-\textit{A matching algorithm propagates
-a soft global allDifferent constraint which maximizes the number variables that are assigned to values different from $\bot$, while ensuring they are all different when they are not assigned to $\bot$.
-Different constraint propagation techniques are compared in \cite{DBLP:conf/cp/NdiayeS11}. The combination ``MAC+Bound'' (resp. ``FC+Bound'') obtains the best results on labelled (resp. non labelled) graphs and outperforms the approach of \cite{McGreg82} and the CP model of \cite{DBLP:conf/mco/VismaraV08}. The combination ``MAC+Bound'' maintains arc consistency~\cite{sabi94} of edge constraints, whereas the conbination ``FC+Bound'' simply performs forward-checking on these constraints. In both combinations, the ``Bound'' filtering checks whether it is possible to assign distinct values to enough variables to surpass the best cost found so far (it is a weaker version of GAC(\emph{softAllDiff}) \cite{peti01} which computes the maximum number of variables that can be assigned distinct values).}
-
-\section{The \McSplit\ algorithm}
-
-We now present \McSplit, a branch and bound algorithm 
-which uses a new vertex-labelling scheme to avoid explicitly maintaining the
-set of feasible mappings for each vertex in $\V(G)$. 
+With these definitions established, we now present \McSplit, a branch and bound
+algorithm which uses a new vertex-labelling scheme to avoid explicitly
+maintaining the set of feasible mappings for each vertex in $\V(G)$.
 \iffalse
 As we will explore in
 Section~\ref{sec:comparison}, the algorithm may be viewed as a version of the
@@ -400,12 +378,12 @@ during search any label class that has an empty $P$ or $T$ set.
 \nl    $M \gets M \cup (v,w)$ \label{GrowM} \;
 \nl    \bf{Let} $\AlgVar{future'} \gets \emptyset$ \label{NewFuture} \;
 \nl    \For {$\langle P',T'\rangle \in future$ \label{InnerLoop}}{
-\nl        \bf{Let} $P'' \gets P' \cap N(v,G) \setminus \{v\}$ \label{NewPWithEdge} \;
-\nl        \bf{Let} $T'' \gets T' \cap N(w,H) \setminus \{w\}$ \;
+\nl        \bf{Let} $P'' \gets P' \cap \N(G, G) \setminus \{v\}$ \label{NewPWithEdge} \;
+\nl        \bf{Let} $T'' \gets T' \cap \N(H, w) \setminus \{w\}$ \;
 \nl        \If {$P'' \neq \emptyset$ \bf{and} $T'' \neq \emptyset$}
         {$\AlgVar{future'} \gets \AlgVar{future'} + \langle P'' , T'' \rangle$ \label{AddToFutureWithEdge}}
-\nl        \bf{Let} $P'' \gets P' \cap N(v,\overline{G}) \setminus \{v\}$ \label{NewPWithoutEdge}  \;
-\nl        \bf{Let} $T'' \gets T' \cap N(w,\overline{H}) \setminus \{w\}$ \;
+\nl        \bf{Let} $P'' \gets P' \cap \invN(G, v) \setminus \{v\}$ \label{NewPWithoutEdge}  \;
+\nl        \bf{Let} $T'' \gets T' \cap \invN(H, w) \setminus \{w\}$ \;
 \nl        \If {$P'' \neq \emptyset$ \bf{and} $T'' \neq \emptyset$}
         {$\AlgVar{future'} \gets \AlgVar{future'} + \langle P'' , T'' \rangle$} \label{InnerLoopEnd}
        }
@@ -476,9 +454,9 @@ as small a max(left size, right size) as possible seemed to work best. ? Why?
 \McSplit\ algorithm may be considered as a version of the constraint
 programming, forward-checking (CP-FC) algorithm of
 \citep{DBLP:conf/cp/NdiayeS11}, using an efficient, compressed representation
-of domains.  (Recall that in the CP-FC algorithm, each vertex in $v \in \V(G)$
+of domains.  In the CP-FC algorithm, each vertex in $v \in \V(G)$
 is represented by a variable, whose domain corresponds to the set of vertices
-in $\V(H)$ to which $v$ may currently be mapped.)
+in $\V(H)$ to which $v$ may currently be mapped.
 
 Given a label class $\langle P,T \rangle$ in \McSplit\, the vertices in $P$
 correspond to variables in CP-FC, all of which have domain equal to $T$.  The
@@ -512,11 +490,11 @@ corresponding lines in Algorithm \ref{McCliqueAlg}.
 
 \begin{algorithm}
 \DontPrintSemicolon
-\nl    \For {$u \in \N(b,G)$}{
+\nl    \For {$u \in \N(G, b)$}{
 \nl        remove $v$ from $D'_u$ \;
 \nl        remove the inverse neighbourhood of $t$ from $D'_u$ \;
        }
-\nl    \For {$u \in \N(b,\overline{G})$}{
+\nl    \For {$u \in \invN(G, b)$}{
 \nl        remove $v$ from $D'_u$ \;
 \nl        remove the neighbourhood of $t$ from $D'_u$ \;
        }
