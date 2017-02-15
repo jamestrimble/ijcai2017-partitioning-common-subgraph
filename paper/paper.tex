@@ -594,7 +594,23 @@ label class  with the smallest $\min(|P|,|T|)$ (a surrogate for expected
 branching factor). From this class, a vertex is selected from $P$ with maximum
 degree if $H$ is sparse and with minimum degree if $H$ is dense. 
 
-\paragraph{No vertex labels, no edge labels, undirected}
+\begin{figure}
+    \centering
+    \subfigure[][MCS unlabelled undirected instances] {
+        \centering
+        \includegraphics*{gen-graph-plain-cumulative.pdf}
+        \label{figure:plain-cumulative}
+    }
+
+    \subfigure[][MCS 33\% vertex and edge labelled directed instances] {
+        \centering
+        \includegraphics*{gen-graph-33ved-cumulative.pdf}
+        \label{figure:33ved-cumulative}
+    }
+    \caption{Cumulative run times}\label{figure:mcs-cumulative}
+\end{figure}
+
+\paragraph{No vertex or edge labels, undirected}
 \cref{figure:plain-cumulative} shows a plot of cumulative run times (x-axis)
 against number of problem instances solved (y-axis).  There are five contours:
 the clique encoding \cite{DBLP:conf/cp/McCreeshNPS16}, CP-FC
@@ -612,52 +628,23 @@ could be solved by at least one of \McSplit, CP-FC and clique in less than than
 1000 seconds, there were only 126 instances on which \McSplit\ was not strictly
 faster than the other two solvers.
 
-\paragraph{Vertex labels, edge labels, directed}
-Cumulative run times for this class of instances are in \cref{figure:33ved-cumulative}.
-Again, \McSplit\ is over an order of magnitude faster than the best CP algorithm,
-which is CP-MAC in this case.  The clique encoding, however, outperforms the other
-algorithms on these labelled instances, except in the easy region at the left
-of the graph.  
+\paragraph{Vertex and edge labels, directed} Cumulative run times for this
+class of instances are in \cref{figure:33ved-cumulative}.  Again, \McSplit\ is
+over an order of magnitude faster than the best existing CP algorithm, which is
+CP-MAC in this case.  The clique encoding outperforms the other
+algorithms---including \McSplit---on these labelled instances, except in the
+very easy region of instances that can be solved in well under 100 ms.
 
+\paragraph{No Vertex or edge labels, undirected, connected} are in
+\cref{figure:plain-connected-cumulative}.  These results are very similar to
+the corresponding experiment in which the subgraph is not required to be
+connected (\cref{figure:plain-cumulative}).
 
-\paragraph{Vertex labels, no edge labels, undirected} are in
-FIGURE REMOVED
-%\cref{figure:33v-cumulative},
-and are not in other papers so we should omit this unless we see something interesting.
-
-\paragraph{Vertex labels,  edge labels, undirected} are in
-FIGURE REMOVED
-%\cref{figure:33ve-cumulative},
-and are not in other papers so we should omit this unless we see something interesting.
-
-\paragraph{No Vertex labels, no edge labels, undirected, connected} are in \cref{figure:plain-connected-cumulative}.
-
-\paragraph{Vertex labels, edge labels, undirected, connected} are in \cref{figure:33ve-connected-cumulative}.
-
-\paragraph{Large subgraph isomorphism instances} are in \cref{figure:sip-cumulative}.
-
-\paragraph{Compared to CP FC} Nodes are in
-FIGURE REMOVED
-%\cref{figure:plain-james-versus-cp-fc-nodes-scatter}
-and \cref{figure:33ved-james-versus-cp-fc-nodes-scatter}.
-
-\paragraph{Nodes compared to kdown on SIP} are in \cref{figure:sip-james-versus-kdown-nodes-scatter}.
-
-\begin{figure}
-    \centering
-    \subfigure[][MCS unlabelled undirected instances] {
-        \centering
-        \includegraphics*{gen-graph-plain-cumulative.pdf}
-        \label{figure:plain-cumulative}
-    }
-
-    \subfigure[][MCS 33\% vertex and edge labelled directed instances] {
-        \centering
-        \includegraphics*{gen-graph-33ved-cumulative.pdf}
-        \label{figure:33ved-cumulative}
-    }
-    \caption{Cumulative run times}\label{figure:mcs-cumulative}
-\end{figure}
+\paragraph{Vertex and edge labels, undirected, connected} For the labelled,
+connected case, clique slightly outperforms \McSplit\ on harder instances
+(\cref{figure:33ve-connected-cumulative}).  The gap between the two algorithms
+is narrow; indeed, the cumulative curve for \McSplit\ briefly rises above
+the curve for clique at a runtime just below 100 seconds.
 
 \begin{figure}
     \centering
@@ -676,20 +663,34 @@ and \cref{figure:33ved-james-versus-cp-fc-nodes-scatter}.
     \label{figure:mcs-connected-cumulative}
 \end{figure}
 
-\begin{figure}
+\paragraph{Large subgraph isomorphism instances} We also ran the algorithms on
+a set of 5725 larger instances used in recent studies of subgraph
+isomorphism~\cite{thelionpaper} and maximum common
+subgraph~\cite{UpcomingAAAIPaper}.  This benchmark set includes real-world
+graphs, along with graphs generated using several random models.  Pattern
+graphs range from 4 vertices to 900 with a median of 80; target graphs range
+from 10 vertices to 6671 with a median of 561.  Cumulative runtimes including
+top-down algorithm from~\cite{UpcomingAAAIPaper} which was the previous state
+of the art for this benchmark, are in \cref{figure:sip-cumulative}.  This is a
+challenging set of instances, and more than half of the instances cannot be
+solved within a timeout of 1000 seconds by any of the solvers. \McSplit\ is the
+strongest solver overall for these instances.
+
+\begin{figure}[h]
     \centering
     \includegraphics*{gen-graph-sip-cumulative.pdf}
     \caption{Cumulative run times, SIP instances}\label{figure:sip-cumulative}
 \end{figure}
 
-%\begin{figure}
-%    \centering
-%    \includegraphics*{gen-graph-plain-james-versus-cp-fc-nodes-scatter.pdf}
-%    \caption{MCS Plain instances, James vs CP-FC, Nodes (TODO?? heatmapify this
-%    and exclude timeouts)}\label{figure:plain-james-versus-cp-fc-nodes-scatter}
-%\end{figure}
+\paragraph{CP-FC and \McSplit\ search nodes on MCS instances}
+\cref{figure:33ved-james-versus-cp-fc-nodes-scatter} shows one point per instance,
+with search nodes visited by CP-FC on the horizontal axis and search nodes visited
+by \McSplit\ on the vertical axis.  There is a strong correlation, which reflects
+the similarity of the search space explored by the two algorithms.  \McSplit\
+tends to explore slightly fewer search nodes than CP-FC, because the label-classes
+allow us to (cheaply) compute a very good heuristics for variable selection.
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics*{gen-graph-33ved-james-versus-cp-fc-nodes-scatter.pdf}
     \caption{MCS 33\% vertex and edge labelled directed instances, James vs
@@ -697,7 +698,15 @@ and \cref{figure:33ved-james-versus-cp-fc-nodes-scatter}.
     timeouts)}\label{figure:33ved-james-versus-cp-fc-nodes-scatter}
 \end{figure}
 
-\begin{figure}
+\paragraph{kdown and \McSplit\ search nodes on SIP instances}
+\cref{figure:sip-james-versus-kdown-nodes-scatter} shows the number of search
+nodes taken by kdown and \McSplit\ on each instance.  Although \McSplit\ is the
+faster algorithm overall, it explores more search nodes than kdown for most instances.
+The scatter plot has a concentration of points around the line $y=2x$. We conjecture
+that the two algorithms explore very similar search trees for instances close to this
+line.
+
+\begin{figure}[h]
     \centering
     \includegraphics*{gen-graph-sip-james-versus-kdown-nodes-scatter.pdf}
     \caption{SIP instances, James vs kdown, Nodes (TODO?? heatmapify this and exclude
@@ -732,7 +741,6 @@ exploited the ubiquitous multicore architecture.
 %Application to induced subgraph isomorphism (with almost no changes). Applications
 %of a similar technique to other problems???
 
-\newpage
 \bibliographystyle{named}
 \bibliography{paper}
 
