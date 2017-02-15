@@ -131,8 +131,8 @@ set of vertices adjacent to vertex $v$ in graph $G$ is called the
 to $v$ (excluding $v$ itself).
 
 Let $G$ and $H$ be the two input graphs to our maximum common subgraph problem.
-The orders (vertex counts) of these graphs are denoted $n_G$ and $n_H$. We will
-use $n$ in complexity results to denote $\max(n_G + n_H)$.
+The orders (vertex counts) of these graphs are denoted $g$ and $h$. We will
+use $n$ in complexity results to denote $\max(g + h)$ ?? WTF James? Help?.
 
 With these definitions established, we now present \McSplit, a branch and bound
 algorithm which uses a new vertex-labelling scheme to avoid explicitly
@@ -350,14 +350,14 @@ as follows, where $L$ is the set of labels used in both graphs.
 
 \paragraph{Efficient representation of label classes} The algorithm as
 described so far requires $\BigO{n^2}$ space at each level of the search tree,
-since labels may be up to $n_G$ bits in length. We can reduce the memory
+since labels may be up to $g$ bits in length. We can reduce the memory
 requirement to $\BigO{n}$ per level by storing a \emph{label class} as a pair
 $\langle P,T \rangle$ for each label $l$ that is used, where $P$ is the set of
 vertices in $\V(G)$ labelled $l$, and $T$ is the set of vertices in $\V(H)$
 labelled $l$.\footnote{We adopt terminology from subgraph isomorphism where one
 graph is a pattern graph $P$ and the other the target graph $T$.} Since there
-are $n_G + n_H$ vertices in the two graphs, at most $n_G + n_H$ label classes
-can exist at once, and there are at most $n_G + n_H$ vertices in the union of
+are $g + h$ vertices in the two graphs, at most $g + h$ label classes
+can exist at once, and there are at most $g + h$ vertices in the union of
 all of the $P$ and $T$ sets.  We can gain further efficiency by discarding
 during search any label class that has an empty $P$ or $T$ set.
 
@@ -472,7 +472,7 @@ performs Hall Set reasoning on the fly.
 \McSplit\ requires $\BigO{n}$ time at each search node, and does not require
 any auxiliary data structures larger than the adjacency matrices of $G$ and $H$
 to be built prior to search.  CP-FC requires $\BigO(?????)$ \dots The clique
-encoding requires an association graph with $n_G n_H$ vertices to be
+encoding requires an association graph with $g h$ vertices to be
 constructed before search.  Modern maximum-clique algorithms typically perform
 a colouring step at each search node that is quadratic in the order of the
 graph, and thus $\BigO{n^4}$ in the order of the max common subgraph input
@@ -544,8 +544,8 @@ $L=\{0,1,2,3\}$.
 entry contains an edge label, or a null entry (non-adjacent) $0$.
 We use Algorithm~\ref{labDirAlg}, by letting $L$ be
 the union of $\{0\}$ with the set of all labels that appear in the input
-graphs. Since there may be up to $n_G + n_H$ distinct labels, the loop in
-Algorithm~\ref{labDirAlg} may execute up to $n_G + n_H$ times and
+graphs. Since there may be up to $g + h$ distinct labels, the loop in
+Algorithm~\ref{labDirAlg} may execute up to $g + h$ times and
 requires $\BigO{n^2}$ time per search
 node.  It is possible to modify the algorithms to run in $\BigO{n \log n}$ per
 search node.  First, run lines 17-19
@@ -572,7 +572,7 @@ the class are adjacent to at least one vertex in $M$.
 PARAGRAPH, WHICH WAS COMMENTED OUT BY PATRICK. IT NEEDS WORK, BUT WE NEED TO
 EXPLAIN THE SIP EXPERIMENT. We can modify the \McSplit\ algorithm to use a
 top-down strategy based on \citet{UpcomingAAAIPaper} by calling the main
-\FuncSty{McSplit} method once per goal size ($n_G, n_G-1, n_G-2, \dots$).  We
+\FuncSty{McSplit} method once per goal size ($g, g-1, g-2, \dots$).  We
 backtrack (\lineref{PruneSearch} of Algorithm~\ref{McCliqueAlg}) when the bound is
 strictly less than the goal size, and terminate when a solution of the goal
 size is found.
