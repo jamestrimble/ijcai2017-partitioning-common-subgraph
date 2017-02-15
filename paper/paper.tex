@@ -534,9 +534,9 @@ each partition. If you think a bit about what the matching looks like, you can
 see that these two give the same answer, but at very different speeds.
 
 \section{Extensions}\label{sec:extensions}
-\paragraph{Vertex labels and self-loops} If vertices are labelled, replace ${\langle
+\paragraph{Vertex labels and loops} If vertices are labelled, replace ${\langle
 V(G),V(H) \rangle}$ in \lineref{FirstExpandCall} with a set of label classes, one for each label that appears in both $\V(G)$ and
-$\V(H)$. If vertex labels are represented as positive integers, represent self-loops
+$\V(H)$. If vertex labels are represented as positive integers, represent loops
 as negative integers.
 
 \paragraph{Directed graphs without edge labels} Let $A_G$ and $A_H$ be
@@ -747,7 +747,7 @@ line.
 We have introduced the \McSplit\ algorithm for Max Common Subgraph.
 The new algorithm is more than an order of
 magnitude faster than the previous state of the art for unlabelled and undirected
-instances. We have shown how the algorithm can be extended for graphs with labels on edges, labels on vertices, self-loops, directed edges and the requirement that the resultant graph be connected.
+instances. We have shown how the algorithm can be extended for graphs with labels on edges, labels on vertices, loops, directed edges and the requirement that the resultant graph be connected.
 
 \paragraph{Future work} We could create a hybrid algorithm. This would use \McSplit\ near the top of the search tree, switching to a
 clique encoding when fewer than some threshold number of vertices remain to be
