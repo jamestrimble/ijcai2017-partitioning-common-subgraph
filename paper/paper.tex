@@ -534,10 +534,13 @@ each partition. If you think a bit about what the matching looks like, you can
 see that these two give the same answer, but at very different speeds.
 
 \section{Extensions}\label{sec:extensions}
+
 \paragraph{Vertex labels and loops} If vertices are labelled, replace ${\langle
-V(G),V(H) \rangle}$ in \lineref{FirstExpandCall} with a set of label classes, one for each label that appears in both $\V(G)$ and
-$\V(H)$. If vertex labels are represented as positive integers, represent loops
-as negative integers.
+V(G),V(H) \rangle}$ in \lineref{FirstExpandCall} with a set of label classes,
+one for each label that appears on at least one vertex of both $G$ and $H$.
+Loops may be treated as a label modifier: assuming the original vertex labels
+are positive integers, we replace the label $l$ with $-l$ on each vertex that
+has a loop.
 
 \paragraph{Directed graphs without edge labels} Let $A_G$ and $A_H$ be
 adjacency matrices of $G$ and $H$. For each vertex pair $(t,u)$ in graph $G$ or
@@ -546,10 +549,10 @@ adjacent, 1 if the two vertices share a single edge in the direction $t
 \rightarrow u$, 2 if they share a single edge in the direction $u \rightarrow
 t$, and 3 if there are edges in both directions. Where
 \linerangeref{NewPWithEdge}{InnerLoopEnd} of the basic algorithm split the
-label class $\langle P',T' \rangle$ according to whether vertices are adjacent
-to $v$ (resp. $w$), we now perform a four-way split where each vertex is
-classified according to the label on its adjacency matrix from $v$ (resp. $w$).
-This is shown in Algorithm~\ref{labDirAlg}, where $L=\{0,1,2,3\}$.
+label class $\langle P',T' \rangle$ in two, we now perform a four-way split
+where each vertex is classified according to the label on its adjacency matrix
+entry from $v$ or $w$.  This is shown in Algorithm~\ref{labDirAlg}, where
+$L=\{0,1,2,3\}$.
 
 \begin{algorithm}
 \DontPrintSemicolon
@@ -582,10 +585,13 @@ counterpart, except that each element $A[u][v]$ in an adjacency matrix is a
 pair $(l_1, l_2)$, where $l_1$ is the label on the edge $u \rightarrow v$ (or 0
 if no edge exists) and $l_2$ is the label on the reverse edge.
 
-\paragraph{Maximum Common \emph{Connected} Subgraph} 
-The common subgraph must be connected. We consider only undirected graphs. 
-Modify \McSplit\ by permitting branching only on a vertex $v$ that has at
-least one non-zero element in its bit-string label. 
+\paragraph{Maximum Common \emph{Connected} Subgraph} The common subgraph must
+be connected. We consider only undirected graphs.  Modify \McSplit\ by
+permitting branching only on a vertex $v$ that has at least one non-zero
+element in its bit-string label.  We can represent this information compactly,
+and without increasing time complexity at each search node, by storing an extra
+bit with each label class.  This bit takes the value $1$ if and only if the vertices in
+the class are adjacent to at least one vertex in $M$.
 
 \paragraph{Top-Down Strategy} I'VE RE-ADDED A SHORTER VERSION OF THIS
 PARAGRAPH, WHICH WAS COMMENTED OUT BY PATRICK. IT NEEDS WORK, BUT WE NEED TO
@@ -601,11 +607,12 @@ size is found.
 Experiments were performed on a cluster of machines with Dual Xeon E5-2640
 v2 CPUs and 64GBytes RAM.
 
-? MENTION PROGRAMMING LANGUAGES, COMPILER FLAGS, MCSa1 ALGORITHM
+? MENTION PROGRAMMING LANGUAGES, COMPILER FLAGS, MCSa ALGORITHM AND
+BITSET IMPLEMENTATION
 
 %Parallel experiments used 32 threads per machine,
 %using all 16 physical cores with hyper-threading enabled.
-All experiments used a database of
+All ??? experiments used a database of
 randomly-generated Maximum Common Subgraph instances, which contains graphs of
 order ranging from 10 to 100 vertices
 \cite{DBLP:journals/prl/SantoFSV03,DBLP:journals/jgaa/ConteFV07}.  For
