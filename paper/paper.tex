@@ -124,13 +124,18 @@ clique approaches due to lower memory usage.
 
 \section{Preliminaries}
 
-We initially assume that graphs are unlabelled, undirected and without self-loops
+We initially assume that graphs are unlabelled, undirected and without loops
 (Section~\ref{sec:extensions} describes how these restrictions may be relaxed).
-The vertices and edge sets of a graph $G$ are denoted $\V(G)$ and $\E(G)$.
-The set of vertices adjacent to vertex $v$ in graph $G$ is called the
-\emph{neighbourhood} of $v$, and denoted $\N(v, G)$.
-We use $n_G$ and $n_H$ to denote $|\V(G)|$ and $|\V(H)|$. We will occasionally use
-$n$ in complexity results to denote $n_G + n_H$.  The graph $\overline{G}$ is the complement (aka the inverse) of $G$.
+The vertices and edge sets of a graph $G$ are denoted $\V(G)$ and $\E(G)$.  The
+set of vertices adjacent to vertex $v$ in graph $G$ is called the
+\emph{neighbourhood} of $v$, and denoted $\N(v, G)$.  The graph $\overline{G}$
+is the complement of $G$, obtained copying the vertices of $G$ and adding an
+edge between each pair of distinct vertices if and only if $G$ does not
+have an edge between the corresponding pair.
+
+Let $G$ and $H$ be the two input graphs to our maximum common subgraph problem.
+The orders (vertex counts) of these graphs are denoted $n_G$ and $n_H$. We will
+use $n$ in complexity results to denote $\max(n_G + n_H)$.
 
 \section{Prior Work}
 
@@ -173,8 +178,8 @@ reference to previous approaches.
 \McSplit\ finds a maximum-cardinality mapping $M^* = \{(v_1, w_1), \dots,
 (v_{|M^*|}, w_{|M^*|})\}$, where the $v_i$ are distinct members of $\V(G)$ and the
 $w_i$ are distinct vertices of $\V(H)$, such that $v_i$ and $v_j$ are adjacent
-in $G$ if and only if $w_i$ and $w_j$ are adjacent in $H$. It is clear that,
-given such a mapping, the subgraph of $G$ induced by $\{v_i, \dots, v_{|M^*|}\}$
+in $G$ if and only if $w_i$ and $w_j$ are adjacent in $H$. 
+Given such a mapping, the subgraph of $G$ induced by $\{v_i, \dots, v_{|M^*|}\}$
 and the subgraph of $H$ induced by $\{w_i, \dots, w_{|M^*|}\}$ are a maximum
 common subgraph.
 
@@ -200,13 +205,13 @@ $\V(H)$ to which vertex $1$ may be mapped will be tried in turn, and finally the
 possibility where vertex $1$ remains unmatched will be tried.
 
 We begin by mapping vertex $1$ to vertex $a$, giving $M=\{1a\}$.  Now label
-each unmatched vertex according to whether it is adjacent to vertex $1$ (in $G$) or
-vertex $a$ (in $H$), as shown in Figure~\ref{fig:alg2}.  Adjacent vertices have label
-1; non-adjacent vertices have label 0.  It is straightforward to see that we
-can extend $M$ with a vertex mapping $vw$, with $v \in \V(G)$ and $w \in
-\V(H)$, if and only if $v$ and $w$ have the same label.  This property, that
-two vertices may be mapped together if and only if they share a label, is the
-algorithm's main invariant.
+each unmatched vertex according to whether it is adjacent to vertex $1$ (in
+$G$) or vertex $a$ (in $H$), as shown in Figure~\ref{fig:alg2}.  Adjacent
+vertices have label 1; non-adjacent vertices have label 0.  We can extend $M$
+with a vertex mapping $vw$, with $v \in \V(G)$ and $w \in \V(H)$, if and only
+if $v$ and $w$ have the same label.  This property, that two vertices may be
+mapped together if and only if they share a label, is the algorithm's main
+invariant.
 
 \begin{figure}[ht]
 \centering
@@ -259,8 +264,9 @@ $3$ is labelled $01$, indicating that it is not adjacent to vertex $1$ but is ad
 to vertex $2$.  Labels are given to unmapped vertices in $\V(H)$ in a similar fashion,
 showing adjacency to matched vertices $a$ and $d$.
 
-Our invariant is maintained: we can extend $M$ by a vertex pairing if
-and only if the two vertices have the same label. Note also that each label (in Figure~\ref{fig:alg3}) is prefixed
+Our invariant is maintained: we can extend $M$ by a vertex pairing if and only
+if the two vertices have the same label. Note also that the labels can be
+calculated efficiently, since each label (in Figure~\ref{fig:alg3}) is prefixed
 by the label at the previous level of the search tree (Figure~\ref{fig:alg2}).
 
 \begin{figure}[ht]
@@ -370,12 +376,15 @@ as follows, where $L$ is the set of labels used in both graphs.
 \paragraph{Efficient representation of label classes} The algorithm as
 described so far requires $\BigO{n^2}$ space at each level of the search tree,
 since labels may be up to $n_G$ bits in length. We can reduce the memory
-requirement to $\BigO{n}$ per level by storing a \emph{label class} as a pair $\langle P,T \rangle$ for
-each label $l$ that is used, where $P$ is the set of vertices in $\V(G)$
-labelled $l$, and $T$ is the set of vertices in $\V(H)$ labelled $l$\footnote{We adopt terminology from subgraph isomorphism where one graph is a pattern graph $P$ and the other the target graph $T$.}. Since there are $n_G + n_H$ vertices in the two graphs, at most $n_G + n_H$
-label classes can exist at once, and the total length of the $P$ and $T$ sets
-is at most $n_G + n_H$.  We can gain further efficiency by discarding during
-search any label class that has an empty $P$ or $T$ set.
+requirement to $\BigO{n}$ per level by storing a \emph{label class} as a pair
+$\langle P,T \rangle$ for each label $l$ that is used, where $P$ is the set of
+vertices in $\V(G)$ labelled $l$, and $T$ is the set of vertices in $\V(H)$
+labelled $l$.\footnote{We adopt terminology from subgraph isomorphism where one
+graph is a pattern graph $P$ and the other the target graph $T$.} Since there
+are $n_G + n_H$ vertices in the two graphs, at most $n_G + n_H$ label classes
+can exist at once, and there are at most $n_G + n_H$ vertices in the union of
+all of the $P$ and $T$ sets.  We can gain further efficiency by discarding
+during search any label class that has an empty $P$ or $T$ set.
 
 \begin{algorithm}[ht]
 \DontPrintSemicolon
@@ -419,10 +428,10 @@ search any label class that has an empty $P$ or $T$ set.
 \nl return $|\AlgVar{incubent}|$ \;
 }
 \caption{\McSplit\ algorithm for Maximum Common Subgraph}
-\label{jtAlg}
+\label{McCliqueAlg}
 \end{algorithm}
 
-\paragraph{Algorithm \ref{jtAlg} Explained} The recursive procedure, $\FuncSty{expand}$, has
+\paragraph{Algorithm \ref{McCliqueAlg} Explained} The recursive procedure, $\FuncSty{expand}$, has
 two parameters.  The parameter $\AlgVar{future}$ is a list of label classes,
 each represented as a $\langle P, T \rangle$ pair as described above.  The
 parameter $M$ is the current mapping of vertices.  On each call to
@@ -466,50 +475,63 @@ such as \dots on random instances. The one where you choose a label class with
 as small a max(left size, right size) as possible seemed to work best. ? Why?
 \fi
 
-\section{Comparison with Existing Algorithms}\label{sec:comparison}
-The  \McSplit\ algorithm may be considered as a version of the
-constraint programming, forward-checking (CP-FC) algorithm of \cite{DBLP:conf/cp/NdiayeS11}.
-The vertices in $P$ correspond to variables in CP-FC and the 
-vertices in $T$ to the domains of variables in CP-FC. A label class $\langle P,T \rangle$ then corresponds to a set 
-of variables ($P$) in CP-FC  with identical domains ($T$). Where CP-FC uses a soft allDifferent constraint to filter and compute 
-a bound, \McSplit\ computes a bound from each label class in the future, i.e. it performs Hall Set reasoning on the fly.
+\section{Comparison with Existing Algorithms}\label{sec:comparison} The
+\McSplit\ algorithm may be considered as a version of the constraint
+programming, forward-checking (CP-FC) algorithm of
+\citep{DBLP:conf/cp/NdiayeS11}, using an efficient, compressed representation
+of domains.  (Recall that in the CP-FC algorithm, each vertex in $v \in \V(G)$
+is represented by a variable, whose domain corresponds to the set of vertices
+in $\V(H)$ to which $v$ may currently be mapped.)
 
-\McSplit\ takes $\BigO{n}$ time at each search node. Furthermore, \McSplit\ has a low start up cost. The clique encoding requires the
-construction of the association graph prior to search 
+Given a label class $\langle P,T \rangle$ in \McSplit\, the vertices in $P$
+correspond to variables in CP-FC, all of which have domain equal to $T$.  The
+label-class representation of domains is possible because throughout the CP-FC
+algorithm for max common subgraph, the domains of any two variables are either
+identical or disjoint.  (To the best of our knowledge, this observation has
+not been made previously.)
 
-Our algorithm needs less space than CP-FC ($\BigO{n^2}$ rather than $\BigO{n^3}$?) and
-much less than clique ($\BigO{n^4}$?).
+Where CP-FC uses a soft allDifferent constraint to filter and compute a bound,
+\McSplit\ computes a bound from each label class in the future, i.e. it
+performs Hall Set reasoning on the fly.
+
+\McSplit\ requires $\BigO{n}$ time at each search node, and does not require
+any auxiliary data structures larger than the adjacency matrices of $G$ and $H$
+to be built prior to search.  CP-FC requires $\BigO(?????)$ \dots The clique
+encoding requires an association graph with $n_G n_H$ vertices to be
+constructed before search.  Modern maximum-clique algorithms typically perform
+a colouring step at each search node that is quadratic in the order of the
+graph, and thus $\BigO{n^4}$ in the order of the max common subgraph input
+graphs.
 
 ? Mention partition backtracking
 
-LARGELY FROM CIARAN'S EMAIL; NEEDS WORK:
+The correctness of \McSplit\ can be seen by noting its equivalence to CP-FC
+\citep{DBLP:conf/cp/NdiayeS11}, if we replace the label-class representation of
+$\mathit{future}$ with domain stores in Algorithm \ref{McCliqueAlg}.  To obtain
+the CP-FC algorithm, replace \linerangeref{InnerLoop}{InnerLoopEnd} of
+Algorithm \ref{McCliqueAlg} with Algorithm \ref{cpAlg}.  The pruning of domains
+carried out in these lines can be easily seen to be equivalent to the
+corresponding lines in Algorithm \ref{McCliqueAlg}.
 
 \begin{algorithm}
 \DontPrintSemicolon
-\nl    \For {$q \in \N(b,G)$}{
-\nl        remove $t$ from $D'_q$ \;
-\nl        remove the inverse neighbourhood of $t$ from $D'_q$ \;
+\nl    \For {$u \in \N(b,G)$}{
+\nl        remove $v$ from $D'_u$ \;
+\nl        remove the inverse neighbourhood of $t$ from $D'_u$ \;
        }
-\nl    \For {$q \in \N(b,\overline{G})$}{
-\nl        remove $t$ from $D'_q$ \;
-\nl        remove the neighbourhood of $t$ from $D'_q$ \;
+\nl    \For {$u \in \N(b,\overline{G})$}{
+\nl        remove $v$ from $D'_u$ \;
+\nl        remove the neighbourhood of $t$ from $D'_u$ \;
        }
-\caption{Replacement for \linerangeref{NewPWithEdge}{InnerLoopEnd} in CP algorithm}
+\caption{Replacement for \linerangeref{InnerLoop}{InnerLoopEnd} in CP algorithm}
 \label{cpAlg}
 \end{algorithm}
 
-The first difference is in the underlying data structures: James uses a clever
-partitioning data structure, not a conventional domain store. With the
-algorithm described this way, I think the proof that domains are partitioned
-into disjoint sets is almost immediate.
-
-The second difference is in the bound function: the French code constructs a
-maximum cardinality matching, with some special weighting trickery for $\bot$,
-whilst James just sums the smaller of the two sides of each partition. If you
-think a bit about what the matching looks like, you can see that these two give
-the same answer, but at very different speeds.
-
-The third difference is in the details of the variable ordering heuristic.
+TO WRITE PROPERLY: The second difference is in the bound function: the French
+code constructs a maximum cardinality matching, with some special weighting
+trickery for $\bot$, whilst James just sums the smaller of the two sides of
+each partition. If you think a bit about what the matching looks like, you can
+see that these two give the same answer, but at very different speeds.
 
 \section{Extensions}\label{sec:extensions}
 \paragraph{Vertex labels and self-loops} If vertices are labelled, replace ${\langle
@@ -549,7 +571,7 @@ Algorithm~\ref{labDirAlg} may execute up to $n_G + n_H$ times and
 requires $\BigO{n^2}$ time per search
 node.  It is possible to modify the algorithms to run in $\BigO{n \log n}$ per
 search node.  First, run lines 17-19
-of Algorithm~\ref{jtAlg} to create a new label-class of vertices that are not
+of Algorithm~\ref{McCliqueAlg} to create a new label-class of vertices that are not
 adjacent to $v$ or $w$, and remove these vertices from $\langle P',T' \rangle$.
 Next, sort $P'$ and $T'$ in ascending order of the label on the edge from $v$
 or $w$ to each vertex. We can then create the label classes corresponding to
@@ -565,24 +587,22 @@ The common subgraph must be connected. We consider only undirected graphs.
 Modify \McSplit\ by permitting branching only on a vertex $v$ that has at
 least one non-zero element in its bit-string label. 
 
-\iffalse
-\paragraph{Almost Subgraph Isomorphism} \citet{UpcomingAAAIPaper} present a
-``top-down'' algorithm for Maximum Common Subgraph in which a solution of size
-$n_G$ is initially sought; if such a solution does not exist then this
-solutions of size $n_G-1, n_G-2, \dots$ are sought in sequence.  This strategy,
-when used with techniques based on a state-of-the-art subgraph isomorphism
-solver, outperformed CP and clique encodings on a large benchmark set of graph
-pairs.  We can modify the \McSplit\ algorithm to use the top-down strategy by
-calling the main \FuncSty{McSplit} method once per goal size ($n_G, n_G-1,
-n_G-2, \dots$).  We backtrack (\lineref{PruneSearch} of Algorithm~\ref{jtAlg})
-when the bound is strictly less than the goal size, and terminate when a
-solution of the goal size is found.
-\fi
+\paragraph{Top-Down Strategy} I'VE RE-ADDED A SHORTER VERSION OF THIS
+PARAGRAPH, WHICH WAS COMMENTED OUT BY PATRICK. IT NEEDS WORK, BUT WE NEED TO
+EXPLAIN THE SIP EXPERIMENT. We can modify the \McSplit\ algorithm to use a
+top-down strategy based on \citet{UpcomingAAAIPaper} by calling the main
+\FuncSty{McSplit} method once per goal size ($n_G, n_G-1, n_G-2, \dots$).  We
+backtrack (\lineref{PruneSearch} of Algorithm~\ref{McCliqueAlg}) when the bound is
+strictly less than the goal size, and terminate when a solution of the goal
+size is found.
 
 \section{A Computational Study}
 
 Experiments were performed on a cluster of machines with Dual Xeon E5-2640
-v2 CPUs and 64GBytes RAM. 
+v2 CPUs and 64GBytes RAM.
+
+? MENTION PROGRAMMING LANGUAGES, COMPILER FLAGS, MCSa1 ALGORITHM
+
 %Parallel experiments used 32 threads per machine,
 %using all 16 physical cores with hyper-threading enabled.
 All experiments used a database of
@@ -602,7 +622,7 @@ label class  with the smallest $\min(|P|,|T|)$ (a surrogate for expected
 branching factor). From this class, a vertex is selected from $P$ with maximum
 degree if $H$ is sparse and with minimum degree if $H$ is dense. 
 
-\begin{figure}[ht]
+\begin{figure}[h]
     \centering
     \subfigure[][MCS unlabelled undirected instances] {
         \centering
@@ -654,7 +674,7 @@ connected case, clique slightly outperforms \McSplit\ on harder instances
 is narrow; indeed, the cumulative curve for \McSplit\ briefly rises above
 the curve for clique at a runtime just below 100 seconds.
 
-\begin{figure}
+\begin{figure}[ht]
     \centering
     \subfigure[][MCS unlabelled undirected instances] {
         \centering
