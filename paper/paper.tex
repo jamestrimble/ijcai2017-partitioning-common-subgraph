@@ -412,71 +412,11 @@ largest mapping.  In \lineref{FirstExpandCall} the initial call is made to
 $\FuncSty{expand}$; at this point we have a single label-class containing all
 vertices, and the mapping $M$ is empty.
 
-\iffalse
-\paragraph{Heuristics} We ran a small experiment comparing lots of heuristics
-such as \dots on random instances. The one where you choose a label class with
-as small a max(left size, right size) as possible seemed to work best. ? Why?
-\fi
+\subsection{Heuristics}
 
-\section{Comparison with Existing Algorithms}\label{sec:comparison} The
-\McSplit\ algorithm may be considered as a version of the constraint
-programming, forward-checking (CP-FC) algorithm of
-\citep{DBLP:conf/cp/NdiayeS11}, using an efficient, compressed representation
-of domains.  In the CP-FC algorithm, each vertex in $v \in \V(G)$
-is represented by a variable, whose domain corresponds to the set of vertices
-in $\V(H)$ to which $v$ may currently be mapped.
+?? Heuristics go here, defer justification until \cref{sec:comparison}
 
-Given a label class $\langle P,T \rangle$ in \McSplit\, the vertices in $P$
-correspond to variables in CP-FC, all of which have domain equal to $T$.  The
-label-class representation of domains is possible because throughout the CP-FC
-algorithm for max common subgraph, the domains of any two variables are either
-identical or disjoint.  (To the best of our knowledge, this observation has
-not been made previously.)
-
-Where CP-FC uses a soft allDifferent constraint to filter and compute a bound,
-\McSplit\ computes a bound from each label class in the future, i.e.\ it
-performs Hall Set reasoning on the fly.
-
-\McSplit\ requires $\BigO{n}$ time at each search node, and does not require
-any auxiliary data structures larger than the adjacency matrices of $G$ and $H$
-to be built prior to search.  CP-FC requires $\BigO(?????)$ \dots The clique
-encoding requires an association graph with $g h$ vertices to be
-constructed before search.  Modern maximum-clique algorithms typically perform
-a colouring step at each search node that is quadratic in the order of the
-graph, and thus $\BigO{n^4}$ in the order of the max common subgraph input
-graphs.
-
-? Mention partition backtracking
-
-The correctness of \McSplit\ can be seen by noting its equivalence to CP-FC
-\citep{DBLP:conf/cp/NdiayeS11}, if we replace the label-class representation of
-$\mathit{future}$ with domain stores in \cref{McCliqueAlg}.  To obtain
-the CP-FC algorithm, replace \linerangeref{InnerLoop}{InnerLoopEnd} of
-\cref{McCliqueAlg} with \cref{cpAlg}.  The pruning of domains
-carried out in these lines can be easily seen to be equivalent to the
-corresponding lines in \cref{McCliqueAlg}.
-
-\begin{algorithm}
-\DontPrintSemicolon
-\nl    \For {$u \in \N(G, b)$}{
-\nl        remove $v$ from $D'_u$ \;
-\nl        remove the inverse neighbourhood of $t$ from $D'_u$ \;
-       }
-\nl    \For {$u \in \invN(G, b)$}{
-\nl        remove $v$ from $D'_u$ \;
-\nl        remove the neighbourhood of $t$ from $D'_u$ \;
-       }
-\caption{Replacement for \linerangeref{InnerLoop}{InnerLoopEnd} in CP algorithm}
-\label{cpAlg}
-\end{algorithm}
-
-TO WRITE PROPERLY: The second difference is in the bound function: the French
-code constructs a maximum cardinality matching, with some special weighting
-trickery for $\bot$, whilst James just sums the smaller of the two sides of
-each partition. If you think a bit about what the matching looks like, you can
-see that these two give the same answer, but at very different speeds.
-
-\section{Extensions}\label{sec:extensions}
+\subsection{Extensions}\label{sec:extensions}
 
 \paragraph{Vertex labels and loops} If vertices are labelled, replace ${\langle
 V(G),V(H) \rangle}$ in \lineref{FirstExpandCall} with a set of label classes,
@@ -691,6 +631,67 @@ line.
     \caption{SIP instances, James vs kdown, Nodes (TODO?? heatmapify this and exclude
     timeouts)}\label{figure:sip-james-versus-kdown-nodes-scatter}
 \end{figure}
+
+\section{Comparison with Existing Algorithms}\label{sec:comparison} The
+\McSplit\ algorithm may be considered as a version of the constraint
+programming, forward-checking (CP-FC) algorithm of
+\citet{DBLP:conf/cp/NdiayeS11}, using an efficient, compressed representation
+of domains.  In the CP-FC algorithm, each vertex in $v \in \V(G)$ is
+represented by a variable, whose domain corresponds to the set of vertices in
+$\V(H)$ to which $v$ may currently be mapped, with an additional special $\bot$
+value representing an unmapped vertex.
+
+Given a label class $\langle P,T \rangle$ in \McSplit\, the vertices in $P$
+correspond to variables in CP-FC, all of which have domain equal to $T \cup \{
+    \bot \}$.  The label-class representation of domains is possible because
+throughout the CP-FC algorithm for max common subgraph, the domains of any two
+variables are either identical or disjoint.  (To the best of our knowledge,
+this observation has not been made previously.)
+
+Where CP-FC uses a soft allDifferent constraint to filter and compute a bound,
+\McSplit\ computes a bound from each label class in the future, i.e.\ it
+performs Hall Set reasoning on the fly.
+
+\McSplit\ requires $\BigO{n}$ time at each search node, and does not require
+any auxiliary data structures larger than the adjacency matrices of $G$ and $H$
+to be built prior to search.  CP-FC requires $\BigO(?????)$ \dots The clique
+encoding requires an association graph with $g h$ vertices to be
+constructed before search.  Modern maximum-clique algorithms typically perform
+a colouring step at each search node that is quadratic in the order of the
+graph, and thus $\BigO{n^4}$ in the order of the max common subgraph input
+graphs.
+
+?? Mention partition backtracking
+
+?? Mention dual viewpoint heuristics
+
+The correctness of \McSplit\ can be seen by noting its equivalence to CP-FC
+\citep{DBLP:conf/cp/NdiayeS11}, if we replace the label-class representation of
+$\mathit{future}$ with domain stores in \cref{McCliqueAlg}.  To obtain
+the CP-FC algorithm, replace \linerangeref{InnerLoop}{InnerLoopEnd} of
+\cref{McCliqueAlg} with \cref{cpAlg}.  The pruning of domains
+carried out in these lines can be easily seen to be equivalent to the
+corresponding lines in \cref{McCliqueAlg}.
+
+\begin{algorithm}
+\DontPrintSemicolon
+\nl    \For {$u \in \N(G, b)$}{
+\nl        remove $v$ from $D'_u$ \;
+\nl        remove the inverse neighbourhood of $t$ from $D'_u$ \;
+       }
+\nl    \For {$u \in \invN(G, b)$}{
+\nl        remove $v$ from $D'_u$ \;
+\nl        remove the neighbourhood of $t$ from $D'_u$ \;
+       }
+\caption{Replacement for \linerangeref{InnerLoop}{InnerLoopEnd} in CP algorithm}
+\label{cpAlg}
+\end{algorithm}
+
+TO WRITE PROPERLY: The second difference is in the bound function: the French
+code constructs a maximum cardinality matching, with some special weighting
+trickery for $\bot$, whilst James just sums the smaller of the two sides of
+each partition. If you think a bit about what the matching looks like, you can
+see that these two give the same answer, but at very different speeds.
 
 \section{Conclusion}
 
