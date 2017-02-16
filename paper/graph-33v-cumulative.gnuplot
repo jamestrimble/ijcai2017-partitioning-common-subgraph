@@ -14,7 +14,7 @@ set logscale x
 set format x '$10^{%T}$'
 set yrange [0:8140]
 set key off
-set ytics add ('8140' 8140) add ('' 8000)
+set ytics add ('$8140$' 8140) add ('' 8000)
 
 plot \
     "../experiments/gpgnode-results/mcs33v/runtimes.data" u 2:($2>=1e6?1e-10:1) smooth cumulative w l ti columnhead(2) at end lc 1, \

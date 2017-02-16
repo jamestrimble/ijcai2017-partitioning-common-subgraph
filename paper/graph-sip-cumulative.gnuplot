@@ -13,7 +13,7 @@ set xrange [1:1e6]
 set logscale x
 set format x '$10^{%T}$'
 set yrange [0:5725]
-set ytics add ('5725' 5725)
+set ytics add ('$5725$' 5725)
 set key off
 
 plot \
