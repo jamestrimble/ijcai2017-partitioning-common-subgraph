@@ -180,10 +180,12 @@ set of vertices adjacent to vertex $v$ in graph $G$ is called the
 \emph{inverse neighbourhood} of $v$, being the set of the vertices not adjacent
 to $v$ (excluding $v$ itself). A \emph{subgraph} of a graph $G$ is a graph
 consisting of some of the vertices of $G$, and all of the edges between these
-vertices (in this paper all subgraphs are induced). A \emph{common subgraph} of
-two graphs is a graph which is (isomorphic to) a subgraph of two graphs
-simultaneously, and a \emph{maximum} common subgraph is one with as many
-vertices as possible.
+vertices. A \emph{common subgraph} of two graphs is a graph which is
+(isomorphic to) a subgraph of two graphs simultaneously, and a \emph{maximum}
+common subgraph is one with as many vertices as possible. (In this paper, all
+subgraphs are induced. The \emph{maximum common partial subgraph} problem
+instead asks for a common non-induced subgraph with as many \emph{edges} as
+possible.)
 
 Let $G$ and $H$ be the two input graphs to our maximum common subgraph problem.
 The orders (vertex counts) of these graphs are denoted $g$ and $h$.
