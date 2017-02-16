@@ -315,17 +315,17 @@ as follows, where $L$ is the set of labels used in both graphs.
 %$\V(G)$ to assign.
 
 \paragraph{Efficient representation of label classes} The algorithm as
-described so far requires $\BigO{n^2}$ space at each level of the search tree,
-since labels may be up to $g$ bits in length. We can reduce the memory
-requirement to $\BigO{n}$ per level by storing a \emph{label class} as a pair
-$\langle P,T \rangle$ for each label $l$ that is used, where $P$ is the set of
-vertices in $\V(G)$ labelled $l$, and $T$ is the set of vertices in $\V(H)$
-labelled $l$\footnote{We adopt terminology from subgraph isomorphism, where one
-graph is a pattern graph $P$ and the other the target graph $T$.}. Since there
-are $g + h$ vertices in the two graphs, at most $g + h$ label classes
-can exist at once, and there are at most $g + h$ vertices in the union of
-all of the $P$ and $T$ sets.  We can gain further efficiency by discarding
-during search any label class that has an empty $P$ or $T$ set.
+described so far apparently requires $\BigO{n^2}$ space at each level of the
+search tree.  We can reduce the memory requirement to $\BigO{n}$ per level by
+storing a \emph{label class} as a pair $\langle P,T \rangle$ for each label $l$
+that is used, where $P$ is the set of vertices in $\V(G)$ labelled $l$, and $T$
+is the set of vertices in $\V(H)$ labelled $l$\footnote{We adopt terminology
+from subgraph isomorphism, where one graph is a pattern graph $P$ and the other
+the target graph $T$.}. Since there are $g + h$ vertices in the two graphs, at
+most $g + h$ label classes can exist at once, and there are at most $g + h$
+vertices in the union of all of the $P$ and $T$ sets.  We can gain further
+efficiency by discarding during search any label class that has an empty $P$ or
+$T$ set.
 
 ?? Talk about how we can use a pair of flat arrays and indices to the start of
 label classes, and throw in citation to partition backtracking here.
