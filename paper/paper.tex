@@ -202,11 +202,11 @@ Given such a mapping, the subgraph of $G$ induced by $\{v_i, \dots, v_{m}\}$
 and the subgraph of $H$ induced by $\{w_i, \dots, w_{m}\}$ are a maximum
 common subgraph.
 
-Before discussing the algorithm in detail, we start with an illustration of the
-main concepts using the graphs $G$ and $H$ in \cref{fig:alg1}.  These graphs
-have a maximum common subgraph with four vertices; one example is the mapping
-$\{1a, 2f, 3d, 5b\}$ where vertex $1$ is assigned to vertex $a$, $2$ is
-assigned to $f$, $3$ to $d$ and $5$ to $b$.
+\paragraph{Walkthrough} Before discussing the algorithm in detail, we start
+with an illustration of the main concepts using the graphs $G$ and $H$ in
+\cref{fig:alg1}.  These graphs have a maximum common subgraph with four
+vertices; one example is the mapping $\{1a, 2f, 3d, 5b\}$ where vertex $1$ is
+assigned to vertex $a$, $2$ is assigned to $f$, $3$ to $d$ and $5$ to $b$.
 
 \begin{figure}[t]
 \centering
@@ -313,23 +313,29 @@ matching size is $|M| + 1 = 4$. The general formula for the upper bound is
 %left unmatched, by giving $2$ the label $\bot$ and selecting another vertex in
 %$\V(G)$ to assign.
 
-\paragraph{Efficient representation of label classes} The algorithm as
-described so far apparently requires $\BigO{g(g+h)}$ space at each level of the
-search tree.  We can reduce the memory requirement to $\BigO{g+h}$ per level by
-storing a \emph{label class} as a pair $\langle P,T \rangle$ for each label $l$
-that is used, where $P$ is the set of vertices in $\V(G)$ labelled $l$, and $T$
-is the set of vertices in $\V(H)$ labelled $l$\footnote{We adopt terminology
-from subgraph isomorphism, where one graph is a pattern graph $P$ and the other
-the target graph $T$.}. Since there are $g + h$ vertices in the two graphs, at
-most $g + h$ label classes can exist at once, and there are at most $g + h$
-vertices in the union of all of the $P$ and $T$ sets.  We can gain further
-efficiency by discarding during search any label class that has an empty $P$ or
-$T$ set.
+\paragraph{Label classes} We require only $\BigO{g+h}$ space per level of the
+search tree to store labelling information.  This is done by storing a
+\emph{label class} as a pair $\langle P,T \rangle$ for each label $l$ that is
+used, where $P$ is the set of vertices in $\V(G)$ labelled $l$, and $T$ is the
+set of vertices in $\V(H)$ labelled $l$\footnote{We adopt terminology from
+subgraph isomorphism, where one graph is a pattern graph $P$ and the other the
+target graph $T$.}. Since there are $g + h$ vertices in the two graphs, at most
+$g + h$ label classes can exist at once, and there are at most $g + h$ vertices
+in the union of all of the $P$ and $T$ sets. Furthermore, we do not actually
+need to store the bits making up a label---we care only that like-labelled
+vertices are kept together, and the label itself is not used. Nor do we need to
+store any label class which is present only in one graph but not the other (or
+which is not present at all).  Together, these facts allow us to store all the
+necessary information in two pairs of flat arrays. One pair of arrays is used
+to store a permutation of the vertices in $P$ having like-labelled vertices
+stored consecutively, together with the indices of the start of each label in
+turn (in some arbitrary order). The second pair stores the permutation of
+vertices in $T$, together with label start indices \emph{in the same order} as
+they are used in the first pair of arrays. ?? This representation has
+similarities to data structures used in partition backtracking and bron
+kerbosch.
 
-?? Talk about how we can use a pair of flat arrays and indices to the start of
-label classes, and throw in citation to partition backtracking here.
-
-\begin{algorithm}[ht]
+\begin{algorithm}[t]
 \DontPrintSemicolon
 \nl $\FuncSty{expand}(\AlgVar{future},M)$ \;
 \nl \Begin{
@@ -374,7 +380,7 @@ label classes, and throw in citation to partition backtracking here.
 \label{McCliqueAlg}
 \end{algorithm}
 
-\paragraph{\cref{McCliqueAlg} Explained} The recursive procedure, $\FuncSty{expand}$, has
+\paragraph{\cref{McCliqueAlg} in detail} The recursive procedure, $\FuncSty{expand}$, has
 two parameters.  The parameter $\AlgVar{future}$ is a list of label classes,
 each represented as a $\langle P, T \rangle$ pair as described above.  The
 parameter $M$ is the current mapping of vertices.  On each call to
