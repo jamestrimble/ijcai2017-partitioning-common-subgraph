@@ -252,12 +252,9 @@ with a two-character bit string, indicating its adjacency to each of
 the two mapped vertices in $\V(G)$ (vertices $1$ and $2$).  For example, vertex
 $3$ is labelled $01$, indicating that it is not adjacent to vertex $1$ but is adjacent
 to vertex $2$.  Labels are given to unmapped vertices in $\V(H)$ in a similar fashion,
-showing adjacency to matched vertices $a$ and $d$.
-
-Our invariant is maintained: we can extend $M$ by a vertex pairing if and only
-if the two vertices have the same label. Note also that the labels can be
-calculated efficiently, since each label (in \cref{fig:alg3}) is prefixed
-by the label at the previous level of the search tree (\cref{fig:alg2}).
+showing adjacency to matched vertices $a$ and $d$.  Our invariant is
+maintained: we can extend $M$ by a vertex pairing if and only if the two
+vertices have the same label.
 
 \begin{figure}[ht]
 \centering
