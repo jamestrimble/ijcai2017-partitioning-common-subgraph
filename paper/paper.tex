@@ -522,8 +522,8 @@ approximately equal to 33 per cent of the number of vertices in each graph.
 \paragraph{Unlabelled, undirected}
 \cref{figure:plain-cumulative} shows a plot of cumulative run times (x-axis)
 against number of problem instances solved (y-axis).  There are five contours:
-the clique encoding \cite{DBLP:conf/cp/McCreeshNPS16}, CP-FC
-\cite{DBLP:conf/cp/NdiayeS11}, \McSplit\, AND TWO OTHERS.  WE NEED CITATIONS
+the clique encoding \citep{DBLP:conf/cp/McCreeshNPS16}, CP-FC
+\citep{DBLP:conf/cp/NdiayeS11}, \McSplit\, AND TWO OTHERS.  WE NEED CITATIONS
 FOR THESE AND ALSO NEED TO CLEAN UP THE LABELS ON THE GRAPHS.  We may compare
 the speed of two algorithms using the horizontal distance between their curves.
 For example, we could solve 2000 of the 4110 unlabelled undirected instances
@@ -540,22 +540,26 @@ faster than the other two solvers.
 \paragraph{Vertex and edge labels, directed} Cumulative run times for this
 class of instances are in \cref{figure:33ved-cumulative}.  Again, \McSplit\ is
 over an order of magnitude faster than the best existing CP algorithm, which is
-CP-MAC in this case.  The clique encoding outperforms the other
-algorithms---including \McSplit---on these labelled instances, except in the
-very easy region of instances that can be solved in well under 100 ms.
+CP-MAC in this case. Matching the conclusions of
+\citet{DBLP:conf/cp/McCreeshNPS16}, we see that the clique encoding outperforms
+the other algorithms---including \McSplit---on these labelled instances, except
+in the very easy region of instances that can be solved in well under 100 ms.
 
-\paragraph{No Vertex or edge labels, undirected, connected} are in
-\cref{figure:plain-connected-cumulative}.  These results are very similar to
-the corresponding experiment in which the subgraph is not required to be
-connected (\cref{figure:plain-cumulative}).
+\paragraph{Unlabelled, undirected, connected} This class of instances are shown
+in \cref{figure:plain-connected-cumulative}.  These results are very similar to
+the corresponding experiment in \cref{figure:plain-cumulative} in which the
+subgraph is not required to be connected.
 
 \paragraph{Vertex and edge labels, undirected, connected} For the labelled,
 connected case, clique slightly outperforms \McSplit\ on harder instances
-(\cref{figure:33ve-connected-cumulative}).  The gap between the two algorithms
-is narrow; indeed, the cumulative curve for \McSplit\ briefly rises above
-the curve for clique at a runtime just below 100 seconds.
+(\cref{figure:33ve-connected-cumulative}). However, the gap between the two algorithms
+is very narrow, and is probably down to quality of implementation; indeed, the
+cumulative curve for \McSplit\ briefly rises above the curve for clique at a
+runtime just below 100 seconds. Additionally, \McSplit\ is the clear winner for
+easier instances, where the clique encoding is relatively expensive to
+construct but trivial to solve.
 
-\begin{figure}[ht]
+\begin{figure}[t]
     \centering
     \subfigure[][MCS unlabelled undirected instances] {
         \centering
