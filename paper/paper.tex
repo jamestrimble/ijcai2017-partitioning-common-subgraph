@@ -502,7 +502,7 @@ for a total of 8,140 instances with up to 100 vertices; like
 number of distinct vertex labels and the number of distinct edge labels is
 approximately equal to 33 per cent of the number of vertices in each graph.
 
-\begin{figure}[h]
+\begin{figure}[t]
     \centering
     \subfigure[][Unlabelled, undirected instances] {
         \centering
@@ -510,7 +510,7 @@ approximately equal to 33 per cent of the number of vertices in each graph.
         \label{figure:plain-cumulative}
     }
 
-    \subfigure[][Vertex and edge labelled directed instances] {
+    \subfigure[][Vertex and edge labelled, directed instances] {
         \centering
         \includegraphics*{gen-graph-33ved-cumulative.pdf}
         \label{figure:33ved-cumulative}
@@ -519,12 +519,17 @@ approximately equal to 33 per cent of the number of vertices in each graph.
     common subgraph problem.}\label{figure:mcs-cumulative}
 \end{figure}
 
-\paragraph{Unlabelled, undirected}
-\cref{figure:plain-cumulative} shows a plot of cumulative run times (x-axis)
-against number of problem instances solved (y-axis).  There are five contours:
+
+?? kdown only does undirected unlabelled unconnected
+
+?? There are five contours:
 the clique encoding \citep{DBLP:conf/cp/McCreeshNPS16}, CP-FC
 \citep{DBLP:conf/cp/NdiayeS11}, \McSplit\, AND TWO OTHERS.  WE NEED CITATIONS
-FOR THESE AND ALSO NEED TO CLEAN UP THE LABELS ON THE GRAPHS.  We may compare
+FOR THESE AND ALSO NEED TO CLEAN UP THE LABELS ON THE GRAPHS.
+
+\paragraph{Unlabelled, undirected}
+\cref{figure:plain-cumulative} shows a plot of cumulative run times (x-axis)
+against number of problem instances solved (y-axis).  We may compare
 the speed of two algorithms using the horizontal distance between their curves.
 For example, we could solve 2000 of the 4110 unlabelled undirected instances
 using the \McSplit\ algorithm if a time limit of 0.5 seconds per instance were
@@ -538,15 +543,15 @@ could be solved by at least one of \McSplit, CP-FC and clique in less than than
 faster than the other two solvers.
 
 \paragraph{Vertex and edge labels, directed} Cumulative run times for this
-class of instances are in \cref{figure:33ved-cumulative}.  Again, \McSplit\ is
-over an order of magnitude faster than the best existing CP algorithm, which is
+class of instances are in \cref{figure:33ved-cumulative}. Again, \McSplit\ is over
+an order of magnitude faster than the best existing CP algorithm, which is
 CP-MAC in this case. Matching the conclusions of
 \citet{DBLP:conf/cp/McCreeshNPS16}, we see that the clique encoding outperforms
 the other algorithms---including \McSplit---on these labelled instances, except
 in the very easy region of instances that can be solved in well under 100 ms.
 
 \paragraph{Unlabelled, undirected, connected} This class of instances are shown
-in \cref{figure:plain-connected-cumulative}.  These results are very similar to
+in \cref{figure:plain-connected-cumulative} (again, ??kdown does not support the connected problem).  These results are very similar to
 the corresponding experiment in \cref{figure:plain-cumulative} in which the
 subgraph is not required to be connected.
 
@@ -561,19 +566,19 @@ construct but trivial to solve.
 
 \begin{figure}[t]
     \centering
-    \subfigure[][MCS unlabelled undirected instances] {
+    \subfigure[][Unlabelled, undirected, connected instances] {
         \centering
         \includegraphics*{gen-graph-plain-connected-cumulative.pdf}
         \label{figure:plain-connected-cumulative}
     }
 
-    \subfigure[][MCS 33\% vertex and edge labelled undirected instances] {
+    \subfigure[][Vertex and edge labelled, undirected, connected instances] {
         \centering
         \includegraphics*{gen-graph-33ve-connected-cumulative.pdf}
         \label{figure:33ve-connected-cumulative}
     }
-    \caption{Cumulative run times, connected variant}
-    \label{figure:mcs-connected-cumulative}
+    \caption{Cumulative numbers of instances solved over time for the maximum
+    common connected subgraph problem.} \label{figure:mcs-connected-cumulative}
 \end{figure}
 
 \paragraph{Large subgraph isomorphism instances} We also ran the algorithms on
