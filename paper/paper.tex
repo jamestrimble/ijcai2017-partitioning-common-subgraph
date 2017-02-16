@@ -74,6 +74,39 @@
 %    \end{minipage}
 %}
 
+\newcommand{\LabelTables}[4] {
+  \centering
+  \begin{minipage}[t]{#1\linewidth}
+      Mapping
+
+      \bigskip
+
+      #2
+  \end{minipage}
+  \quad
+  \begin{minipage}[t]{0.3\linewidth}
+      \centering Labelling of $G$
+      \begin{tabular}[t]{cc}
+      \hline
+          Vertex & Label\\
+      \hline
+          #3
+      \hline
+      \end{tabular}
+  \end{minipage}
+  \quad
+  \begin{minipage}[t]{0.3\linewidth}
+      \centering Labelling of $H$
+      \begin{tabular}[t]{cc}
+      \hline
+          Vertex & Label\\
+      \hline
+          #4
+      \hline
+      \end{tabular}
+  \end{minipage}
+}
+
 \title{A Partitioning Algorithm for Maximum Common Subgraph Problems\thanks{This work
 was supported by a pile of money from a funding agency.}}
 \author{The Anonymous Authors of Paper 2431 \\
@@ -204,44 +237,18 @@ mapped together if and only if they share a label, is the algorithm's main
 invariant.
 
 \begin{figure}[ht]
-\centering
-\begin{minipage}[t]{0.15\linewidth}
-    Mapping
-
-    \bigskip
-
-    $\{1a\}$
-\end{minipage}
-\quad
-\begin{minipage}[t]{0.3\linewidth}
-    \centering Labelling of $G$
-    \begin{tabular}[t]{cc}
-    \hline
-        Vertex & Label\\
-    \hline
-        $2$ & 0 \\
-        $3$ & 0 \\
-        $4$ & 1 \\
-        $5$ & 1 \\
-    \hline
-    \end{tabular}
-\end{minipage}
-\quad
-\begin{minipage}[t]{0.3\linewidth}
-    \centering Labelling of $H$
-    \begin{tabular}[t]{cc}
-    \hline
-        Vertex & Label\\
-    \hline
-        $b$ & 1 \\
-        $c$ & 1 \\
-        $d$ & 0 \\
-        $e$ & 1 \\
-        $f$ & 0 \\
-    \hline
-    \end{tabular}
-\end{minipage}
-    \caption{Labels on vertices after mapping $1$ to $a$}
+  \LabelTables{.15}
+              {$\{1a\}$}
+              {$2$ & 0 \\
+               $3$ & 0 \\
+               $4$ & 1 \\
+               $5$ & 1 \\}
+              {$b$ & 1 \\
+               $c$ & 1 \\
+               $d$ & 0 \\
+               $e$ & 1 \\
+               $f$ & 0 \\}
+  \caption{Labels on vertices after mapping $1$ to $a$}
 \label{fig:alg2}
 \end{figure}
 
@@ -257,41 +264,15 @@ maintained: we can extend $M$ by a vertex pairing if and only if the two
 vertices have the same label.
 
 \begin{figure}[ht]
-\centering
-\begin{minipage}[t]{0.15\linewidth}
-    Mapping
-
-    \bigskip
-
-    $\{1a, 2d\}$
-\end{minipage}
-\quad
-\begin{minipage}[t]{0.3\linewidth}
-    \centering Labelling of $G$
-    \begin{tabular}[t]{cc}
-    \hline
-        Vertex & Label\\
-    \hline
-        $3$ & 01 \\
-        $4$ & 10 \\
-        $5$ & 11 \\
-    \hline
-    \end{tabular}
-\end{minipage}
-\quad
-\begin{minipage}[t]{0.3\linewidth}
-    \centering Labelling of $H$
-    \begin{tabular}[t]{cc}
-    \hline
-        Vertex & Label\\
-    \hline
-        $b$ & 11 \\
-        $c$ & 11 \\
-        $e$ & 10 \\
-        $f$ & 01 \\
-    \hline
-    \end{tabular}
-\end{minipage}
+  \LabelTables{.15}
+              {$\{1a,2d\}$}
+              {$3$ & 01 \\
+               $4$ & 10 \\
+               $5$ & 11 \\}
+              {$b$ & 11 \\
+               $c$ & 11 \\
+               $e$ & 10 \\
+               $f$ & 01 \\}
 \caption{After mapping $2$ to $d$}
 \label{fig:alg3}
 \end{figure}
@@ -302,39 +283,13 @@ this bound is calculated, we consider the situation one level deeper in the
 search tree shown in \cref{fig:alg4}.
 
 \begin{figure}[ht]
-\centering
-\begin{minipage}[t]{0.2\linewidth}
-    Mapping
-
-    \bigskip
-
-    $\{1a, 2d, 3f\}$
-\end{minipage}
-\quad
-\begin{minipage}[t]{0.3\linewidth}
-    \centering Labelling of $G$
-    \begin{tabular}[t]{cc}
-    \hline
-        Vertex & Label\\
-    \hline
-        $4$ & 100 \\
-        $5$ & 111 \\
-    \hline
-    \end{tabular}
-\end{minipage}
-\quad
-\begin{minipage}[t]{0.3\linewidth}
-    \centering Labelling of $H$
-    \begin{tabular}[t]{cc}
-    \hline
-        Vertex & Label\\
-    \hline
-        $b$ & 111 \\
-        $c$ & 111 \\
-        $e$ & 101 \\
-    \hline
-    \end{tabular}
-\end{minipage}
+  \LabelTables{.2}
+              {$\{1a,2d,3f\}$}
+              {$4$ & 100 \\
+               $5$ & 111 \\}
+              {$b$ & 111 \\
+               $c$ & 111 \\
+               $e$ & 101 \\}
 \caption{After mapping $3$ to $f$}
 \label{fig:alg4}
 \end{figure}
