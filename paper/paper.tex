@@ -484,15 +484,6 @@ node, by storing an extra bit with each label class.  This bit takes the value
 $1$ if and only if the vertices in the class are adjacent to at least one
 vertex in $M$. ?? Link to branching scheme papers.
 
-\paragraph{Top-Down Strategy} I'VE RE-ADDED A SHORTER VERSION OF THIS
-PARAGRAPH, WHICH WAS COMMENTED OUT BY PATRICK. IT NEEDS WORK, BUT WE NEED TO
-EXPLAIN THE SIP EXPERIMENT. We can modify the \McSplit\ algorithm to use a
-top-down strategy based on \citet{UpcomingAAAIPaper} by calling the main
-\FuncSty{McSplit} method once per goal size ($g, g-1, g-2, \dots$).  We
-backtrack (\lineref{PruneSearch} of \cref{McCliqueAlg}) when the bound is
-strictly less than the goal size, and terminate when a solution of the goal
-size is found.
-
 \section{Experimental Evaluation}
 
 Experiments were performed on machines with dual Intel Xeon E5-2640 v2 CPUs and
@@ -595,44 +586,18 @@ timeout of 1000 seconds by any of the solvers. Moreover the CP-FC algorithm and
 the clique encoding run out of memory on many of the instances.  \McSplit\
 is the strongest solver overall for this dataset.
 
-\begin{figure}[h]
-    \centering
-    \includegraphics*{gen-graph-sip-cumulative.pdf}
-    \caption{Cumulative run times, SIP instances}\label{figure:sip-cumulative}
-\end{figure}
+?? Let's put this hereish: I'VE RE-ADDED A SHORTER VERSION OF THIS
+PARAGRAPH, WHICH WAS COMMENTED OUT BY PATRICK. IT NEEDS WORK, BUT WE NEED TO
+EXPLAIN THE SIP EXPERIMENT. We can modify the \McSplit\ algorithm to use a
+top-down strategy based on \citet{UpcomingAAAIPaper} by calling the main
+\FuncSty{McSplit} method once per goal size ($g, g-1, g-2, \dots$).  We
+backtrack (\lineref{PruneSearch} of \cref{McCliqueAlg}) when the bound is
+strictly less than the goal size, and terminate when a solution of the goal
+size is found.
 
-\paragraph{CP-FC and \McSplit\ search nodes on MCS instances}
-\cref{figure:33ved-james-versus-cp-fc-nodes-scatter} shows one point per instance,
-with search nodes visited by CP-FC on the horizontal axis and search nodes visited
-by \McSplit\ on the vertical axis.  There is a strong correlation, which reflects
-the similarity of the search space explored by the two algorithms.  \McSplit\
-tends to explore slightly fewer search nodes than CP-FC, because the label-classes
-allow us to (cheaply) compute a very good heuristics for variable selection.
+\section{Comparison with Existing Algorithms}\label{sec:comparison}
 
-\begin{figure}[h]
-    \centering
-    \includegraphics*{gen-graph-33ved-james-versus-cp-fc-nodes-scatter.pdf}
-    \caption{MCS 33\% vertex and edge labelled directed instances, James vs
-    CP-FC, Nodes (TODO?? heatmapify this and exclude
-    timeouts)}\label{figure:33ved-james-versus-cp-fc-nodes-scatter}
-\end{figure}
-
-\paragraph{kdown and \McSplit\ search nodes on SIP instances}
-\cref{figure:sip-james-versus-kdown-nodes-scatter} shows the number of search
-nodes taken by kdown and \McSplit\ on each instance.  Although \McSplit\ is the
-faster algorithm overall, it explores more search nodes than kdown for most instances.
-The scatter plot has a concentration of points around the line $y=2x$. We conjecture
-that the two algorithms explore very similar search trees for instances close to this
-line.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics*{gen-graph-sip-james-versus-kdown-nodes-scatter.pdf}
-    \caption{SIP instances, James vs kdown, Nodes (TODO?? heatmapify this and exclude
-    timeouts)}\label{figure:sip-james-versus-kdown-nodes-scatter}
-\end{figure}
-
-\section{Comparison with Existing Algorithms}\label{sec:comparison} The
+The
 \McSplit\ algorithm may be considered as a version of the constraint
 programming, forward-checking (CP-FC) algorithm of
 \citet{DBLP:conf/cp/NdiayeS11}, using an efficient, compressed representation
@@ -692,6 +657,44 @@ code constructs a maximum cardinality matching, with some special weighting
 trickery for $\bot$, whilst James just sums the smaller of the two sides of
 each partition. If you think a bit about what the matching looks like, you can
 see that these two give the same answer, but at very different speeds.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics*{gen-graph-sip-cumulative.pdf}
+    \caption{Cumulative run times, SIP instances}\label{figure:sip-cumulative}
+\end{figure}
+
+\paragraph{CP-FC and \McSplit\ search nodes on MCS instances}
+\cref{figure:33ved-james-versus-cp-fc-nodes-scatter} shows one point per instance,
+with search nodes visited by CP-FC on the horizontal axis and search nodes visited
+by \McSplit\ on the vertical axis.  There is a strong correlation, which reflects
+the similarity of the search space explored by the two algorithms.  \McSplit\
+tends to explore slightly fewer search nodes than CP-FC, because the label-classes
+allow us to (cheaply) compute a very good heuristics for variable selection.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics*{gen-graph-33ved-james-versus-cp-fc-nodes-scatter.pdf}
+    \caption{MCS 33\% vertex and edge labelled directed instances, James vs
+    CP-FC, Nodes (TODO?? heatmapify this and exclude
+    timeouts)}\label{figure:33ved-james-versus-cp-fc-nodes-scatter}
+\end{figure}
+
+\paragraph{kdown and \McSplit\ search nodes on SIP instances}
+\cref{figure:sip-james-versus-kdown-nodes-scatter} shows the number of search
+nodes taken by kdown and \McSplit\ on each instance.  Although \McSplit\ is the
+faster algorithm overall, it explores more search nodes than kdown for most instances.
+The scatter plot has a concentration of points around the line $y=2x$. We conjecture
+that the two algorithms explore very similar search trees for instances close to this
+line.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics*{gen-graph-sip-james-versus-kdown-nodes-scatter.pdf}
+    \caption{SIP instances, James vs kdown, Nodes (TODO?? heatmapify this and exclude
+    timeouts)}\label{figure:sip-james-versus-kdown-nodes-scatter}
+\end{figure}
+
 
 \section{Conclusion}
 
