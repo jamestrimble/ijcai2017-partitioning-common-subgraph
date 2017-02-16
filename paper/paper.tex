@@ -155,20 +155,20 @@ patterns in source code \cite{DBLP:journals/tkde/DjokoCH97} and circuits
 
 Maximum common subgraph problems are NP-hard, and remain challenging
 computationally. Recent practical progress has been made by using constraint
-programming \citep{DBLP:conf/cp/NdiayeS11,DBLP:conf/cp/McCreeshNPS16}, by
-reducing to the maximum clique problem
-\citep{LeviG,DBLP:conf/cp/McCreeshNPS16}, and by adapting subgraph isomorphism
-algorithms \citep{UpcomingAAAIPaper}. This paper introduces a new branch and
-bound algorithm which exploits special properties of these problems to allow a
-much faster exploration of the search space, whilst retaining the filtering and
-bounding benefits of the constraint programming approach. We describe the
-algorithm for the basic maximum common subgraph problem, and discuss how it may
-be adapted to handle vertex labels, edge labels, and the requirement that the
-found subgraph be connected. We then present an empirical study of the
-algorithm, demonstrating that it improves the state of the art by more than an
-order of magnitude on the unlabelled variant of the problem, and showing that
-it can handle much larger instances than earlier constraint programming or
-clique approaches due to lower memory usage.
+programming \citep{DBLP:conf/cp/NdiayeS11,DBLP:conf/cp/McCreeshNPS16} and
+mathematical programming \citep{DBLP:journals/dam/BahienseMPS12}, by reducing
+to the maximum clique problem \citep{LeviG,DBLP:conf/cp/McCreeshNPS16}, and by
+adapting subgraph isomorphism algorithms \citep{UpcomingAAAIPaper}. This paper
+introduces a new branch and bound algorithm which exploits special properties
+of these problems to allow a much faster exploration of the search space,
+whilst retaining the filtering and bounding benefits of the constraint
+programming approach. We describe the algorithm for the basic maximum common
+subgraph problem, and discuss how it may be adapted to handle vertex labels,
+edge labels, and the requirement that the found subgraph be connected. We then
+present an empirical study of the algorithm, demonstrating that it improves the
+state of the art by more than an order of magnitude on the unlabelled variant
+of the problem, and showing that it can handle much larger instances than
+earlier constraint programming or clique approaches due to lower memory usage.
 
 \section{The \McSplit\ Algorithm}
 
