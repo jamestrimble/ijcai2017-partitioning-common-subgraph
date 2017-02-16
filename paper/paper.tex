@@ -188,19 +188,7 @@ use $n$ in complexity results to denote $\max(g + h)$ ?? WTF James? Help?.
 With these definitions established, we now present \McSplit, a branch and bound
 algorithm which uses a new vertex-labelling scheme to avoid explicitly
 maintaining the set of feasible mappings for each vertex in $\V(G)$.
-\iffalse
-As we will explore in
-\cref{sec:comparison}, the algorithm may be viewed as a version of the
-constraint programming forward-checking (CP-FC) algorithm using a compact data
-structure that exploits the nature of the MCS problem.  It is sufficiently
-different, however, that it is helpful to describe the algorithm without
-reference to previous approaches.
 
-%At each node of the search tree, the algorithm
-%labels vertices in $\V(G)$ and $\V(H)$ such that a pair $(v, w)$ with $v \in
-%\V(G)$ and $w \in \V(H)$ can be added to the mapping if and only if $v$ and $w$
-%have the same label.
-\fi
 \McSplit\ finds a maximum-cardinality mapping $M^* = \{(v_1, w_1), \dots,
 (v_{m}, w_{m})\}$ with $|M^*| = m$ vertex pairs, where the $v_i$ are distinct members of $\V(G)$ and the
 $w_i$ are distinct vertices of $\V(H)$, such that $v_i$ and $v_j$ are adjacent
@@ -209,10 +197,11 @@ Given such a mapping, the subgraph of $G$ induced by $\{v_i, \dots, v_{m}\}$
 and the subgraph of $H$ induced by $\{w_i, \dots, w_{m}\}$ are a maximum
 common subgraph.
 
-We will use the graphs $G$ and $H$ in \cref{fig:alg1} to demonstrate the
-algorithm.  These graphs have a maximum common subgraph with four vertices; one
-example is the mapping $\{1a, 2f, 3d, 5b\}$ where vertex $1$ is assigned to
-vertex $a$, $2$ is assigned to $f$, $3$ to $d$ and $5$ to $b$.
+Before discussing the algorithm in detail, we start with an illustration of the
+main concepts using the graphs $G$ and $H$ in \cref{fig:alg1}.  These graphs
+have a maximum common subgraph with four vertices; one example is the mapping
+$\{1a, 2f, 3d, 5b\}$ where vertex $1$ is assigned to vertex $a$, $2$ is
+assigned to $f$, $3$ to $d$ and $5$ to $b$.
 
 \begin{figure}[ht]
 \centering
