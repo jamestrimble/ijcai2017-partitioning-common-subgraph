@@ -494,7 +494,7 @@ backtrack (\lineref{PruneSearch} of \cref{McCliqueAlg}) when the bound is
 strictly less than the goal size, and terminate when a solution of the goal
 size is found.
 
-\section{A Computational Study}
+\section{Experimental Evaluation}
 
 Experiments were performed on machines with dual Intel Xeon E5-2640 v2 CPUs and
 64GBytes RAM. Our algorithm was implemented in C++ and compiled using g++
@@ -514,18 +514,19 @@ approximately equal to 33 per cent of the number of vertices in each graph.
 
 \begin{figure}[h]
     \centering
-    \subfigure[][MCS unlabelled undirected instances] {
+    \subfigure[][Unlabelled, undirected instances] {
         \centering
         \includegraphics*{gen-graph-plain-cumulative.pdf}
         \label{figure:plain-cumulative}
     }
 
-    \subfigure[][MCS 33\% vertex and edge labelled directed instances] {
+    \subfigure[][Vertex and edge labelled directed instances] {
         \centering
         \includegraphics*{gen-graph-33ved-cumulative.pdf}
         \label{figure:33ved-cumulative}
     }
-    \caption{Cumulative run times}\label{figure:mcs-cumulative}
+    \caption{Cumulative numbers of instances solved over time for the maximum
+    common subgraph problem.}\label{figure:mcs-cumulative}
 \end{figure}
 
 \paragraph{Unlabelled, undirected}
