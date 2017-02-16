@@ -344,7 +344,7 @@ label classes, and throw in citation to partition backtracking here.
 \nl $\langle P,T \rangle \gets \FuncSty{SelectLabelClass}(\AlgVar{future})$ \label{SelectClass} \;
 \nl $v \gets \FuncSty{SelectVertex}(P)$ \label{SelectVertex} \;
 \nl \For {$w \in T$ \label{WLoop}} {
-\nl    $M \gets M \cup (v,w)$ \label{GrowM} \;
+    \nl    $M \gets M \cup \{(v,w)\}$ \label{GrowM} \;
 \nl    \bf{Let} $\AlgVar{future'} \gets \emptyset$ \label{NewFuture} \;
 \nl    \For {$\langle P',T'\rangle \in future$ \label{InnerLoop}}{
 \nl        \bf{Let} $P'' \gets P' \cap \N(G, v) \setminus \{v\}$ \label{NewPWithEdge} \;
