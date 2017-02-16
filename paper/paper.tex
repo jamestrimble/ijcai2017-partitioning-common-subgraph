@@ -340,7 +340,7 @@ label classes, and throw in citation to partition backtracking here.
 \nl $bf \gets 0$ \label{SetBestFutureToZero} \;
 \nl \lFor {$\langle P,T \rangle \in \AlgVar{future}$}{$\AlgVar{bf} \gets \AlgVar{bf} + \min(|P|,|T|)$}
 \nl \lIf {$|M|  + \AlgVar{bf} \leq |\AlgVar{incumbent}|$}{return} \label{PruneSearch}
-\bigskip
+\medskip
 \nl $\langle P,T \rangle \gets \FuncSty{SelectLabelClass}(\AlgVar{future})$ \label{SelectClass} \;
 \nl $v \gets \FuncSty{SelectVertex}(P)$ \label{SelectVertex} \;
 \nl \For {$w \in T$ \label{WLoop}} {
@@ -349,12 +349,12 @@ label classes, and throw in citation to partition backtracking here.
 \nl    \For {$\langle P',T'\rangle \in future$ \label{InnerLoop}}{
 \nl        \bf{Let} $P'' \gets P' \cap \N(G, v) \setminus \{v\}$ \label{NewPWithEdge} \;
 \nl        \bf{Let} $T'' \gets T' \cap \N(H, w) \setminus \{w\}$ \;
-\nl        \If {$P'' \neq \emptyset$ \bf{and} $T'' \neq \emptyset$}
-        {$\AlgVar{future'} \gets \AlgVar{future'} + \langle P'' , T'' \rangle$ \label{AddToFutureWithEdge}}
+\nl        \If {$P'' \neq \emptyset$ \bf{and} $T'' \neq \emptyset$}{
+\nl            $\AlgVar{future'} \gets \AlgVar{future'} + \langle P'' , T'' \rangle$ \label{AddToFutureWithEdge}}
 \nl        \bf{Let} $P'' \gets P' \cap \invN(G, v) \setminus \{v\}$ \label{NewPWithoutEdge}  \;
 \nl        \bf{Let} $T'' \gets T' \cap \invN(H, w) \setminus \{w\}$ \;
-\nl        \If {$P'' \neq \emptyset$ \bf{and} $T'' \neq \emptyset$}
-        {$\AlgVar{future'} \gets \AlgVar{future'} + \langle P'' , T'' \rangle$} \label{InnerLoopEnd}
+\nl        \If {$P'' \neq \emptyset$ \bf{and} $T'' \neq \emptyset$}{
+\nl            $\AlgVar{future'} \gets \AlgVar{future'} + \langle P'' , T'' \rangle$} \label{InnerLoopEnd}
        }
 \nl   $\FuncSty{expand}(\AlgVar{future'},M)$ \label{ExpandWithV} \;
 \nl   $M \gets M \setminus \{(v,w)\}$ \label{ShrinkM} \;
