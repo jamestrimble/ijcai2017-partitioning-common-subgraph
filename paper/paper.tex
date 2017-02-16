@@ -236,20 +236,52 @@ if $v$ and $w$ have the same label.  This property, that two vertices may be
 mapped together if and only if they share a label, is the algorithm's main
 invariant.
 
+\begin{figure}[h]
+    \centering
+    \subfigure[][After mapping $1$ to $a$] {
+      \LabelTables{.15}
+                  {$\{1a\}$}
+                  {$2$ & 0 \\
+                   $3$ & 0 \\
+                   $4$ & 1 \\
+                   $5$ & 1 \\}
+                  {$b$ & 1 \\
+                   $c$ & 1 \\
+                   $d$ & 0 \\
+                   $e$ & 1 \\
+                   $f$ & 0 \\}
+      \label{fig:alg2}
+    }
+
+    \subfigure[][After mapping $2$ to $d$] {
+      \LabelTables{.15}
+                  {$\{1a,2d\}$}
+                  {$3$ & 01 \\
+                   $4$ & 10 \\
+                   $5$ & 11 \\}
+                  {$b$ & 11 \\
+                   $c$ & 11 \\
+                   $e$ & 10 \\
+                   $f$ & 01 \\}
+      \label{fig:alg3}
+    }
+
+    \subfigure[][After mapping $3$ to $f$] {
+      \LabelTables{.2}
+                  {$\{1a,2d,3f\}$}
+                  {$4$ & 100 \\
+                   $5$ & 111 \\}
+                  {$b$ & 111 \\
+                   $c$ & 111 \\
+                   $e$ & 101 \\}
+      \label{fig:alg4}
+    }
+
+    \caption{Mapping $M$ and vertex labels during search on example graphs $G$ and $H$}
+    \label{figure:mcsplit-examples}
+\end{figure}
+
 \begin{figure}[ht]
-  \LabelTables{.15}
-              {$\{1a\}$}
-              {$2$ & 0 \\
-               $3$ & 0 \\
-               $4$ & 1 \\
-               $5$ & 1 \\}
-              {$b$ & 1 \\
-               $c$ & 1 \\
-               $d$ & 0 \\
-               $e$ & 1 \\
-               $f$ & 0 \\}
-  \caption{Labels on vertices after mapping $1$ to $a$}
-\label{fig:alg2}
 \end{figure}
 
 Next, extend the mapping by pairing a vertex in $G$ with a vertex in $H$ of the
@@ -263,36 +295,10 @@ showing adjacency to matched vertices $a$ and $d$.  Our invariant is
 maintained: we can extend $M$ by a vertex pairing if and only if the two
 vertices have the same label.
 
-\begin{figure}[ht]
-  \LabelTables{.15}
-              {$\{1a,2d\}$}
-              {$3$ & 01 \\
-               $4$ & 10 \\
-               $5$ & 11 \\}
-              {$b$ & 11 \\
-               $c$ & 11 \\
-               $e$ & 10 \\
-               $f$ & 01 \\}
-\caption{After mapping $2$ to $d$}
-\label{fig:alg3}
-\end{figure}
-
 The algorithm backtracks when the incumbent (the largest matching found so far) is at least as large
 as a calculated bound given $M$ and the current labelling. To demonstrate how
 this bound is calculated, we consider the situation one level deeper in the
 search tree shown in \cref{fig:alg4}.
-
-\begin{figure}[ht]
-  \LabelTables{.2}
-              {$\{1a,2d,3f\}$}
-              {$4$ & 100 \\
-               $5$ & 111 \\}
-              {$b$ & 111 \\
-               $c$ & 111 \\
-               $e$ & 101 \\}
-\caption{After mapping $3$ to $f$}
-\label{fig:alg4}
-\end{figure}
 
 Three vertex labels are used: 100,
 101, and 111.  The first two of these only appear in one graph, and therefore
