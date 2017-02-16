@@ -27,6 +27,16 @@
 
 \newcommand{\nmax}{n_{\max}}
 
+% cref style
+\crefname{algorithm}{Algorithm}{Algorithms}
+\Crefname{algorithm}{Algorithm}{Algorithms}
+\crefname{figure}{Figure}{Figures}
+\Crefname{figure}{Figure}{Figures}
+\crefname{table}{Table}{Tables}
+\Crefname{table}{Table}{Tables}
+\crefname{section}{Section}{Sections}
+\Crefname{section}{Section}{Sections}
+
 \newcommand{\lineref}[1]{line~\ref{#1}}
 \newcommand{\linerangeref}[2]{lines~\ref{#1} to~\ref{#2}}
 \newcommand{\Lineref}[1]{Line~\ref{#1}}
@@ -123,7 +133,7 @@ clique approaches due to lower memory usage.
 \section{The \McSplit\ algorithm}
 
 We initially assume that graphs are unlabelled, undirected and without loops
-(Section~\ref{sec:extensions} describes how these restrictions may be relaxed).
+(\cref{sec:extensions} describes how these restrictions may be relaxed).
 The vertices and edge sets of a graph $G$ are denoted $\V(G)$ and $\E(G)$.  The
 set of vertices adjacent to vertex $v$ in graph $G$ is called the
 \emph{neighbourhood} of $v$, denoted $\N(G, v)$. We denote by $\invN(G, v)$ the
@@ -144,7 +154,7 @@ algorithm which uses a new vertex-labelling scheme to avoid explicitly
 maintaining the set of feasible mappings for each vertex in $\V(G)$.
 \iffalse
 As we will explore in
-Section~\ref{sec:comparison}, the algorithm may be viewed as a version of the
+\cref{sec:comparison}, the algorithm may be viewed as a version of the
 constraint programming forward-checking (CP-FC) algorithm using a compact data
 structure that exploits the nature of the MCS problem.  It is sufficiently
 different, however, that it is helpful to describe the algorithm without
@@ -163,7 +173,7 @@ Given such a mapping, the subgraph of $G$ induced by $\{v_i, \dots, v_{m}\}$
 and the subgraph of $H$ induced by $\{w_i, \dots, w_{m}\}$ are a maximum
 common subgraph.
 
-We will use the graphs $G$ and $H$ in Figure~\ref{fig:alg1} to demonstrate the
+We will use the graphs $G$ and $H$ in \cref{fig:alg1} to demonstrate the
 algorithm.  These graphs have a maximum common subgraph with four vertices; one
 example is the mapping $\{1a, 2f, 3d, 5b\}$ where vertex $1$ is assigned to
 vertex $a$, $2$ is assigned to $f$, $3$ to $d$ and $5$ to $b$.
@@ -186,7 +196,7 @@ possibility where vertex $1$ remains unmatched will be tried.
 
 We begin by mapping vertex $1$ to vertex $a$, giving $M=\{1a\}$.  Now label
 each unmatched vertex according to whether it is adjacent to vertex $1$ (in
-$G$) or vertex $a$ (in $H$), as shown in Figure~\ref{fig:alg2}.  Adjacent
+$G$) or vertex $a$ (in $H$), as shown in \cref{fig:alg2}.  Adjacent
 vertices have label 1; non-adjacent vertices have label 0.  We can extend $M$
 with a vertex mapping $vw$, with $v \in \V(G)$ and $w \in \V(H)$, if and only
 if $v$ and $w$ have the same label.  This property, that two vertices may be
@@ -237,7 +247,7 @@ invariant.
 
 Next, extend the mapping by pairing a vertex in $G$ with a vertex in $H$ of the
 same label; we will choose to map vertex $2$ to vertex $d$, giving $M=\{1a,
-2d\}$ (Figure~\ref{fig:alg3}).  Each unmapped vertex $v \in \V(G)$ is labelled
+2d\}$ (\cref{fig:alg3}).  Each unmapped vertex $v \in \V(G)$ is labelled
 with a two-character bit string, indicating its adjacency to each of
 the two mapped vertices in $\V(G)$ (vertices $1$ and $2$).  For example, vertex
 $3$ is labelled $01$, indicating that it is not adjacent to vertex $1$ but is adjacent
@@ -246,8 +256,8 @@ showing adjacency to matched vertices $a$ and $d$.
 
 Our invariant is maintained: we can extend $M$ by a vertex pairing if and only
 if the two vertices have the same label. Note also that the labels can be
-calculated efficiently, since each label (in Figure~\ref{fig:alg3}) is prefixed
-by the label at the previous level of the search tree (Figure~\ref{fig:alg2}).
+calculated efficiently, since each label (in \cref{fig:alg3}) is prefixed
+by the label at the previous level of the search tree (\cref{fig:alg2}).
 
 \begin{figure}[ht]
 \centering
@@ -292,7 +302,7 @@ by the label at the previous level of the search tree (Figure~\ref{fig:alg2}).
 The algorithm backtracks when the incumbent, i.e. the largest matching found so far, is at least as large
 as a calculated bound given $M$ and the current labelling. To demonstrate how
 this bound is calculated, we consider the situation one level deeper in the
-search tree shown in Figure~\ref{fig:alg4}.
+search tree shown in \cref{fig:alg4}.
 
 \begin{figure}[ht]
 \centering
@@ -411,7 +421,7 @@ during search any label class that has an empty $P$ or $T$ set.
 \label{McCliqueAlg}
 \end{algorithm}
 
-\paragraph{Algorithm \ref{McCliqueAlg} Explained} The recursive procedure, $\FuncSty{expand}$, has
+\paragraph{\cref{McCliqueAlg} Explained} The recursive procedure, $\FuncSty{expand}$, has
 two parameters.  The parameter $\AlgVar{future}$ is a list of label classes,
 each represented as a $\langle P, T \rangle$ pair as described above.  The
 parameter $M$ is the current mapping of vertices.  On each call to
@@ -487,11 +497,11 @@ graphs.
 
 The correctness of \McSplit\ can be seen by noting its equivalence to CP-FC
 \citep{DBLP:conf/cp/NdiayeS11}, if we replace the label-class representation of
-$\mathit{future}$ with domain stores in Algorithm \ref{McCliqueAlg}.  To obtain
+$\mathit{future}$ with domain stores in \cref{McCliqueAlg}.  To obtain
 the CP-FC algorithm, replace \linerangeref{InnerLoop}{InnerLoopEnd} of
-Algorithm \ref{McCliqueAlg} with Algorithm \ref{cpAlg}.  The pruning of domains
+\cref{McCliqueAlg} with \cref{cpAlg}.  The pruning of domains
 carried out in these lines can be easily seen to be equivalent to the
-corresponding lines in Algorithm \ref{McCliqueAlg}.
+corresponding lines in \cref{McCliqueAlg}.
 
 \begin{algorithm}
 \DontPrintSemicolon
@@ -531,7 +541,7 @@ t$, and 3 if there are edges in both directions. Where
 \linerangeref{NewPWithEdge}{InnerLoopEnd} of the basic algorithm split the
 label class $\langle P',T' \rangle$ in two, we now perform a four-way split
 where each vertex is classified according to the label on its adjacency matrix
-entry from $v$ or $w$.  This is shown in Algorithm~\ref{labDirAlg}, where
+entry from $v$ or $w$.  This is shown in \cref{labDirAlg}, where
 $L=\{0,1,2,3\}$.
 
 \begin{algorithm}
@@ -547,14 +557,14 @@ $L=\{0,1,2,3\}$.
 
 \paragraph{Undirected with edge labels} Each adjacency matrix
 entry contains an edge label, or a null entry (non-adjacent) $0$.
-We use Algorithm~\ref{labDirAlg}, by letting $L$ be
+We use \cref{labDirAlg}, by letting $L$ be
 the union of $\{0\}$ with the set of all labels that appear in the input
 graphs. Since there may be up to $g + h$ distinct labels, the loop in
-Algorithm~\ref{labDirAlg} may execute up to $g + h$ times and
+\cref{labDirAlg} may execute up to $g + h$ times and
 requires $\BigO{n^2}$ time per search
 node.  It is possible to modify the algorithms to run in $\BigO{n \log n}$ per
 search node.  First, run lines 17-19
-of Algorithm~\ref{McCliqueAlg} to create a new label-class of vertices that are not
+of \cref{McCliqueAlg} to create a new label-class of vertices that are not
 adjacent to $v$ or $w$, and remove these vertices from $\langle P',T' \rangle$.
 Next, sort $P'$ and $T'$ in ascending order of the label on the edge from $v$
 or $w$ to each vertex. We can then create the label classes corresponding to
@@ -578,7 +588,7 @@ PARAGRAPH, WHICH WAS COMMENTED OUT BY PATRICK. IT NEEDS WORK, BUT WE NEED TO
 EXPLAIN THE SIP EXPERIMENT. We can modify the \McSplit\ algorithm to use a
 top-down strategy based on \citet{UpcomingAAAIPaper} by calling the main
 \FuncSty{McSplit} method once per goal size ($g, g-1, g-2, \dots$).  We
-backtrack (\lineref{PruneSearch} of Algorithm~\ref{McCliqueAlg}) when the bound is
+backtrack (\lineref{PruneSearch} of \cref{McCliqueAlg}) when the bound is
 strictly less than the goal size, and terminate when a solution of the goal
 size is found.
 
