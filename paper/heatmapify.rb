@@ -2,7 +2,7 @@
 # vim: set sw=4 sts=4 et tw=80 :
 
 buckets = Hash.new(0)
-granularity = 100
+granularity = 50
 
 xmul = ARGV[3].to_i
 ymul = ARGV[4].to_i

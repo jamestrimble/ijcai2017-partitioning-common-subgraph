@@ -13,8 +13,9 @@ set tics front
 set size square
 set xrange [1:1e10]
 set yrange [1:1e10]
-set x2range [0:100]
-set y2range [0:100]
+set x2range [0:50]
+set y2range [0:50]
+set cbrange [1:100]
 set logscale x
 set logscale y
 set format x '$10^{%T}$'
