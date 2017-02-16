@@ -78,40 +78,42 @@
     \end{minipage}
 }
 
-\newcommand{\LabelTables}[4] {
-  \centering
-  \begin{minipage}[t]{#1\linewidth}
-      Mapping
+\newcommand{\LabelTables}[3] {
+  {\footnotesize
+    \centering
+    \begin{minipage}[t]{.17\linewidth}
+        Mapping
 
-      \bigskip
+        \bigskip\vspace{-4pt}
 
-      #2
-  \end{minipage}
-  \quad
-  \begin{minipage}[t]{0.3\linewidth}
-      \centering
-      Labelling of $G$
-      \begin{tabular}[t]{cc}
-      \toprule
-          Vertex & Label\\
-      \midrule
-          #3
-      \bottomrule
-      \end{tabular}
-  \end{minipage}
-  \quad
-  \begin{minipage}[t]{0.3\linewidth}
-      \centering
-      Labelling of $H$
-      \begin{tabular}[t]{cc}
-      \toprule
-          Vertex & Label\\
-      \midrule
-          #4
-      \bottomrule
-      \end{tabular}
-      \medskip
-  \end{minipage}
+        #1
+    \end{minipage}
+    \quad
+    \begin{minipage}[t]{0.31\linewidth}
+        \centering
+        Labelling of $G$\vspace{-4pt}
+        \begin{tabular}[t]{cc}
+        \toprule
+            Vertex & Label\\
+        \midrule
+            #2
+        \bottomrule
+        \end{tabular}
+    \end{minipage}
+    \quad
+    \begin{minipage}[t]{0.31\linewidth}
+        \centering
+        Labelling of $H$\vspace{-4pt}
+        \begin{tabular}[t]{cc}
+        \toprule
+            Vertex & Label\\
+        \midrule
+            #3
+        \bottomrule
+        \end{tabular}
+        \medskip
+    \end{minipage}
+  }
 }
 
 \title{A Partitioning Algorithm for Maximum Common Subgraph Problems}
@@ -236,10 +238,9 @@ mapped together if and only if they share a label, is the algorithm's main
 invariant.
 
 \begin{figure}[h]
-    \centering
+    \centering\subfiguretopcaptrue
     \subfigure[][After mapping $1$ to $a$] {
-      \LabelTables{.15}
-                  {$\{1a\}$}
+      \LabelTables{$\{1a\}$}
                   {$2$ & 0 \\
                    $3$ & 0 \\
                    $4$ & 1 \\
@@ -253,8 +254,7 @@ invariant.
     }
 
     \subfigure[][After mapping $2$ to $d$] {
-      \LabelTables{.15}
-                  {$\{1a,2d\}$}
+      \LabelTables{$\{1a,2d\}$}
                   {$3$ & 01 \\
                    $4$ & 10 \\
                    $5$ & 11 \\}
@@ -266,8 +266,7 @@ invariant.
     }
 
     \subfigure[][After mapping $3$ to $f$] {
-      \LabelTables{.2}
-                  {$\{1a,2d,3f\}$}
+      \LabelTables{$\{1a,2d,3f\}$}
                   {$4$ & 100 \\
                    $5$ & 111 \\}
                   {$b$ & 111 \\
@@ -518,7 +517,7 @@ number of distinct vertex labels and the number of distinct edge labels is
 approximately equal to 33 per cent of the number of vertices in each graph.
 
 \begin{figure}[t]
-    \centering
+    \centering\subfiguretopcaptrue
     \subfigure[][Unlabelled, undirected instances] {
         \centering
         \includegraphics*{gen-graph-plain-cumulative.pdf}
@@ -572,7 +571,7 @@ easier instances, where the clique encoding is relatively expensive to
 construct but trivial to solve.
 
 \begin{figure}[t]
-    \centering
+    \centering\subfiguretopcaptrue
     \subfigure[][Unlabelled, undirected, connected instances] {
         \centering
         \includegraphics*{gen-graph-plain-connected-cumulative.pdf}
