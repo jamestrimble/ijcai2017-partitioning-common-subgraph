@@ -614,90 +614,92 @@ instances.
 
 \section{Comparison with Existing Algorithms}\label{sec:comparison}
 
-The
-\McSplit\ algorithm may be considered as a version of the constraint
-programming, forward-checking (CP-FC) algorithm of
-\citet{DBLP:conf/cp/NdiayeS11}, using an efficient, compressed representation
-of domains.  In the CP-FC algorithm, each vertex in $v \in \V(G)$ is
-represented by a variable, whose domain corresponds to the set of vertices in
-$\V(H)$ to which $v$ may currently be mapped, with an additional special $\bot$
-value representing an unmapped vertex.
+Our results so far suggest that \McSplit\ has broadly similar performance
+trends to the constraint programming, forward-checking (CP-FC) algorithm of
+\citet{DBLP:conf/cp/NdiayeS11}, but with much lower constant factors. Indeed,
+in \cref{figure:33ved-james-versus-cp-fc-nodes-scatter} we plot the number of
+recursive calls made by our algorithm on the $y$-axis versus the number made by
+CP-FC on the $x$-axis, for the labelled, unconnected problem instances. We see
+a close correlation: we typically do slightly less work, and sometimes do more,
+but instances with more than one order of magnitude difference in search space
+size are rare.
 
-Given a label class $\langle P,T \rangle$ in \McSplit\, the vertices in $P$
-correspond to variables in CP-FC, all of which have domain equal to $T \cup \{
-    \bot \}$.  The label-class representation of domains is possible because
-throughout the CP-FC algorithm for max common subgraph, the domains of any two
-variables are either identical or disjoint.  (To the best of our knowledge,
-this observation has not been made previously.)
+Why is this? We do not see a similar correlation between our search space size
+and that of the clique spproach. The key observation is that \McSplit\ may be
+considered to be a different version of the constraint CP-FC algorithm, using
+an unconventional domain store and more efficient filtering algorithms. We now
+explore this relationship further.
 
-Where CP-FC uses a soft allDifferent constraint to filter and compute a bound,
-\McSplit\ computes a bound from each label class in the future, i.e.\ it
-performs Hall Set reasoning on the fly.
-
-\McSplit\ requires $\BigO{g+h}$ time at each search node, and does not require
-any auxiliary data structures larger than the adjacency matrices of $G$ and $H$
-to be built prior to search.  CP-FC requires $\BigO(?????)$ \dots The clique
-encoding requires an association graph with $g h$ vertices to be
-constructed before search.  Modern maximum-clique algorithms typically perform
-a colouring step at each search node that is quadratic in the order of the
-graph, and thus $\BigO{g^2h^2}$ in the order of the max common subgraph input
-graphs.
-
-?? Mention partition backtracking
-
-?? Mention dual viewpoint heuristics
-
-The correctness of \McSplit\ can be seen by noting its equivalence to CP-FC
-\citep{DBLP:conf/cp/NdiayeS11}, if we replace the label-class representation of
-$\mathit{future}$ with domain stores in \cref{McCliqueAlg}.  To obtain
-the CP-FC algorithm, replace \linerangeref{InnerLoop}{InnerLoopEnd} of
-\cref{McCliqueAlg} with \cref{cpAlg}.  The pruning of domains
-carried out in these lines can be easily seen to be equivalent to the
-corresponding lines in \cref{McCliqueAlg}.
-
-\begin{algorithm}
-\DontPrintSemicolon
-\nl    \For {$u \in \N(G, b)$}{
-\nl        remove $v$ from $D'_u$ \;
-\nl        remove the inverse neighbourhood of $t$ from $D'_u$ \;
-       }
-\nl    \For {$u \in \invN(G, b)$}{
-\nl        remove $v$ from $D'_u$ \;
-\nl        remove the neighbourhood of $t$ from $D'_u$ \;
-       }
-\caption{Replacement for \linerangeref{InnerLoop}{InnerLoopEnd} in CP algorithm}
-\label{cpAlg}
-\end{algorithm}
-
-TO WRITE PROPERLY: The second difference is in the bound function: the French
-code constructs a maximum cardinality matching, with some special weighting
-trickery for $\bot$, whilst James just sums the smaller of the two sides of
-each partition. If you think a bit about what the matching looks like, you can
-see that these two give the same answer, but at very different speeds.
-
-\paragraph{CP-FC and \McSplit\ search nodes on MCS instances}
-\cref{figure:33ved-james-versus-cp-fc-nodes-scatter} shows one point per instance,
-with search nodes visited by CP-FC on the horizontal axis and search nodes visited
-by \McSplit\ on the vertical axis.  There is a strong correlation, which reflects
-the similarity of the search space explored by the two algorithms.  \McSplit\
-tends to explore slightly fewer search nodes than CP-FC, because the label-classes
-allow us to (cheaply) compute a very good heuristics for variable selection.
-
-\begin{figure}[h]
+\begin{figure}[t]
     \centering
     \includegraphics*{gen-graph-33ved-james-versus-cp-fc-nodes-scatter.pdf}
-    \caption{MCS 33\% vertex and edge labelled directed instances, James vs
-    CP-FC, Nodes (TODO?? heatmapify this and exclude
-    timeouts)}\label{figure:33ved-james-versus-cp-fc-nodes-scatter}
+    \caption{Size of the search space for \McSplit versus CP-FC on the
+    labelled, directed, unconnected instances which were solved within the
+    timeout by both algorithms.}
+    \label{figure:33ved-james-versus-cp-fc-nodes-scatter}
 \end{figure}
 
-\paragraph{kdown and \McSplit\ search nodes on SIP instances}
-\cref{figure:sip-james-versus-kdown-nodes-scatter} shows the number of search
-nodes taken by kdown and \McSplit\ on each instance.  Although \McSplit\ is the
-faster algorithm overall, it explores more search nodes than kdown for most instances.
-The scatter plot has a concentration of points around the line $y=2x$. We conjecture
-that the two algorithms explore very similar search trees for instances close to this
-line.
+In the CP-FC algorithm, each vertex in $v \in \V(G)$ is represented by a
+variable, whose domain corresponds to the set of vertices in $\V(H)$ to which
+$v$ may currently be mapped, with an additional special $\bot$ value
+representing an unmapped vertex.
+Given a label class $\langle P,T \rangle$ in \McSplit\, the vertices in $P$
+correspond to variables in CP-FC. The label-class representation of domains is
+possible because throughout the CP-FC algorithm for max common subgraph, the
+domains of any two variables are either identical or disjoint (excluding
+$\bot$, which is slightly more complicated). To the best of our knowledge, this
+observation has not been made previously, and it is not exploited in other
+implementations.
+
+CP-FC uses a soft all-different constraint to compute a bound, which requires
+running a matching algorithm on a supporting compatibility graph.  Careful
+thought shows that \McSplit\ computes the same bound, but using a simple
+counting loop---this is only possible because of the disjoint nature of the
+domains.
+
+%%% This equivalence to CP-FC makes the correctness of \McSplit\ easy to establish:
+%%% if we replace the label-class representation of $\mathit{future}$ with
+%%% conventional domain stores, and replace \linerangeref{InnerLoop}{InnerLoopEnd}
+%%% of \cref{McCliqueAlg} with \cref{cpAlg}.  The pruning of domains carried out in
+%%% these lines can be easily seen to be equivalent to the corresponding lines in
+%%% \cref{McCliqueAlg}.
+%%% 
+%%% 
+%%% \begin{algorithm}
+%%% \DontPrintSemicolon
+%%% \nl    \For {$u \in \N(G, b)$}{
+%%% \nl        remove $v$ from $D'_u$ \;
+%%% \nl        remove the inverse neighbourhood of $t$ from $D'_u$ \;
+%%%        }
+%%% \nl    \For {$u \in \invN(G, b)$}{
+%%% \nl        remove $v$ from $D'_u$ \;
+%%% \nl        remove the neighbourhood of $t$ from $D'_u$ \;
+%%%        }
+%%% \caption{Replacement for \linerangeref{InnerLoop}{InnerLoopEnd} in CP algorithm ?? Not sure about this bit, maybe we don't need it}
+%%% \label{cpAlg}
+%%% \end{algorithm}
+
+A further advantage of our encoding is that it gives us efficient access to a
+better branching heuristic. The CP-FC algorithm uses smallest domain first,
+which in our algorithm corresponds to branching on a label class with smallest
+$|T|$. We instead branch on the label class with smallest $\min(|P|,|T|)$.
+This is empirically better, and accounts for much of the difference between
+the number of recursive calls made; branching on the smallest $|P| |T|$ gives
+very similar results. This can be viewed as exploiting both smallest domain first,
+and the dual viewpoint \citep{DBLP:conf/ecai/Geelen92} of smallest domain
+first, simultaneously, but we do not have the overheads of having to maintain
+and channel between the dual viewpoint that would be required when using a
+conventional domain store. ?? Check this!
+
+What about our relationship to the $k\downarrow$ of \citet{UpcomingAAAIPaper}?
+\Cref{figure:sip-james-versus-kdown-nodes-scatter} plots the number of
+recursive calls made by $k\downarrow$ and \McSplit\ on each of the subgraph
+isomorphism instances. Although \McSplit\ is the faster algorithm overall, it
+explores more search nodes than $k\downarrow$ for most instances.
+
+?? Talk about the classic tradeoff, and dynamically switching.
+
+?? The concentration of points, down to unit propagation and counting
 
 \begin{figure}[h]
     \centering
