@@ -378,7 +378,7 @@ during search any label class that has an empty $P$ or $T$ set.
 \nl    $M \gets M \cup (v,w)$ \label{GrowM} \;
 \nl    \bf{Let} $\AlgVar{future'} \gets \emptyset$ \label{NewFuture} \;
 \nl    \For {$\langle P',T'\rangle \in future$ \label{InnerLoop}}{
-\nl        \bf{Let} $P'' \gets P' \cap \N(G, G) \setminus \{v\}$ \label{NewPWithEdge} \;
+\nl        \bf{Let} $P'' \gets P' \cap \N(G, v) \setminus \{v\}$ \label{NewPWithEdge} \;
 \nl        \bf{Let} $T'' \gets T' \cap \N(H, w) \setminus \{w\}$ \;
 \nl        \If {$P'' \neq \emptyset$ \bf{and} $T'' \neq \emptyset$}
         {$\AlgVar{future'} \gets \AlgVar{future'} + \langle P'' , T'' \rangle$ \label{AddToFutureWithEdge}}
