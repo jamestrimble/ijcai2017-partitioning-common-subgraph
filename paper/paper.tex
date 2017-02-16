@@ -148,20 +148,23 @@ Because graphs are widely used to model real-world phenomena, maximum common
 subgraph problems have arisen in molecular science (where graphs represent
 molecules)
 \citep{DBLP:journals/jcamd/RaymondW02a,Ehrlich:2011,DAM2014,Grindley1993707},
-computer vision \cite{DBLP:journals/jair/CookH94}, discovery of repeated
-patterns in source code \cite{DBLP:journals/tkde/DjokoCH97} and circuits
-\cite{DBLP:journals/jair/CookH94}, and recognition of handwritten characters
-\cite{SIWEILU1991617}.
+and also in other domains including malware detection
+\citep{DBLP:journals/compsec/ParkRS13}, source code analysis
+\cite{DBLP:journals/tkde/DjokoCH97}, and computer vision
+\cite{DBLP:journals/jair/CookH94}.
 
 Maximum common subgraph problems are NP-hard, and remain challenging
 computationally. Recent practical progress has been made by using constraint
 programming \citep{DBLP:conf/cp/NdiayeS11,DBLP:conf/cp/McCreeshNPS16} and
 mathematical programming \citep{DBLP:journals/dam/BahienseMPS12}, by reducing
 to the maximum clique problem \citep{LeviG,DBLP:conf/cp/McCreeshNPS16}, and by
-adapting subgraph isomorphism algorithms \citep{UpcomingAAAIPaper}. This paper
-introduces a new branch and bound algorithm which exploits special properties
-of these problems to allow a much faster exploration of the search space,
-whilst retaining the filtering and bounding benefits of the constraint
+adapting subgraph isomorphism algorithms \citep{UpcomingAAAIPaper}. Some
+special cases also have practial polynomial time algorithms
+\citep{DBLP:conf/mfcs/DroschinskyKM16,DBLP:conf/sofsem/DroschinskyKM17}.
+
+This paper introduces a new branch and bound algorithm which exploits special
+properties of these problems to allow a much faster exploration of the search
+space, whilst retaining the filtering and bounding benefits of the constraint
 programming approach. We describe the algorithm for the basic maximum common
 subgraph problem, and discuss how it may be adapted to handle vertex labels,
 edge labels, and the requirement that the found subgraph be connected. We then
