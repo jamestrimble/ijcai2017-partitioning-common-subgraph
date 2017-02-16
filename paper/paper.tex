@@ -301,13 +301,10 @@ there is no way to add a pair of vertices with label 100 or 101 to the mapping.
 The final label, 111, appears once in $G$ and twice in $H$, and therefore at
 most one pair with this label can be added to $M$.  Thus, the upper bound on
 matching size is $|M| + 1 = 4$. The general formula for the upper bound is
-as follows, where $L$ is the set of labels used in both graphs.
-
 \begin{multline*}
-    \mathit{bound} = |M| + \sum_{l \in L} \min\big(|\{ v \in \V(G) : \vtxlabel(v)=l\}|, \\[-0.2cm]
-        |\{ v \in \V(H) : \vtxlabel(v)=l \}|\big)
-\end{multline*}
-
+    \mathit{bound} = |M| + \sum_{l \in L} \min\big(|\{ v \in \V(G) : \vtxlabel(v)=l\}|, \\[-0.3cm]
+        |\{ v \in \V(H) : \vtxlabel(v)=l \}|\big) \text{,}
+\end{multline*} where $L$ is the set of labels used in both graphs.
 
 %When we have explored the full
 %search space of matchings containing $\{1a, 2d\}$, we try reassigning $2$ to
