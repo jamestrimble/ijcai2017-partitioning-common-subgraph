@@ -414,7 +414,12 @@ vertices, and the mapping $M$ is empty.
 
 \subsection{Heuristics}
 
-?? Heuristics go here, defer justification until \cref{sec:comparison}
+?? Reword for here, explain later Small scale experiments (not presented here)
+were performed to identify a suitable heuristic for label class selection. The
+heuristic used selects the label class  with the smallest $\min(|P|,|T|)$ (a
+surrogate for expected branching factor). From this class, a vertex is selected
+from $P$ with maximum degree if $H$ is sparse and with minimum degree if $H$ is
+dense.
 
 \subsection{Extensions}\label{sec:extensions}
 
@@ -491,30 +496,21 @@ size is found.
 
 \section{A Computational Study}
 
-Experiments were performed on a cluster of machines with Dual Xeon E5-2640
-v2 CPUs and 64GBytes RAM.
+Experiments were performed on machines with dual Intel Xeon E5-2640 v2 CPUs and
+64GBytes RAM. Our algorithm was implemented in C++ and compiled using g++
+5.3.0. For comparison, we used the implementations of ?? cite clique, kdown,
+CP.
 
-? MENTION PROGRAMMING LANGUAGES, COMPILER FLAGS, MCSa ALGORITHM AND
-BITSET IMPLEMENTATION
-
-%Parallel experiments used 32 threads per machine,
-%using all 16 physical cores with hyper-threading enabled.
-All ??? experiments used a database of
-randomly-generated Maximum Common Subgraph instances, which contains graphs of
-order ranging from 10 to 100 vertices
-\cite{DBLP:journals/prl/SantoFSV03,DBLP:journals/jgaa/ConteFV07}.  For
-unlabelled instances, we selected 10 per cent of the 41,100 instances with up
-to 40 vertices; labels were discarded. For labelled instances, we selected 10
-per cent of the full database of 81,400 instances, and used a labelling scheme
-in which the number of distinct vertex labels and the number of distinct edge
-labels is approximately equal to 33 per cent of the number of vertices in each
-graph.
-
-Small scale experiments (not presented here) were performed to identify a
-suitable heuristic for label class selection. The heuristic used selects the
-label class  with the smallest $\min(|P|,|T|)$ (a surrogate for expected
-branching factor). From this class, a vertex is selected from $P$ with maximum
-degree if $H$ is sparse and with minimum degree if $H$ is dense. 
+Our first set of experiments use a database of randomly-generated maximum
+common subgraph instances
+\citep{DBLP:journals/prl/SantoFSV03,DBLP:journals/jgaa/ConteFV07}.  For
+unlabelled instances, we selected the first ten instances from each family
+whose members have no more than 50 vertices, for a total of 4,100 instances.
+For labelled instances, we selected the first ten instances from every family,
+for a total of 8,140 instances with up to 100 vertices; like
+\citet{DBLP:conf/cp/McCreeshNPS16}, we use the labelling scheme in which the
+number of distinct vertex labels and the number of distinct edge labels is
+approximately equal to 33 per cent of the number of vertices in each graph.
 
 \begin{figure}[h]
     \centering
@@ -532,7 +528,7 @@ degree if $H$ is sparse and with minimum degree if $H$ is dense.
     \caption{Cumulative run times}\label{figure:mcs-cumulative}
 \end{figure}
 
-\paragraph{No vertex or edge labels, undirected}
+\paragraph{Unlabelled, undirected}
 \cref{figure:plain-cumulative} shows a plot of cumulative run times (x-axis)
 against number of problem instances solved (y-axis).  There are five contours:
 the clique encoding \cite{DBLP:conf/cp/McCreeshNPS16}, CP-FC
