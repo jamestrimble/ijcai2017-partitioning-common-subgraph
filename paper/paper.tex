@@ -6,6 +6,7 @@
 \usepackage{graphicx}
 \usepackage{cleveref}
 \usepackage{microtype}
+\usepackage{booktabs}
 
 \usepackage{subfigure}
 
@@ -88,24 +89,26 @@
   \end{minipage}
   \quad
   \begin{minipage}[t]{0.3\linewidth}
-      \centering Labelling of $G$
+      \centering
+      Labelling of $G$
       \begin{tabular}[t]{cc}
-      \hline
+      \toprule
           Vertex & Label\\
-      \hline
+      \midrule
           #3
-      \hline
+      \bottomrule
       \end{tabular}
   \end{minipage}
   \quad
   \begin{minipage}[t]{0.3\linewidth}
-      \centering Labelling of $H$
+      \centering
+      Labelling of $H$
       \begin{tabular}[t]{cc}
-      \hline
+      \toprule
           Vertex & Label\\
-      \hline
+      \midrule
           #4
-      \hline
+      \bottomrule
       \end{tabular}
       \medskip
   \end{minipage}
