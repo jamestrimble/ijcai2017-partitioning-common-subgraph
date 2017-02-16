@@ -377,10 +377,10 @@ kerbosch.
 \nl return $|\AlgVar{incubent}|$ \;
 }
 \caption{Finding a maximum common subgraph.}
-\label{McCliqueAlg}
+\label{McSplitAlg}
 \end{algorithm}
 
-\paragraph{\cref{McCliqueAlg} in detail} The recursive procedure, $\FuncSty{expand}$, has
+\paragraph{\cref{McSplitAlg} in detail} The recursive procedure, $\FuncSty{expand}$, has
 two parameters.  The parameter $\AlgVar{future}$ is a list of label classes,
 each represented as a $\langle P, T \rangle$ pair as described above.  The
 parameter $M$ is the current mapping of vertices.  On each call to
@@ -457,7 +457,7 @@ $L=\{0,1,2,3\}$.
 \nl        \If {$P^{''} \negmedspace\neq \emptyset$ \bf{and} $T^{''} \negmedspace \neq \emptyset$}{
     \nl $\AlgVar{future^{'}} \gets \AlgVar{future^{'}} + \langle P^{''}\negmedspace, T^{''} \rangle$}
        }
-    \caption{Replacement for \linerangeref{NewPWithEdge}{InnerLoopEnd} of \cref{McCliqueAlg} to handle directed and labelled cases.}
+    \caption{Replacement for \linerangeref{NewPWithEdge}{InnerLoopEnd} of \cref{McSplitAlg} to handle directed and labelled cases.}
 \label{labDirAlg}
 \end{algorithm}
 
@@ -469,7 +469,7 @@ the input graphs. Since there may be up to $g + h$ distinct labels, the loop in
 time complexity per search node.  To achieve $\BigO{(g+h) \log (g+h)}$ time
 complexity per search node, we can modify the algorithms to use sorting rather
 than explicitly looping over all label classes, as follows.  First, run lines
-17-19 of \cref{McCliqueAlg} to create a new label-class of vertices that are
+17-19 of \cref{McSplitAlg} to create a new label-class of vertices that are
 not adjacent to $v$ or $w$, and remove these vertices from $\langle P',T'
 \rangle$.  Next, sort $P'$ and $T'$ in ascending order of the label on the edge
 from $v$ or $w$ to each vertex. We can then create the label classes
@@ -600,7 +600,7 @@ The basic \McSplit\ is beaten by the $k\downarrow$ algorithm of
 \citet{UpcomingAAAIPaper} on this dataset. However, we can modify the \McSplit\
 algorithm to use a top-down strategy similar to that used by $k\downarrow$  by
 calling the main \FuncSty{McSplit} method once per goal size ($g, g-1, g-2,
-\dots$); we backtrack (\lineref{PruneSearch} of \cref{McCliqueAlg}) when the
+\dots$); we backtrack (\lineref{PruneSearch} of \cref{McSplitAlg}) when the
 bound is strictly less than the goal size, and terminate when a solution of the
 goal size is found. We expect that this could do well because in many cases the
 matching covers nearly all of the smaller graph---indeed,
@@ -663,9 +663,9 @@ domains.
 %%% This equivalence to CP-FC makes the correctness of \McSplit\ easy to establish:
 %%% if we replace the label-class representation of $\mathit{future}$ with
 %%% conventional domain stores, and replace \linerangeref{InnerLoop}{InnerLoopEnd}
-%%% of \cref{McCliqueAlg} with \cref{cpAlg}.  The pruning of domains carried out in
+%%% of \cref{McSplitAlg} with \cref{cpAlg}.  The pruning of domains carried out in
 %%% these lines can be easily seen to be equivalent to the corresponding lines in
-%%% \cref{McCliqueAlg}.
+%%% \cref{McSplitAlg}.
 %%% 
 %%% 
 %%% \begin{algorithm}
