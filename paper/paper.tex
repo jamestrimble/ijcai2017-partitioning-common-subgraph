@@ -385,7 +385,7 @@ two parameters.  The parameter $\AlgVar{future}$ is a list of label classes,
 each represented as a $\langle P, T \rangle$ pair as described above.  The
 parameter $M$ is the current mapping of vertices.  On each call to
 $\FuncSty{expand}$, the invariant holds that a $(v,w)$ pair may be added to $M$
-if and only if $v$ and $w$ belong to the same label class in $M$.
+if and only if $v$ and $w$ belong to the same label class in $M$ ?? shouldn't that be future?.
 
 \Lineref{StoreIncumbent} stores the current mapping $M$ if it is large enough
 to unseat the incumbent.  \Linerangeref{SetBestFutureToZero}{PruneSearch} prune
