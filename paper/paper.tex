@@ -388,9 +388,9 @@ each call to $\FuncSty{expand}$, the invariant holds that a $(v,w)$ pair may be
 added to $M$ if and only if $v$ and $w$ belong to the same label class in
 $\AlgVar{future}$.
 
-\Lineref{StoreIncumbent} stores the current mapping $M$ if it is larger than
-the incumbent.  \Linerangeref{CalcBound}{PruneSearch} prune the search when a
-calculated upper bound is not large enough to unseat the incumbent.
+\Lineref{StoreIncumbent} stores the current mapping $M$ if it is large enough
+to unseat the incumbent.  \Linerangeref{CalcBound}{PruneSearch} prune the
+search when a calculated upper bound is not larger than the incumbent.
 
 The remainder of $\FuncSty{expand}$ performs the search.  A label class
 $\langle P, T \rangle$ is selected from $\AlgVar{future}$, where $P \subseteq
