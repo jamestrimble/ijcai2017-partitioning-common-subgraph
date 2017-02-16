@@ -548,7 +548,7 @@ the other algorithms---including \McSplit---on these labelled instances, except
 in the very easy region of instances that can be solved in well under 100 ms.
 
 \paragraph{Unlabelled, undirected, connected} This class of instances are shown
-in \cref{figure:plain-connected-cumulative} (again, ??kdown does not support the connected problem).  These results are very similar to
+in \cref{figure:plain-connected-cumulative}.  These results are very similar to
 the corresponding experiment in \cref{figure:plain-cumulative} in which the
 subgraph is not required to be connected.
 
@@ -584,13 +584,22 @@ isomorphism~\citep{DBLP:conf/lion/KotthoffMS16} and maximum common
 subgraph~\citep{UpcomingAAAIPaper}.  This benchmark set includes real-world
 graphs and graphs generated using random models.  Pattern graphs range from 4
 vertices to 900 with a median of 80; target graphs range from 10 vertices to
-6671 with a median of 561.  Cumulative runtimes including the kdown algorithm
-from~\citep{UpcomingAAAIPaper} which was the previous state of the art for this
-benchmark, are in \cref{figure:sip-cumulative}.  This is a challenging set of
-instances, and more than half of the instances cannot be solved within a
-timeout of 1000 seconds by any of the solvers. Moreover the CP-FC algorithm and
-the clique encoding run out of memory on many of the instances.  \McSplit\
-is the strongest solver overall for this dataset.
+6671 with a median of 561. Cumulative runtimes on these instances are shown in
+\cref{figure:sip-cumulative}.  This is a challenging set of instances, and more
+than half of the instances cannot be solved within a timeout of 1000 seconds by
+any solver. Furthermore, the CP-FC algorithm and the clique encoding run out of
+memory on many of the instances (these are treated as timeouts).
+
+The basic \McSplit\ is beaten by the $k\downarrow$ algorithm of
+\citet{UpcomingAAAIPaper} on this dataset. However, we can modify the \McSplit\
+algorithm to use a top-down strategy similar to that used by $k\downarrow$  by
+calling the main \FuncSty{McSplit} method once per goal size ($g, g-1, g-2,
+\dots$); we backtrack (\lineref{PruneSearch} of \cref{McCliqueAlg}) when the
+bound is strictly less than the goal size, and terminate when a solution of the
+goal size is found. We expect that this could do well because in many cases the
+matching covers nearly all of the smaller graph---indeed,
+\cref{figure:sip-cumulative} shows that this approach is the strongest on these
+instances.
 
 \begin{figure}[t]
     \centering
@@ -599,15 +608,6 @@ is the strongest solver overall for this dataset.
     common connected subgraph problem on the large subgraph isomorphism benchmark
     suite.} \label{figure:sip-cumulative}
 \end{figure}
-
-?? Let's put this hereish: I'VE RE-ADDED A SHORTER VERSION OF THIS
-PARAGRAPH, WHICH WAS COMMENTED OUT BY PATRICK. IT NEEDS WORK, BUT WE NEED TO
-EXPLAIN THE SIP EXPERIMENT. We can modify the \McSplit\ algorithm to use a
-top-down strategy based on \citet{UpcomingAAAIPaper} by calling the main
-\FuncSty{McSplit} method once per goal size ($g, g-1, g-2, \dots$).  We
-backtrack (\lineref{PruneSearch} of \cref{McCliqueAlg}) when the bound is
-strictly less than the goal size, and terminate when a solution of the goal
-size is found.
 
 \section{Comparison with Existing Algorithms}\label{sec:comparison}
 
