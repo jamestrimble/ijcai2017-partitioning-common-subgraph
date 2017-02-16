@@ -590,6 +590,12 @@ timeout of 1000 seconds by any of the solvers. Moreover the CP-FC algorithm and
 the clique encoding run out of memory on many of the instances.  \McSplit\
 is the strongest solver overall for this dataset.
 
+\begin{figure}[t]
+    \centering
+    \includegraphics*{gen-graph-sip-cumulative.pdf}
+    \caption{Cumulative run times, SIP instances}\label{figure:sip-cumulative}
+\end{figure}
+
 ?? Let's put this hereish: I'VE RE-ADDED A SHORTER VERSION OF THIS
 PARAGRAPH, WHICH WAS COMMENTED OUT BY PATRICK. IT NEEDS WORK, BUT WE NEED TO
 EXPLAIN THE SIP EXPERIMENT. We can modify the \McSplit\ algorithm to use a
@@ -661,12 +667,6 @@ code constructs a maximum cardinality matching, with some special weighting
 trickery for $\bot$, whilst James just sums the smaller of the two sides of
 each partition. If you think a bit about what the matching looks like, you can
 see that these two give the same answer, but at very different speeds.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics*{gen-graph-sip-cumulative.pdf}
-    \caption{Cumulative run times, SIP instances}\label{figure:sip-cumulative}
-\end{figure}
 
 \paragraph{CP-FC and \McSplit\ search nodes on MCS instances}
 \cref{figure:33ved-james-versus-cp-fc-nodes-scatter} shows one point per instance,
