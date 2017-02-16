@@ -4,7 +4,7 @@ set terminal tikz standalone color size 6.5cm,5.5cm font '\scriptsize' preamble 
 set output "gen-graph-sip-james-versus-kdown-nodes-scatter.tex"
 
 set xlabel '$k\downarrow$ Recursive Calls'
-set ylabel '\textproc{McSplit} Recursive Calls'
+set ylabel '\textproc{McSplit$\downarrow$} Recursive Calls'
 set border 3
 set grid x y
 set xtics nomirror

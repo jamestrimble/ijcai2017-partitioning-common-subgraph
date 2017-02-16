@@ -636,7 +636,7 @@ explore this relationship further.
 \begin{figure}[t]
     \centering
     \includegraphics*{gen-graph-33ved-james-versus-cp-fc-nodes-scatter.pdf}
-    \caption{Size of the search space for \McSplit versus CP-FC on the
+    \caption{Size of the search space for \McSplit\ versus CP-FC on the
     labelled, directed, unconnected instances which were solved within the
     timeout by both algorithms.}
     \label{figure:33ved-james-versus-cp-fc-nodes-scatter}
@@ -707,8 +707,9 @@ explores more search nodes than $k\downarrow$ for most instances.
 \begin{figure}[h]
     \centering
     \includegraphics*{gen-graph-sip-james-versus-kdown-nodes-scatter.pdf}
-    \caption{SIP instances, James vs kdown, Nodes (TODO?? heatmapify this and exclude
-    timeouts)}\label{figure:sip-james-versus-kdown-nodes-scatter}
+    \caption{Size of the search space for \McSplit$\downarrow$\ versus $k\downarrow$ on the
+    large subgraph isomorphism instances which were solved within the
+    timeout by both algorithms.}\label{figure:sip-james-versus-kdown-nodes-scatter}
 \end{figure}
 
 
@@ -727,7 +728,7 @@ encoding the full instance.
 
 We have yet to fully investigate variable and value ordering heuristics, i.e.\ the selection of a label class and the selection of a vertex from that label class.
 There is also the potential to branch on both sides, that is instead of branching on vertices in $\V(G)$, it would be equally valid to branch on
-a vertex in $\V(H)$ , since our data structure treats the
+a vertex in $\V(H)$, since our data structure treats the
 two graphs symmetrically. More interestingly, we could choose which graph to branch on
 at each search node using some heuristic (perhaps choosing based on whether the $P$ or
 $T$ set is smaller), so long as we can ensure that the search remains complete.
