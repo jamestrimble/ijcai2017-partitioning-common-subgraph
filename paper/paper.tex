@@ -442,7 +442,8 @@ $L=\{0,1,2,3\}$.
 \nl    \For {$l \in L$}{
 \nl        \bf{Let} $P^{''} \gets \{ u \in P^{'} \mid u \neq v \wedge A_G[v][u] = l \}$ \;
 \nl        \bf{Let} $T^{''} \gets \{ u \in T^{'} \mid u \neq w \wedge A_H[w][u] = l \}$ \;
-\nl        \lIf {$P^{''} \neq \emptyset$ \bf{and} $T^{''} \neq \emptyset$}{$future^{'} \gets future^{'} + \langle P^{''} , T^{''} \rangle$}
+\nl        \If {$P^{''} \negmedspace\neq \emptyset$ \bf{and} $T^{''} \negmedspace \neq \emptyset$}{
+    \nl $\AlgVar{future^{'}} \gets \AlgVar{future^{'}} + \langle P^{''}\negmedspace, T^{''} \rangle$}
        }
 \caption{Replacement for \linerangeref{NewPWithEdge}{InnerLoopEnd} in directed and labelled cases}
 \label{labDirAlg}
