@@ -6,18 +6,25 @@ set output "gen-graph-sip-james-versus-kdown-nodes-scatter.tex"
 set xlabel '$k\downarrow$ Recursive Calls'
 set ylabel '\textproc{McSplit$\downarrow$} Recursive Calls'
 set border 3
-set grid x y
+set grid x y front
 set xtics nomirror
 set ytics nomirror
+set tics front
 set size square
 set xrange [1:1e10]
 set yrange [1:1e10]
+set x2range [0:100]
+set y2range [0:100]
 set logscale x
 set logscale y
 set format x '$10^{%T}$'
 set format y '$10^{%T}$'
+set logscale cb
+
+load "magmafromwhite.pal"
+set palette negative
 
 plot \
-    "../experiments/gpgnode-results/sip/nodes.data" u 4:6 w p notitle, \
+    "sip-james-versus-kdown-heatmap.data" u 2:1:($3+1) matrix w image axes x2y2 notitle, \
     x w l ls 0 notitle
 
