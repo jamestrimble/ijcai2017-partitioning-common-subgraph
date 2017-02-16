@@ -183,8 +183,7 @@ simultaneously, and a \emph{maximum} common subgraph is one with as many
 vertices as possible.
 
 Let $G$ and $H$ be the two input graphs to our maximum common subgraph problem.
-The orders (vertex counts) of these graphs are denoted $g$ and $h$. We will
-use $n$ in complexity results to denote $\max(g + h)$ ?? WTF James? Help?.
+The orders (vertex counts) of these graphs are denoted $g$ and $h$.
 
 With these definitions established, we now present \McSplit, a branch and bound
 algorithm which uses a new vertex-labelling scheme to avoid explicitly
@@ -315,8 +314,8 @@ as follows, where $L$ is the set of labels used in both graphs.
 %$\V(G)$ to assign.
 
 \paragraph{Efficient representation of label classes} The algorithm as
-described so far apparently requires $\BigO{n^2}$ space at each level of the
-search tree.  We can reduce the memory requirement to $\BigO{n}$ per level by
+described so far apparently requires $\BigO{g(g+h)}$ space at each level of the
+search tree.  We can reduce the memory requirement to $\BigO{g+h}$ per level by
 storing a \emph{label class} as a pair $\langle P,T \rangle$ for each label $l$
 that is used, where $P$ is the set of vertices in $\V(G)$ labelled $l$, and $T$
 is the set of vertices in $\V(H)$ labelled $l$\footnote{We adopt terminology
@@ -456,20 +455,20 @@ $L=\{0,1,2,3\}$.
 \label{labDirAlg}
 \end{algorithm}
 
-\paragraph{Undirected with edge labels} Each adjacency matrix
-entry contains an edge label, or a null entry (non-adjacent) $0$.
-We use \cref{labDirAlg}, by letting $L$ be
-the union of $\{0\}$ with the set of all labels that appear in the input
-graphs. Since there may be up to $g + h$ distinct labels, the loop in
-\cref{labDirAlg} may execute up to $g + h$ times and
-requires $\BigO{n^2}$ time per search
-node.  It is possible to modify the algorithms to run in $\BigO{n \log n}$ per
-search node.  First, run lines 17-19
-of \cref{McCliqueAlg} to create a new label-class of vertices that are not
-adjacent to $v$ or $w$, and remove these vertices from $\langle P',T' \rangle$.
-Next, sort $P'$ and $T'$ in ascending order of the label on the edge from $v$
-or $w$ to each vertex. We can then create the label classes corresponding to
-each edge label by simultaneously traversing $P'$ and $T'$ from left to right.
+\paragraph{Undirected with edge labels} Each adjacency matrix entry contains an
+edge label, or a null entry (non-adjacent) $0$.  We use \cref{labDirAlg}, by
+letting $L$ be the union of $\{0\}$ with the set of all labels that appear in
+the input graphs. Since there may be up to $g + h$ distinct labels, the loop in
+\cref{labDirAlg} may execute up to $g + h$ times, resulting in $\BigO{(g+h)^2}$
+time complexity per search node.  To achieve $\BigO{(g+h) \log (g+h)}$ time
+complexity per search node, we can modify the algorithms to use sorting rather
+than explicitly looping over all label classes, as follows.  First, run lines
+17-19 of \cref{McCliqueAlg} to create a new label-class of vertices that are
+not adjacent to $v$ or $w$, and remove these vertices from $\langle P',T'
+\rangle$.  Next, sort $P'$ and $T'$ in ascending order of the label on the edge
+from $v$ or $w$ to each vertex. We can then create the label classes
+corresponding to each edge label by simultaneously traversing $P'$ and $T'$
+from left to right.
 
 \paragraph{Directed with edge labels} This case is similar to its undirected
 counterpart, except that each element $A[u][v]$ in an adjacency matrix is a
@@ -652,13 +651,13 @@ Where CP-FC uses a soft allDifferent constraint to filter and compute a bound,
 \McSplit\ computes a bound from each label class in the future, i.e.\ it
 performs Hall Set reasoning on the fly.
 
-\McSplit\ requires $\BigO{n}$ time at each search node, and does not require
+\McSplit\ requires $\BigO{g+h}$ time at each search node, and does not require
 any auxiliary data structures larger than the adjacency matrices of $G$ and $H$
 to be built prior to search.  CP-FC requires $\BigO(?????)$ \dots The clique
 encoding requires an association graph with $g h$ vertices to be
 constructed before search.  Modern maximum-clique algorithms typically perform
 a colouring step at each search node that is quadratic in the order of the
-graph, and thus $\BigO{n^4}$ in the order of the max common subgraph input
+graph, and thus $\BigO{g^2h^2}$ in the order of the max common subgraph input
 graphs.
 
 ?? Mention partition backtracking
