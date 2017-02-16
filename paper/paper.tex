@@ -388,22 +388,22 @@ the search when a calculated upper bound (best future $\AlgVar{bf}$ plus $|M|$) 
 than the incumbent.
 
 The remainder of $\FuncSty{expand}$ performs the search.  A label class
-$\langle P, T \rangle$ is selected from $\AlgVar{future}$, where $P \subseteq V(G)$ and $T \subseteq V(H)$,
-using some heuristic (\lineref{SelectClass}).  From this label class, a
-vertex $v$ is selected from $P$ using a heuristic (\lineref{SelectVertex}). We now
-iterate over all possible vertices in $T$ (\linerangeref{WLoop}{ShrinkM}). A
-vertex $w \in T$ is selected and mapping $M$ is extended (\lineref{GrowM}). A
-new set of label-classes, $\AlgVar{future'}$, is created (\lineref{NewFuture}).
-Every label-class in $\AlgVar{future}$ can now be split
-(\linerangeref{InnerLoop}{InnerLoopEnd}) into two new classes. The first of
-these classes (\linerangeref{NewPWithEdge}{AddToFutureWithEdge}) contains
-vertices in $P$ adjacent to $v$ and vertices in $T$ adjacent to $w$.  This is
-added to $\AlgVar{future'}$ if both sets contain at least one vertex.  This is
-then repeated symmetrically for non-adjacency
-(\linerangeref{NewPWithoutEdge}{InnerLoopEnd}) using the compliments of the
-graphs.  A recursive call is then made (\lineref{ExpandWithV}), on return from
-which we remove the mapping $(v,w)$.  Having explored all possible mappings of
-$v$ with vertices in $T$ we now consider what happens if $v$ is not matched
+$\langle P, T \rangle$ is selected from $\AlgVar{future}$, where $P \subseteq
+V(G)$ and $T \subseteq V(H)$, using some heuristic (\lineref{SelectClass}).
+From this label class, a vertex $v$ is selected from $P$ using a heuristic
+(\lineref{SelectVertex}). We now iterate over all possible vertices in $T$
+(\linerangeref{WLoop}{ShrinkM}). A vertex $w \in T$ is selected and mapping $M$
+is extended (\lineref{GrowM}). A new set of label-classes, $\AlgVar{future'}$,
+is created (\lineref{NewFuture}).  Every label-class in $\AlgVar{future}$ can
+now be split (\linerangeref{InnerLoop}{InnerLoopEnd}) into two new classes. The
+first of these classes (\linerangeref{NewPWithEdge}{AddToFutureWithEdge})
+contains vertices in $P$ adjacent to $v$ and vertices in $T$ adjacent to $w$.
+This is added to $\AlgVar{future'}$ if both sets contain at least one vertex.
+This is then repeated symmetrically for non-adjacency
+(\linerangeref{NewPWithoutEdge}{InnerLoopEnd}). A recursive call is then made
+(\lineref{ExpandWithV}), on return from which we remove the mapping $(v,w)$.
+Having explored all possible mappings of $v$ with vertices in $T$ we now
+consider what happens if $v$ is not matched
 (\linerangeref{RemoveV}{ExpandWithoutV}). Note that removing $v$ from its label
 class is equivalent to matching vertex $v$ to the null vertex $\bot$.
 
