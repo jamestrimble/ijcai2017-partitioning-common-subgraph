@@ -715,31 +715,34 @@ explores more search nodes than $k\downarrow$ for most instances.
 
 \section{Conclusion}
 
-We have introduced the \McSplit\ algorithm for Max Common Subgraph.
-The new algorithm is more than an order of
-magnitude faster than the previous state of the art for unlabelled and undirected
-instances. We have shown how the algorithm can be extended for graphs with labels on edges, labels on vertices, loops, directed edges and the requirement that the resultant graph be connected.
+We have introduced the \McSplit\ algorithm for Max Common Subgraph.  The new
+algorithm is more than an order of magnitude faster than the previous state of
+the art for unlabelled and undirected instances. We have shown how the
+algorithm can be extended for graphs with labels on edges, labels on vertices,
+loops, directed edges and the requirement that the resultant graph be
+connected.
 
-\paragraph{Future work} We could create a hybrid algorithm. This would use \McSplit\ near the top of the search tree, switching to a
-clique encoding when fewer than some threshold number of vertices remain to be
-selected. This might deliver the benefits of the clique encoding for
-labelled graphs, while avoiding the high memory cost and colouring time of
-encoding the full instance.
+To further improve the state of the art, we could try creating a hybrid
+algorithm.  This could use $k\downarrow$ initially, switching to \McSplit\ when
+the extra filtering is ineffective, and finally switching to a clique encoding
+when fewer than some threshold number of vertices remain to be selected. This
+might deliver the benefits of the clique encoding for labelled graphs, while
+avoiding the high memory cost and colouring time of encoding the full instance.
 
-We have yet to fully investigate variable and value ordering heuristics, i.e.\ the selection of a label class and the selection of a vertex from that label class.
-There is also the potential to branch on both sides, that is instead of branching on vertices in $\V(G)$, it would be equally valid to branch on
-a vertex in $\V(H)$, since our data structure treats the
-two graphs symmetrically. More interestingly, we could choose which graph to branch on
-at each search node using some heuristic (perhaps choosing based on whether the $P$ or
-$T$ set is smaller), so long as we can ensure that the search remains complete.
+We believe there is more to be discovered about branching heuristics. There is
+also the potential to branch on both sides, that is instead of branching on
+vertices in $\V(G)$, it would be equally valid to branch on a vertex in
+$\V(H)$, since our data structure treats the two graphs symmetrically. More
+interestingly, we could choose which graph to branch on at each search node
+using some heuristic (perhaps choosing based on whether the $P$ or $T$ set is
+smaller), so long as we can ensure that the search remains complete.
 
-We have not yet explored parallel versions of the algorithm. The first paralellism is \emph{within-core}, using bitsets to encode sets. The second parallelism  is  multithreaded,
-exploited the ubiquitous multicore architecture.
-
-? Portfolio algorithms---finding out at what level of labelledness clique becomes best etc.
-
-%Application to induced subgraph isomorphism (with almost no changes). Applications
-%of a similar technique to other problems???
+It would be interesting to see whether these techniques are more broadly
+applicable. Most obviously, we could solve the induced subgraph isomorphism
+problem in the same way (and with nearly no changes to the code), but we could
+not solve the non-induced version. However, we suspect that some other problems
+may have a similar branching structure which would also benefit from a
+different domain store representation.
 
 \bibliographystyle{named}
 \bibliography{paper}
