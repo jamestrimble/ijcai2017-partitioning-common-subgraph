@@ -55,23 +55,23 @@
 
 \newcommand{\BigO}[1]{\ensuremath{\operatorname{O}\left(#1\right)}}
 
-\newcommand{\examplexG}[5] {
+\newcommand{\exampleG} {
     \begin{minipage}{.2\textwidth}
     \tikz {
         \graph [nodes={draw, circle, minimum width=.5cm, inner sep=1pt}, circular placement, radius=0.8cm,
                 clockwise=5] {
-                    1[label=90:#1],2[label=0:#2],3[label=0:#3],4[label=180:#4],5[label=180:#5];
+                    1,2,3,4,5;
             1--4; 1--5; 2--3; 2--5; 3--5;
         };
     }
     \end{minipage}
 }
-\newcommand{\examplexH}[6] {
+\newcommand{\exampleH} {
     \begin{minipage}{.2\textwidth}
     \tikz {
         \graph [nodes={draw, circle, minimum width=.5cm, inner sep=1pt}, circular placement, radius=0.8cm,
                 clockwise=6, phase=60] {
-                    a[label=0:#1],b[label=0:#2],c[label=0:#3],d[label=180:#4],e[label=180:#5],f[label=180:#6];
+                    a,b,c,d,e,f;
             a--b; a--c; a--e; b--d; b--f; c--d; c--e; c--f; d--f; e--f;
         };
     }
@@ -216,8 +216,8 @@ assigned to vertex $a$, $2$ is assigned to $f$, $3$ to $d$ and $5$ to $b$.
 
 \begin{figure}[t]
 \centering
-    \examplexG{}{}{}{}{}
-    \examplexH{}{}{}{}{}{}
+    \exampleG
+    \exampleH
 \caption{Example graphs $G$ and $H$.}
 \label{fig:alg1}
 \end{figure}
