@@ -5,6 +5,7 @@
 \usepackage{times}
 \usepackage{graphicx}
 \usepackage{cleveref}
+\usepackage{microtype}
 
 \usepackage{subfigure}
 
@@ -30,6 +31,8 @@
 % cref style
 \crefname{algorithm}{Algorithm}{Algorithms}
 \Crefname{algorithm}{Algorithm}{Algorithms}
+\crefname{algocf}{Algorithm}{Algorithms}
+\Crefname{algocf}{Algorithm}{Algorithms}
 \crefname{figure}{Figure}{Figures}
 \Crefname{figure}{Figure}{Figures}
 \crefname{table}{Table}{Tables}
@@ -333,6 +336,9 @@ are $g + h$ vertices in the two graphs, at most $g + h$ label classes
 can exist at once, and there are at most $g + h$ vertices in the union of
 all of the $P$ and $T$ sets.  We can gain further efficiency by discarding
 during search any label class that has an empty $P$ or $T$ set.
+
+?? Talk about how we can use a pair of flat arrays and indices to the start of
+label classes, and throw in citation to partition backtracking here.
 
 \begin{algorithm}[ht]
 \DontPrintSemicolon
