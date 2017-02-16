@@ -4,7 +4,7 @@ set terminal tikz standalone color size 6cm,5.5cm font '\scriptsize' preamble '\
 set output "gen-graph-plain-james-versus-cp-fc-nodes-scatter.tex"
 
 set xlabel 'CP-FC Recursive Calls\vphantom{$\downarrow$}'
-set ylabel '\textproc{McSplit$\downarrow$} Recursive Calls'
+set ylabel '\textproc{McSplit} Recursive Calls'
 set border 3
 set grid x y front
 set xtics nomirror
