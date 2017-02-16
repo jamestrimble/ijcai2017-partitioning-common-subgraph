@@ -296,7 +296,7 @@ vertices have the same label.
 \label{fig:alg3}
 \end{figure}
 
-The algorithm backtracks when the incumbent, i.e. the largest matching found so far, is at least as large
+The algorithm backtracks when the incumbent (the largest matching found so far) is at least as large
 as a calculated bound given $M$ and the current labelling. To demonstrate how
 this bound is calculated, we consider the situation one level deeper in the
 search tree shown in \cref{fig:alg4}.
@@ -478,7 +478,7 @@ identical or disjoint.  (To the best of our knowledge, this observation has
 not been made previously.)
 
 Where CP-FC uses a soft allDifferent constraint to filter and compute a bound,
-\McSplit\ computes a bound from each label class in the future, i.e. it
+\McSplit\ computes a bound from each label class in the future, i.e.\ it
 performs Hall Set reasoning on the fly.
 
 \McSplit\ requires $\BigO{n}$ time at each search node, and does not require
@@ -749,7 +749,7 @@ selected. This might deliver the benefits of the clique encoding for
 labelled graphs, while avoiding the high memory cost and colouring time of
 encoding the full instance.
 
-We have yet to fully investigate variable and value ordering heuristics, i.e. the selection of a label class and the selection of a vertex from that label class.
+We have yet to fully investigate variable and value ordering heuristics, i.e.\ the selection of a label class and the selection of a vertex from that label class.
 There is also the potential to branch on both sides, that is instead of branching on vertices in $\V(G)$, it would be equally valid to branch on
 a vertex in $\V(H)$ , since our data structure treats the
 two graphs symmetrically. More interestingly, we could choose which graph to branch on
