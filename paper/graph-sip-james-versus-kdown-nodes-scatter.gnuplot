@@ -1,6 +1,6 @@
 # vim: set et ft=gnuplot sw=4 :
 
-set terminal tikz standalone color size 6.5cm,5.5cm font '\scriptsize' preamble '\usepackage{times,microtype,algorithm2e,algpseudocode,amssymb}'
+set terminal tikz standalone color size 6cm,5.5cm font '\scriptsize' preamble '\usepackage{times,microtype,algorithm2e,algpseudocode,amssymb}'
 set output "gen-graph-sip-james-versus-kdown-nodes-scatter.tex"
 
 set xlabel '$k\downarrow$ Recursive Calls'
