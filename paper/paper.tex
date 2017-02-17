@@ -423,12 +423,12 @@ vertices, and the mapping $M$ is empty.
 
 \subsection{Heuristics}
 
-?? Reword for here, explain later Small scale experiments (not presented here)
-were performed to identify a suitable heuristic for label class selection. The
-heuristic used selects the label class  with the smallest $\min(|\setG|,|\setH|)$ (a
-surrogate for expected branching factor). From this class, a vertex is selected
-from $\setG$ with maximum degree if $\graphH$ is sparse and with minimum degree if $\graphH$ is
-dense.
+Small scale experiments (not presented here) were performed to identify
+suitable heuristics for selecting a label class abd a vertex within a label
+class selection. Our heuristic of choice selects the label class with the
+smallest $\min(|\setG|,|\setH|)$. From this class, a vertex is selected from
+$\setG$ with maximum degree if $\graphH$ is sparse and with minimum degree if
+$\graphH$ is dense. We discuss this further in \cref{sec:comparison}.
 
 \subsection{Extensions}\label{sec:extensions}
 
