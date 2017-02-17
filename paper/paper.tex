@@ -341,7 +341,7 @@ clique enumeration algorithm.
 \nl $\FuncSty{search}(\AlgVar{future},M)$ \;
 \nl \Begin{
 %\nl \lIf {$\AlgVar{future} = \emptyset$ \bf{and} $|M| > |\AlgVar{incumbent}|$}
-\nl \lIf {$|M| > |\AlgVar{incumbent}|$}{$save(matching)$} \label{StoreIncumbent}
+\nl \lIf {$|M| > |\AlgVar{incumbent}|$}{$\AlgVar{incumbent} \gets M$} \label{StoreIncumbent}
 %\nl \lIf {$\AlgVar{future} = \emptyset$}{return}
 \medskip
 \nl $\AlgVar{bound} \gets |M|  + \sum_{\langle \setG,\setH \rangle \in \AlgVar{future}} \min(|\setG|,|\setH|)$ \label{CalcBound} \;
