@@ -159,7 +159,7 @@ and also in other domains including malware detection
 
 Maximum common subgraph problems are NP-hard, and remain challenging
 computationally. Recent practical progress has been made by using constraint
-programming \citep{DBLP:conf/cp/NdiayeS11,DBLP:conf/cp/McCreeshNPS16} and
+programming \citep{DBLP:conf/mco/VismaraV08,DBLP:conf/cp/NdiayeS11,DBLP:conf/cp/McCreeshNPS16} and
 mathematical programming \citep{DBLP:journals/dam/BahienseMPS12}, by reducing
 to the maximum clique problem \citep{LeviG,DBLP:conf/cp/McCreeshNPS16}, and by
 adapting subgraph isomorphism algorithms \citep{UpcomingAAAIPaper}. Some
@@ -444,7 +444,10 @@ $\graphH$ is dense. We discuss this further in \cref{sec:comparison}.
 \label{labDirAlg}
 \end{algorithm}
 
-?? This needs a two sentence intro saying that people care about stuff and why.
+Maximum common subgraph problems come in many variants. For example, often
+vertices have labels (for example, denoting what kind of atom they represent in
+a molecule), and vertices may only be mapped to like-labelled vertices. We now
+outline how to adapt \cref{McSplitAlg} to handle this and other cases.
 
 \paragraph{Vertex labels and loops} If vertices are labelled, replace ${\langle
 V(\graphG),V(\graphH) \rangle}$ in \lineref{FirstExpandCall} with a set of label classes,
@@ -485,14 +488,15 @@ counterpart, except that each element $A[u][v]$ in an adjacency matrix is a
 pair $(l_1, l_2)$, where $l_1$ is the label on the edge $u \rightarrow v$ (or 0
 if no edge exists) and $l_2$ is the label on the reverse edge.
 
-\paragraph{Maximum Common \emph{Connected} Subgraph} ?? In applications,
-something. The common subgraph must be connected. We consider only undirected
-graphs.  Modify \McSplit\ by permitting branching only on a vertex $v$ that has
-at least one non-zero element in its bit-string label.  We can represent this
-information compactly, and without increasing time complexity at each search
-node, by storing an extra bit with each label class.  This bit takes the value
-$1$ if and only if the vertices in the class are adjacent to at least one
-vertex in $M$. ?? Link to branching scheme papers.
+\paragraph{Maximum Common \emph{Connected} Subgraph} In chemistry applications,
+it is sometimes desirable to require the common subgraph be connected
+\citep{Ehrlich:2011}. We consider only undirected graphs. We may modify \McSplit\ by
+permitting branching only on a vertex $v$ that has at least one non-zero
+element in its bit-string label, following the scheme described by
+\citet{DBLP:conf/mco/VismaraV08}.  We can represent this information compactly,
+and without increasing time complexity at each search node, by storing an extra
+bit with each label class.  This bit takes the value $1$ if and only if the
+vertices in the class are adjacent to at least one vertex in $M$.
 
 \section{Experimental Evaluation}
 
