@@ -29,6 +29,11 @@
 
 \newcommand{\nmax}{n_{\max}}
 
+\newcommand{\graphG}{\mathcal{G}}
+\newcommand{\graphH}{\mathcal{H}}
+\newcommand{\setG}{G}
+\newcommand{\setH}{H}
+
 % cref style
 \crefname{algorithm}{Algorithm}{Algorithms}
 \Crefname{algorithm}{Algorithm}{Algorithms}
@@ -87,7 +92,7 @@
     \quad
     \begin{minipage}[t]{0.31\linewidth}
         \centering
-        Labelling of $G$\vspace{-4pt}
+        Labelling of $\graphG$\vspace{-4pt}
         \begin{tabular}[t]{cc}
         \toprule
             Vertex & Label\\
@@ -99,7 +104,7 @@
     \quad
     \begin{minipage}[t]{0.31\linewidth}
         \centering
-        Labelling of $H$\vspace{-4pt}
+        Labelling of $\graphH$\vspace{-4pt}
         \begin{tabular}[t]{cc}
         \toprule
             Vertex & Label\\
@@ -176,12 +181,12 @@ earlier constraint programming or clique approaches due to lower memory usage.
 
 We initially assume that graphs are unlabelled, undirected and without loops
 (\cref{sec:extensions} describes how these restrictions may be relaxed).
-The vertices and edge sets of a graph $G$ are denoted $\V(G)$ and $\E(G)$.  The
-set of vertices adjacent to vertex $v$ in graph $G$ is called the
-\emph{neighbourhood} of $v$, denoted $\N(G, v)$. We denote by $\invN(G, v)$ the
+The vertices and edge sets of a graph $\graphG$ are denoted $\V(\graphG)$ and $\E(\graphG)$.  The
+set of vertices adjacent to vertex $v$ in graph $\graphG$ is called the
+\emph{neighbourhood} of $v$, denoted $\N(\graphG, v)$. We denote by $\invN(\graphG, v)$ the
 \emph{inverse neighbourhood} of $v$, being the set of the vertices not adjacent
-to $v$ (excluding $v$ itself). A \emph{subgraph} of a graph $G$ is a graph
-consisting of some of the vertices of $G$, and all of the edges between these
+to $v$ (excluding $v$ itself). A \emph{subgraph} of a graph $\graphG$ is a graph
+consisting of some of the vertices of $\graphG$, and all of the edges between these
 vertices. A \emph{common subgraph} of two graphs is a graph which is
 (isomorphic to) a subgraph of two graphs simultaneously, and a \emph{maximum}
 common subgraph is one with as many vertices as possible. (In this paper, all
@@ -189,23 +194,23 @@ subgraphs are induced. The \emph{maximum common partial subgraph} problem
 instead asks for a common non-induced subgraph with as many \emph{edges} as
 possible.)
 
-Let $G$ and $H$ be the two input graphs to our maximum common subgraph problem.
+Let $\graphG$ and $\graphH$ be the two input graphs to our maximum common subgraph problem.
 The orders (vertex counts) of these graphs are denoted $g$ and $h$.
 
 With these definitions established, we now present \McSplit, a branch and bound
 algorithm which uses a new vertex-labelling scheme to avoid explicitly
-maintaining the set of feasible mappings for each vertex in $\V(G)$.
+maintaining the set of feasible mappings for each vertex in $\V(\graphG)$.
 
 \McSplit\ finds a maximum-cardinality mapping $M^* = \{(v_1, w_1), \dots,
-(v_{m}, w_{m})\}$ with $|M^*| = m$ vertex pairs, where the $v_i$ are distinct members of $\V(G)$ and the
-$w_i$ are distinct vertices of $\V(H)$, such that $v_i$ and $v_j$ are adjacent
-in $G$ if and only if $w_i$ and $w_j$ are adjacent in $H$. 
-Given such a mapping, the subgraph of $G$ induced by $\{v_i, \dots, v_{m}\}$
-and the subgraph of $H$ induced by $\{w_i, \dots, w_{m}\}$ are a maximum
+(v_{m}, w_{m})\}$ with $|M^*| = m$ vertex pairs, where the $v_i$ are distinct members of $\V(\graphG)$ and the
+$w_i$ are distinct vertices of $\V(\graphH)$, such that $v_i$ and $v_j$ are adjacent
+in $\graphG$ if and only if $w_i$ and $w_j$ are adjacent in $\graphH$. 
+Given such a mapping, the subgraph of $\graphG$ induced by $\{v_i, \dots, v_{m}\}$
+and the subgraph of $\graphH$ induced by $\{w_i, \dots, w_{m}\}$ are a maximum
 common subgraph.
 
 \paragraph{Walkthrough} Before discussing the algorithm in detail, we start
-with an illustration of the main concepts using the graphs $G$ and $H$ in
+with an illustration of the main concepts using the graphs $\graphG$ and $\graphH$ in
 \cref{fig:alg1}.  These graphs have a maximum common subgraph with four
 vertices; one example is the mapping $\{1a, 2f, 3d, 5b\}$ where vertex $1$ is
 assigned to vertex $a$, $2$ is assigned to $f$, $3$ to $d$ and $5$ to $b$.
@@ -215,21 +220,21 @@ assigned to vertex $a$, $2$ is assigned to $f$, $3$ to $d$ and $5$ to $b$.
     \exampleG
     \qquad
     \exampleH
-\caption{Example graphs $G$ and $H$.}
+\caption{Example graphs $\graphG$ and $\graphH$.}
 \label{fig:alg1}
 \end{figure}
 
 The algorithm builds up a mapping $M$, starting with the empty mapping
-$\emptyset$. Select a vertex in $\V(G)$ as the first vertex to be mapped; in
+$\emptyset$. Select a vertex in $\V(\graphG)$ as the first vertex to be mapped; in
 our example we will arbitrarily choose vertex $1$. Each of the vertices in
-$\V(H)$ to which vertex $1$ may be mapped will be tried in turn, and finally the
+$\V(\graphH)$ to which vertex $1$ may be mapped will be tried in turn, and finally the
 possibility where vertex $1$ remains unmatched will be tried.
 
 We begin by mapping vertex $1$ to vertex $a$, giving $M=\{1a\}$.  Now label
 each unmatched vertex according to whether it is adjacent to vertex $1$ (in
-$G$) or vertex $a$ (in $H$), as shown in \cref{fig:alg2}.  Adjacent
+$\graphG$) or vertex $a$ (in $\graphH$), as shown in \cref{fig:alg2}.  Adjacent
 vertices have label 1; non-adjacent vertices have label 0.  We can extend $M$
-with a vertex mapping $vw$, with $v \in \V(G)$ and $w \in \V(H)$, if and only
+with a vertex mapping $vw$, with $v \in \V(\graphG)$ and $w \in \V(\graphH)$, if and only
 if $v$ and $w$ have the same label.  This property, that two vertices may be
 mapped together if and only if they share a label, is the algorithm's main
 invariant.
@@ -272,20 +277,20 @@ invariant.
       \label{fig:alg4}
     }
 
-    \caption{Mapping $M$ and vertex labels during search on example graphs $G$ and $H$ from \cref{fig:alg1}.}
+    \caption{Mapping $M$ and vertex labels during search on example graphs $\graphG$ and $\graphH$ from \cref{fig:alg1}.}
     \label{figure:mcsplit-examples}
 \end{figure}
 
 \begin{figure}[ht]
 \end{figure}
 
-Next, extend the mapping by pairing a vertex in $G$ with a vertex in $H$ of the
+Next, extend the mapping by pairing a vertex in $\graphG$ with a vertex in $\graphH$ of the
 same label; we will choose to map vertex $2$ to vertex $d$, giving $M=\{1a,
-2d\}$ (\cref{fig:alg3}).  Each unmapped vertex $v \in \V(G)$ is labelled
+2d\}$ (\cref{fig:alg3}).  Each unmapped vertex $v \in \V(\graphG)$ is labelled
 with a two-character bit string, indicating its adjacency to each of
-the two mapped vertices in $\V(G)$ (vertices $1$ and $2$).  For example, vertex
+the two mapped vertices in $\V(\graphG)$ (vertices $1$ and $2$).  For example, vertex
 $3$ is labelled $01$, indicating that it is not adjacent to vertex $1$ but is adjacent
-to vertex $2$.  Labels are given to unmapped vertices in $\V(H)$ in a similar fashion,
+to vertex $2$.  Labels are given to unmapped vertices in $\V(\graphH)$ in a similar fashion,
 showing adjacency to matched vertices $a$ and $d$.  Our invariant is
 maintained: we can extend $M$ by a vertex pairing if and only if the two
 vertices have the same label.
@@ -298,12 +303,12 @@ search tree shown in \cref{fig:alg4}.
 Three vertex labels are used: 100,
 101, and 111.  The first two of these only appear in one graph, and therefore
 there is no way to add a pair of vertices with label 100 or 101 to the mapping.
-The final label, 111, appears once in $G$ and twice in $H$, and therefore at
+The final label, 111, appears once in $\graphG$ and twice in $\graphH$, and therefore at
 most one pair with this label can be added to $M$.  Thus, the upper bound on
 matching size is $|M| + 1 = 4$. The general formula for the upper bound is
 \begin{multline*}
-    \mathit{bound} = |M| + \sum_{l \in L} \min\big(|\{ v \in \V(G) : \vtxlabel(v)=l\}|, \\[-0.3cm]
-        |\{ v \in \V(H) : \vtxlabel(v)=l \}|\big) \text{,}
+    \mathit{bound} = |M| + \sum_{l \in L} \min\big(|\{ v \in \V(\graphG) : \vtxlabel(v)=l\}|, \\[-0.3cm]
+        |\{ v \in \V(\graphH) : \vtxlabel(v)=l \}|\big) \text{,}
 \end{multline*} where $L$ is the set of labels used in both graphs.
 
 %When we have explored the full
@@ -311,26 +316,26 @@ matching size is $|M| + 1 = 4$. The general formula for the upper bound is
 %$f$.  Since $d$ and $f$ are the only vertices to which $2$ can be matched given
 %the decision to match $1$ to $a$, we lastly explore the possibility that $2$ is
 %left unmatched, by giving $2$ the label $\bot$ and selecting another vertex in
-%$\V(G)$ to assign.
+%$\V(\graphG)$ to assign.
 
 \paragraph{Label classes} We require only $\BigO{g+h}$ space per level of the
 search tree to store labelling information.  This is done by storing a
-\emph{label class} as a pair $\langle P,T \rangle$ for each label $l$ that is
-used, where $P$ is the set of vertices in $\V(G)$ labelled $l$, and $T$ is the
-set of vertices in $\V(H)$ labelled $l$\footnote{We adopt terminology from
-subgraph isomorphism, where one graph is a pattern graph $P$ and the other the
-target graph $T$.}. Since there are $g + h$ vertices in the two graphs, at most
+\emph{label class} as a pair $\langle \setG,\setH \rangle$ for each label $l$ that is
+used, where $\setG$ is the set of vertices in $\V(\graphG)$ labelled $l$, and $\setH$ is the
+set of vertices in $\V(\graphH)$ labelled $l$\footnote{We adopt terminology from
+subgraph isomorphism, where one graph is a pattern graph $\setG$ and the other the
+target graph $\setH$.}. Since there are $g + h$ vertices in the two graphs, at most
 $g + h$ label classes can exist at once, and there are at most $g + h$ vertices
-in the union of all of the $P$ and $T$ sets. Furthermore, we do not actually
+in the union of all of the $\setG$ and $\setH$ sets. Furthermore, we do not actually
 need to store the bits making up a label---we care only that like-labelled
 vertices are kept together, and the label itself is not used. Nor do we need to
 store any label class which is present only in one graph but not the other (or
 which is not present at all).  Together, these facts allow us to store all the
 necessary information in two pairs of flat arrays. One pair of arrays is used
-to store a permutation of the vertices in $P$ having like-labelled vertices
+to store a permutation of the vertices in $\setG$ having like-labelled vertices
 stored consecutively, together with the indices of the start of each label in
 turn (in some arbitrary order). The second pair stores the permutation of
-vertices in $T$, together with label start indices \emph{in the same order} as
+vertices in $\setH$, together with label start indices \emph{in the same order} as
 they are used in the first pair of arrays. ?? This representation has
 similarities to data structures used in partition backtracking and the \citet{DBLP:journals/cacm/BronK73} clique enumeration algorithm.
 
@@ -342,37 +347,37 @@ similarities to data structures used in partition backtracking and the \citet{DB
 \nl \lIf {$|M| > |\AlgVar{incumbent}|$}{$save(matching)$} \label{StoreIncumbent}
 %\nl \lIf {$\AlgVar{future} = \emptyset$}{return}
 \medskip
-\nl $\AlgVar{bound} \gets |M|  + \sum_{\langle P,T \rangle \in \AlgVar{future}} \min(|P|,|T|)$ \label{CalcBound} \;
+\nl $\AlgVar{bound} \gets |M|  + \sum_{\langle \setG,\setH \rangle \in \AlgVar{future}} \min(|\setG|,|\setH|)$ \label{CalcBound} \;
 \nl \lIf {$\AlgVar{bound} \leq |\AlgVar{incumbent}|$}{return} \label{PruneSearch}
 \medskip
-\nl $\langle P,T \rangle \gets \FuncSty{SelectLabelClass}(\AlgVar{future})$ \label{SelectClass} \;
-\nl $v \gets \FuncSty{SelectVertex}(P)$ \label{SelectVertex} \;
-\nl \For {$w \in T$ \label{WLoop}} {
+\nl $\langle \setG,\setH \rangle \gets \FuncSty{SelectLabelClass}(\AlgVar{future})$ \label{SelectClass} \;
+\nl $v \gets \FuncSty{SelectVertex}(\setG)$ \label{SelectVertex} \;
+\nl \For {$w \in \setH$ \label{WLoop}} {
     \nl    $M \gets M \cup \{(v,w)\}$ \label{GrowM} \;
 \nl    \bf{Let} $\AlgVar{future'} \gets \emptyset$ \label{NewFuture} \;
-\nl    \For {$\langle P',T'\rangle \in future$ \label{InnerLoop}}{
-\nl        \bf{Let} $P'' \gets P' \cap \N(G, v) \setminus \{v\}$ \label{NewPWithEdge} \;
-\nl        \bf{Let} $T'' \gets T' \cap \N(H, w) \setminus \{w\}$ \;
-\nl        \If {$P'' \neq \emptyset$ \bf{and} $T'' \neq \emptyset$}{
-\nl            $\AlgVar{future'} \gets \AlgVar{future'} + \langle P'' , T'' \rangle$ \label{AddToFutureWithEdge}}
-\nl        \bf{Let} $P'' \gets P' \cap \invN(G, v) \setminus \{v\}$ \label{NewPWithoutEdge}  \;
-\nl        \bf{Let} $T'' \gets T' \cap \invN(H, w) \setminus \{w\}$ \;
-\nl        \If {$P'' \neq \emptyset$ \bf{and} $T'' \neq \emptyset$}{
-\nl            $\AlgVar{future'} \gets \AlgVar{future'} + \langle P'' , T'' \rangle$} \label{InnerLoopEnd}
+\nl    \For {$\langle \setG',\setH'\rangle \in future$ \label{InnerLoop}}{
+\nl        \bf{Let} $\setG'' \gets \setG' \cap \N(\graphG, v) \setminus \{v\}$ \label{NewPWithEdge} \;
+\nl        \bf{Let} $\setH'' \gets \setH' \cap \N(\graphH, w) \setminus \{w\}$ \;
+\nl        \If {$\setG'' \neq \emptyset$ \bf{and} $\setH'' \neq \emptyset$}{
+\nl            $\AlgVar{future'} \gets \AlgVar{future'} + \langle \setG'' , \setH'' \rangle$ \label{AddToFutureWithEdge}}
+\nl        \bf{Let} $\setG'' \gets \setG' \cap \invN(\graphG, v) \setminus \{v\}$ \label{NewPWithoutEdge}  \;
+\nl        \bf{Let} $\setH'' \gets \setH' \cap \invN(\graphH, w) \setminus \{w\}$ \;
+\nl        \If {$\setG'' \neq \emptyset$ \bf{and} $\setH'' \neq \emptyset$}{
+\nl            $\AlgVar{future'} \gets \AlgVar{future'} + \langle \setG'' , \setH'' \rangle$} \label{InnerLoopEnd}
        }
 \nl   $\FuncSty{expand}(\AlgVar{future'},M)$ \label{ExpandWithV} \;
 \nl   $M \gets M \setminus \{(v,w)\}$ \label{ShrinkM} \;
   }
-\nl $P' \gets P \setminus \{v\}$ \label{RemoveV} \;
-\nl $\AlgVar{future} \gets \AlgVar{future} \setminus \{\langle P,T \rangle\}$\;
-\nl \lIf {$P' \neq \emptyset$} {$\AlgVar{future} \gets \AlgVar{future} \cup \{\langle P',T \rangle \}$}
+\nl $\setG' \gets \setG \setminus \{v\}$ \label{RemoveV} \;
+\nl $\AlgVar{future} \gets \AlgVar{future} \setminus \{\langle \setG,\setH \rangle\}$\;
+\nl \lIf {$\setG' \neq \emptyset$} {$\AlgVar{future} \gets \AlgVar{future} \cup \{\langle \setG',\setH \rangle \}$}
 \nl $\FuncSty{expand}(\AlgVar{future},M)$ \label{ExpandWithoutV} \;
 }
 \;
-\nl $\FuncSty{McSplit}(G,H)$ \label{McSplitFun} \;
+\nl $\FuncSty{McSplit}(\graphG,\graphH)$ \label{McSplitFun} \;
 \nl \Begin{
 \nl $\AlgVar{incumbent} \gets \emptyset$ \;
-\nl $\FuncSty{expand}(\{\langle V(G),V(H) \rangle \},\emptyset)$ \label{FirstExpandCall} \;
+\nl $\FuncSty{expand}(\{\langle V(\graphG),V(\graphH) \rangle \},\emptyset)$ \label{FirstExpandCall} \;
 \nl return $|\AlgVar{incubent}|$ \;
 }
 \caption{Finding a maximum common subgraph.}
@@ -381,7 +386,7 @@ similarities to data structures used in partition backtracking and the \citet{DB
 
 \paragraph{\cref{McSplitAlg} in detail} The recursive procedure,
 $\FuncSty{expand}$, has two parameters.  The parameter $\AlgVar{future}$ is a
-list of label classes, each represented as a $\langle P, T \rangle$ pair as
+list of label classes, each represented as a $\langle \setG, \setH \rangle$ pair as
 described above.  The parameter $M$ is the current mapping of vertices.  On
 each call to $\FuncSty{expand}$, the invariant holds that a $(v,w)$ pair may be
 added to $M$ if and only if $v$ and $w$ belong to the same label class in
@@ -392,26 +397,26 @@ to unseat the incumbent.  \Linerangeref{CalcBound}{PruneSearch} prune the
 search when a calculated upper bound is not larger than the incumbent.
 
 The remainder of $\FuncSty{expand}$ performs the search.  A label class
-$\langle P, T \rangle$ is selected from $\AlgVar{future}$, where $P \subseteq
-V(G)$ and $T \subseteq V(H)$, using some heuristic (\lineref{SelectClass}).
-From this label class, a vertex $v$ is selected from $P$ using a heuristic
-(\lineref{SelectVertex}). We now iterate over all possible vertices in $T$
-(\linerangeref{WLoop}{ShrinkM}). A vertex $w \in T$ is selected and mapping $M$
+$\langle \setG, \setH \rangle$ is selected from $\AlgVar{future}$, where $\setG \subseteq
+V(\graphG)$ and $\setH \subseteq V(\graphH)$, using some heuristic (\lineref{SelectClass}).
+From this label class, a vertex $v$ is selected from $\setG$ using a heuristic
+(\lineref{SelectVertex}). We now iterate over all possible vertices in $\setH$
+(\linerangeref{WLoop}{ShrinkM}). A vertex $w \in \setH$ is selected and mapping $M$
 is extended (\lineref{GrowM}). A new set of label-classes, $\AlgVar{future'}$,
 is created (\lineref{NewFuture}).  Every label-class in $\AlgVar{future}$ can
 now be split (\linerangeref{InnerLoop}{InnerLoopEnd}) into two new classes. The
 first of these classes (\linerangeref{NewPWithEdge}{AddToFutureWithEdge})
-contains vertices in $P$ adjacent to $v$ and vertices in $T$ adjacent to $w$.
+contains vertices in $\setG$ adjacent to $v$ and vertices in $\setH$ adjacent to $w$.
 This is added to $\AlgVar{future'}$ if both sets contain at least one vertex.
 This is then repeated symmetrically for non-adjacency
 (\linerangeref{NewPWithoutEdge}{InnerLoopEnd}). A recursive call is then made
 (\lineref{ExpandWithV}), on return from which we remove the mapping $(v,w)$.
-Having explored all possible mappings of $v$ with vertices in $T$ we now
+Having explored all possible mappings of $v$ with vertices in $\setH$ we now
 consider what happens if $v$ is not matched
 (\linerangeref{RemoveV}{ExpandWithoutV}).
 
 We start our search at the function $\FuncSty{McSplit}$ (\lineref{McSplitFun}),
-with graphs $G$ and $H$ as inputs.  This function returns the size of the
+with graphs $\graphG$ and $\graphH$ as inputs.  This function returns the size of the
 largest mapping.  In \lineref{FirstExpandCall} the initial call is made to
 $\FuncSty{expand}$; at this point we have a single label-class containing all
 vertices, and the mapping $M$ is empty.
@@ -420,9 +425,9 @@ vertices, and the mapping $M$ is empty.
 
 ?? Reword for here, explain later Small scale experiments (not presented here)
 were performed to identify a suitable heuristic for label class selection. The
-heuristic used selects the label class  with the smallest $\min(|P|,|T|)$ (a
+heuristic used selects the label class  with the smallest $\min(|\setG|,|\setH|)$ (a
 surrogate for expected branching factor). From this class, a vertex is selected
-from $P$ with maximum degree if $H$ is sparse and with minimum degree if $H$ is
+from $\setG$ with maximum degree if $\graphH$ is sparse and with minimum degree if $\graphH$ is
 dense.
 
 \subsection{Extensions}\label{sec:extensions}
@@ -430,10 +435,10 @@ dense.
 \begin{algorithm}[t]
 \DontPrintSemicolon
 \nl    \For {$l \in L$}{
-\nl        \bf{Let} $P'' \gets \{ u \in P' : u \neq v \wedge A_G[v][u] = l \}$ \;
-\nl        \bf{Let} $T'' \gets \{ u \in T' : u \neq w \wedge A_H[w][u] = l \}$ \;
-\nl        \If {$P'' \negmedspace\neq \emptyset$ \bf{and} $T'' \negmedspace \neq \emptyset$}{
-    \nl $\AlgVar{future'} \gets \AlgVar{future'} + \langle P''\negmedspace, T'' \rangle$}
+\nl        \bf{Let} $\setG'' \gets \{ u \in \setG' : u \neq v \wedge A_G[v][u] = l \}$ \;
+\nl        \bf{Let} $\setH'' \gets \{ u \in \setH' : u \neq w \wedge A_H[w][u] = l \}$ \;
+\nl        \If {$\setG'' \negmedspace\neq \emptyset$ \bf{and} $\setH'' \negmedspace \neq \emptyset$}{
+    \nl $\AlgVar{future'} \gets \AlgVar{future'} + \langle \setG''\negmedspace, \setH'' \rangle$}
        }
     \caption{Replacement for \linerangeref{NewPWithEdge}{InnerLoopEnd} of \cref{McSplitAlg} to handle directed and labelled cases.}
 \label{labDirAlg}
@@ -442,20 +447,20 @@ dense.
 ?? This needs a two sentence intro saying that people care about stuff and why.
 
 \paragraph{Vertex labels and loops} If vertices are labelled, replace ${\langle
-V(G),V(H) \rangle}$ in \lineref{FirstExpandCall} with a set of label classes,
-one for each label that appears on at least one vertex of both $G$ and $H$.
+V(\graphG),V(\graphH) \rangle}$ in \lineref{FirstExpandCall} with a set of label classes,
+one for each label that appears on at least one vertex of both $\graphG$ and $\graphH$.
 Loops may be treated as a label modifier: assuming the original vertex labels
 are positive integers, we replace the label $l$ with $-l$ on each vertex that
 has a loop.
 
 \paragraph{Directed graphs without edge labels} Let $A_G$ and $A_H$ be
-adjacency matrices of $G$ and $H$. For each vertex pair $(t,u)$ in graph $G$ or
-$H$, the adjacency matrix entry takes the value 0 if the vertices are not
+adjacency matrices of $\graphG$ and $\graphH$. For each vertex pair $(t,u)$ in graph $\graphG$ or
+$\graphH$, the adjacency matrix entry takes the value 0 if the vertices are not
 adjacent, 1 if the two vertices share a single edge in the direction $t
 \rightarrow u$, 2 if they share a single edge in the direction $u \rightarrow
 t$, and 3 if there are edges in both directions. Where
 \linerangeref{NewPWithEdge}{InnerLoopEnd} of the basic algorithm split the
-label class $\langle P',T' \rangle$ in two, we now perform a four-way split
+label class $\langle \setG',\setH' \rangle$ in two, we now perform a four-way split
 where each vertex is classified according to the label on its adjacency matrix
 entry from $v$ or $w$.  This is shown in \cref{labDirAlg}, where
 $L=\{0,1,2,3\}$.
@@ -469,10 +474,10 @@ time complexity per search node.  To achieve $\BigO{(g+h) \log (g+h)}$ time
 complexity per search node, we can modify the algorithms to use sorting rather
 than explicitly looping over all label classes, as follows.  First, run lines
 17-19 of \cref{McSplitAlg} to create a new label-class of vertices that are
-not adjacent to $v$ or $w$, and remove these vertices from $\langle P',T'
-\rangle$.  Next, sort $P'$ and $T'$ in ascending order of the label on the edge
+not adjacent to $v$ or $w$, and remove these vertices from $\langle \setG',\setH'
+\rangle$.  Next, sort $\setG'$ and $\setH'$ in ascending order of the label on the edge
 from $v$ or $w$ to each vertex. We can then create the label classes
-corresponding to each edge label by simultaneously traversing $P'$ and $T'$
+corresponding to each edge label by simultaneously traversing $\setG'$ and $\setH'$
 from left to right.
 
 \paragraph{Directed with edge labels} This case is similar to its undirected
@@ -648,11 +653,11 @@ considered to be a different version of the constraint CP-FC algorithm, using
 an unconventional domain store and more efficient filtering algorithms. We now
 explore this relationship further.
 
-In the CP-FC algorithm, each vertex $v \in \V(G)$ is represented by a
-variable, whose domain corresponds to the set of vertices in $\V(H)$ to which
+In the CP-FC algorithm, each vertex $v \in \V(\graphG)$ is represented by a
+variable, whose domain corresponds to the set of vertices in $\V(\graphH)$ to which
 $v$ may currently be mapped, with an additional special $\bot$ value
 representing an unmapped vertex.
-Given a label class $\langle P,T \rangle$ in \McSplit\, the vertices in $P$
+Given a label class $\langle \setG,\setH \rangle$ in \McSplit\, the vertices in $\setG$
 correspond to variables in CP-FC. The label-class representation of domains is
 possible because throughout the CP-FC algorithm for max common subgraph, the
 domains of any two variables are either identical or disjoint (excluding
@@ -676,11 +681,11 @@ domains.
 %%% 
 %%% \begin{algorithm}
 %%% \DontPrintSemicolon
-%%% \nl    \For {$u \in \N(G, b)$}{
+%%% \nl    \For {$u \in \N(\graphG, b)$}{
 %%% \nl        remove $v$ from $D'_u$ \;
 %%% \nl        remove the inverse neighbourhood of $t$ from $D'_u$ \;
 %%%        }
-%%% \nl    \For {$u \in \invN(G, b)$}{
+%%% \nl    \For {$u \in \invN(\graphG, b)$}{
 %%% \nl        remove $v$ from $D'_u$ \;
 %%% \nl        remove the neighbourhood of $t$ from $D'_u$ \;
 %%%        }
@@ -691,9 +696,9 @@ domains.
 A further advantage of our encoding is that it gives us efficient access to a
 better branching heuristic. The CP-FC algorithm uses smallest domain first,
 which in our algorithm corresponds to branching on a label class with smallest
-$|T|$. We instead branch on the label class with smallest $\min(|P|,|T|)$.
+$|\setH|$. We instead branch on the label class with smallest $\min(|\setG|,|\setH|)$.
 This is empirically better, and accounts for much of the difference between
-the number of recursive calls made; branching on the smallest $|P| |T|$ gives
+the number of recursive calls made; branching on the smallest $|\setG| |\setH|$ gives
 very similar results. This can be viewed as exploiting both smallest domain first,
 and the dual viewpoint \citep{DBLP:conf/ecai/Geelen92} of smallest domain
 first, simultaneously, but we do not have the overheads of having to maintain
@@ -728,10 +733,10 @@ avoiding the high memory cost and colouring time of encoding the full instance.
 
 We believe there is more to be discovered about branching heuristics. There is
 also the potential to branch on both sides, that is instead of branching on
-vertices in $\V(G)$, it would be equally valid to branch on a vertex in
-$\V(H)$, since our data structure treats the two graphs symmetrically. More
+vertices in $\V(\graphG)$, it would be equally valid to branch on a vertex in
+$\V(\graphH)$, since our data structure treats the two graphs symmetrically. More
 interestingly, we could choose which graph to branch on at each search node
-using some heuristic (perhaps choosing based on whether the $P$ or $T$ set is
+using some heuristic (perhaps choosing based on whether the $\setG$ or $\setH$ set is
 smaller), so long as we can ensure that the search remains complete.
 
 It would be interesting to see whether these techniques are more broadly
