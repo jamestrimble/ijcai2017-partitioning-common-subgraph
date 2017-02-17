@@ -353,14 +353,14 @@ clique enumeration algorithm.
 \nl $v \gets \FuncSty{SelectVertex}(\setG)$ \label{SelectVertex} \;
 \nl \For {$w \in \setH$ \label{WLoop}} {
     \nl    $M \gets M \cup \{(v,w)\}$ \label{GrowM} \;
-\nl    \bf{Let} $\AlgVar{future'} \gets \emptyset$ \label{NewFuture} \;
+\nl    $\AlgVar{future'} \gets \emptyset$ \label{NewFuture} \;
 \nl    \For {$\langle \setG',\setH'\rangle \in future$ \label{InnerLoop}}{
-\nl        \bf{Let} $\setG'' \gets \setG' \cap \N(\graphG, v) \setminus \{v\}$ \label{NewPWithEdge} \;
-\nl        \bf{Let} $\setH'' \gets \setH' \cap \N(\graphH, w) \setminus \{w\}$ \;
+\nl        $\setG'' \gets \setG' \cap \N(\graphG, v) \setminus \{v\}$ \label{NewPWithEdge} \;
+\nl        $\setH'' \gets \setH' \cap \N(\graphH, w) \setminus \{w\}$ \;
 \nl        \If {$\setG'' \neq \emptyset$ \bf{and} $\setH'' \neq \emptyset$}{
 \nl            $\AlgVar{future'} \gets \AlgVar{future'} \cup \{\langle \setG'' , \setH'' \rangle\}$ \label{AddToFutureWithEdge}}
-\nl        \bf{Let} $\setG'' \gets \setG' \cap \invN(\graphG, v) \setminus \{v\}$ \label{NewPWithoutEdge}  \;
-\nl        \bf{Let} $\setH'' \gets \setH' \cap \invN(\graphH, w) \setminus \{w\}$ \;
+\nl        $\setG'' \gets \setG' \cap \invN(\graphG, v) \setminus \{v\}$ \label{NewPWithoutEdge}  \;
+\nl        $\setH'' \gets \setH' \cap \invN(\graphH, w) \setminus \{w\}$ \;
 \nl        \If {$\setG'' \neq \emptyset$ \bf{and} $\setH'' \neq \emptyset$}{
 \nl            $\AlgVar{future'} \gets \AlgVar{future'} \cup \{\langle \setG'' , \setH'' \rangle\}$} \label{InnerLoopEnd}
        }
@@ -434,8 +434,8 @@ $\graphH$ is dense. We discuss this further in \cref{sec:comparison}.
 \begin{algorithm}[t]
 \DontPrintSemicolon
 \nl    \For {$l \in L$}{
-\nl        \bf{Let} $\setG'' \gets \{ u \in \setG' : u \neq v \wedge A_G[v][u] = l \}$ \;
-\nl        \bf{Let} $\setH'' \gets \{ u \in \setH' : u \neq w \wedge A_H[w][u] = l \}$ \;
+\nl        $\setG'' \gets \{ u \in \setG' : u \neq v \wedge A_G[v][u] = l \}$ \;
+\nl        $\setH'' \gets \{ u \in \setH' : u \neq w \wedge A_H[w][u] = l \}$ \;
 \nl        \If {$\setG'' \negmedspace\neq \emptyset$ \bf{and} $\setH'' \negmedspace \neq \emptyset$}{
     \nl $\AlgVar{future'} \gets \AlgVar{future'} + \langle \setG''\negmedspace, \setH'' \rangle$}
        }
