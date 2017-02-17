@@ -709,15 +709,19 @@ first, simultaneously, but we do not have the overheads of having to maintain
 and channel between the dual viewpoint that would be required when using a
 conventional domain store.
 
-What about our relationship to the $k{\downarrow}$ of \citet{UpcomingAAAIPaper}?
-\Cref{figure:prettyheatmaps3} plots the number of
+What about our relationship to the $k{\downarrow}$ of
+\citet{UpcomingAAAIPaper}?  \Cref{figure:prettyheatmaps3} plots the number of
 recursive calls made by $k{\downarrow}$ and \McSplit\ on each of the subgraph
 isomorphism instances. Although \McSplit\ is the faster algorithm overall, it
-explores more search nodes than $k{\downarrow}$ for most instances.
-
-?? Talk about the classic tradeoff, and dynamically switching.
-
-?? The concentration of points, down to unit propagation and counting
+explores more search nodes than $k{\downarrow}$ for most instances (even taking
+into account that $k{\downarrow}$ uses a unit propagation loop, and so measures
+the search tree slightly differently). This is the classic tradeoff between
+speed and cleverness. A hybrid algorithm could be beneficial here: it could use
+$k{\downarrow}$ initially, switching to \McSplit\ when the extra filtering is
+ineffective, and finally switching to a clique encoding when fewer than some
+threshold number of vertices remain to be selected. This might deliver the
+benefits of the clique encoding for labelled graphs, while avoiding the high
+memory cost and colouring time of encoding the full instance.
 
 \section{Conclusion}
 
@@ -727,13 +731,6 @@ previous state of the art for unlabelled and undirected instances. We have
 shown how the algorithm can be extended for graphs with labels on edges, labels
 on vertices, loops, directed edges and the requirement that the resultant graph
 be connected.
-
-To further improve the state of the art, we could create a hybrid
-algorithm.  This could use $k{\downarrow}$ initially, switching to \McSplit\ when
-the extra filtering is ineffective, and finally switching to a clique encoding
-when fewer than some threshold number of vertices remain to be selected. This
-might deliver the benefits of the clique encoding for labelled graphs, while
-avoiding the high memory cost and colouring time of encoding the full instance.
 
 We believe there is more to be discovered about branching heuristics. There is
 also the potential to branch on both sides, that is instead of branching on
