@@ -740,11 +740,14 @@ using some heuristic (perhaps choosing based on whether the $\setG$ or $\setH$ s
 smaller), so long as we can ensure that the search remains complete.
 
 It would be interesting to see whether these techniques are more broadly
-applicable. Most obviously, we could solve the induced subgraph isomorphism
-problem in the same way (and with nearly no changes to the code), but we could
-not solve the non-induced version. However, we suspect that some other problems
-may have a similar branching structure which would also benefit from a
-different domain store representation.
+applicable---we suspect that some other problems may have a similar branching
+structure which would also benefit from a different domain store
+representation. Most obviously, we could solve the induced subgraph isomorphism
+problem in the same way (and with nearly no changes to the code), and our
+connected variant shows that certain side constraints can also be handled.
+However, we cannot solve the non-induced subgraph isomorphism this way, nor can
+we handle certain richer labelling schemes such as those used in temporal
+subgraph isomorphism \citep{DBLP:conf/asunam/RedmondC13}.
 
 \newpage
 
