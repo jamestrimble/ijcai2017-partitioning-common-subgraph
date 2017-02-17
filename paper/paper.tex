@@ -665,9 +665,9 @@ representing an unmapped vertex.  Given a label class $\langle \setG,\setH
 CP-FC, and the vertices in $\setH$ to domain values. The label-class
 representation of domains is possible because throughout the CP-FC algorithm
 for maximum common subgraph, the domains of any two variables are either
-identical or disjoint (excluding $\bot$, which is slightly more complicated).
+identical or disjoint (excluding $\bot$, which is either present in all domains or in none).
 To the best of our knowledge, this observation has not been made previously,
-and it is not exploited in other implementations.
+and it is not exploited in other algorithms for maximum common subgraph.
 
 CP-FC uses a soft all-different constraint to compute a bound, which requires
 running a matching algorithm on a supporting compatibility graph.  Careful
