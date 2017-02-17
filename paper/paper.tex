@@ -560,7 +560,7 @@ CP-MAC in this case. Matching the conclusions of
 the other algorithms---including \McSplit---on these labelled instances, except
 in the very easy region of instances that can be solved in well under 100 ms.
 
-\paragraph{Unlabelled, undirected, connected} This class of instances are shown
+\paragraph{Unlabelled, undirected, connected} This class of instances is shown
 in \cref{figure:plain-connected-cumulative}.  These results are very similar to
 the corresponding experiment in \cref{figure:plain-cumulative} in which the
 subgraph is not required to be connected: \McSplit\ is the clear winner by more
@@ -569,7 +569,7 @@ than an order of magnitude.
 \paragraph{Vertex and edge labels, undirected, connected} For the labelled,
 connected case, clique slightly outperforms \McSplit\ on harder instances
 (\cref{figure:33ve-connected-cumulative}). However, the gap between the two algorithms
-is very narrow, and is probably down to quality of implementation; indeed, the
+is very narrow, and is probably down to minor implementation details; indeed, the
 cumulative curve for \McSplit\ briefly rises above the curve for clique at a
 runtime just below 100 seconds. Additionally, \McSplit\ is the clear winner for
 easier instances, where the clique encoding is relatively expensive to
