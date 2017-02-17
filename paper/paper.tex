@@ -197,17 +197,14 @@ possible.)
 Let $\graphG$ and $\graphH$ be the two input graphs to our maximum common subgraph problem.
 The orders (vertex counts) of these graphs are denoted $g$ and $h$.
 
-With these definitions established, we now present \McSplit, a branch and bound
-algorithm which uses a new vertex-labelling scheme to avoid explicitly
-maintaining the set of feasible mappings for each vertex in $\V(\graphG)$.
-
-\McSplit\ finds a maximum-cardinality mapping $M^* = \{(v_1, w_1), \dots,
-(v_{m}, w_{m})\}$ with $|M^*| = m$ vertex pairs, where the $v_i$ are distinct members of $\V(\graphG)$ and the
-$w_i$ are distinct vertices of $\V(\graphH)$, such that $v_i$ and $v_j$ are adjacent
-in $\graphG$ if and only if $w_i$ and $w_j$ are adjacent in $\graphH$. 
-Given such a mapping, the subgraph of $\graphG$ induced by $\{v_i, \dots, v_{m}\}$
-and the subgraph of $\graphH$ induced by $\{w_i, \dots, w_{m}\}$ are a maximum
-common subgraph.
+With these definitions established, we now present \McSplit. This algorithm
+finds a maximum-cardinality mapping $M^* = \{(v_1, w_1), \dots, (v_{m},
+w_{m})\}$ with $|M^*| = m$ vertex pairs, where the $v_i$ are distinct members
+of $\V(\graphG)$ and the $w_i$ are distinct vertices of $\V(\graphH)$, such
+that $v_i$ and $v_j$ are adjacent in $\graphG$ if and only if $w_i$ and $w_j$
+are adjacent in $\graphH$.  Given such a mapping, the subgraph of $\graphG$
+induced by $\{v_i, \dots, v_{m}\}$ and the subgraph of $\graphH$ induced by
+$\{w_i, \dots, w_{m}\}$ are a maximum common subgraph.
 
 \paragraph{Walkthrough} Before discussing the algorithm in detail, we start
 with an illustration of the main concepts using the graphs $\graphG$ and $\graphH$ in
