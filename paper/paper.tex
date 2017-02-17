@@ -322,9 +322,7 @@ matching size is $|M| + 1 = 4$. The general formula for the upper bound is
 search tree to store labelling information.  This is done by storing a
 \emph{label class} as a pair $\langle \setG,\setH \rangle$ for each label $l$ that is
 used, where $\setG$ is the set of vertices in $\V(\graphG)$ labelled $l$, and $\setH$ is the
-set of vertices in $\V(\graphH)$ labelled $l$\footnote{We adopt terminology from
-subgraph isomorphism, where one graph is a pattern graph $\setG$ and the other the
-target graph $\setH$.}. Since there are $g + h$ vertices in the two graphs, at most
+set of vertices in $\V(\graphH)$ labelled $l$. Since there are $g + h$ vertices in the two graphs, at most
 $g + h$ label classes can exist at once, and there are at most $g + h$ vertices
 in the union of all of the $\setG$ and $\setH$ sets. Furthermore, we do not actually
 need to store the bits making up a label---we care only that like-labelled
