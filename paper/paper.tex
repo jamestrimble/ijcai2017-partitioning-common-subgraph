@@ -503,7 +503,7 @@ the best constraint programming implementations of
 \citet{DBLP:conf/cp/NdiayeS11} and \citet{DBLP:conf/cp/McCreeshNPS16} (CP-FC in
 the unlabelled cases, and CP-MAC in the labelled cases, using both branching
 and filtering for connected subgraphs), the clique encodings of
-\citet{DBLP:conf/cp/McCreeshNPS16}, and the $k\downarrow$ algorithm of
+\citet{DBLP:conf/cp/McCreeshNPS16}, and the $k{\downarrow}$ algorithm of
 \citet{UpcomingAAAIPaper} (which only supports unlabelled, undirected,
 unconnected instances).
 
@@ -546,7 +546,7 @@ seconds per instance to solve the same number of instances.  For any given
 number of instances, \McSplit\ is comfortably more than an order of magnitude
 faster than its nearer competitor  Moreover, there are few instances in this
 set for which \McSplit\ is not the fastest solver; of the 3,506 instances that
-could be solved by at least one of \McSplit, $k\downarrow$, CP-FC and clique in less than than
+could be solved by at least one of \McSplit, $k{\downarrow}$, CP-FC and clique in less than than
 1,000 seconds, there were 426 instances on which \McSplit\ was not strictly
 faster than the other two solvers.
 
@@ -601,9 +601,9 @@ than half of the instances cannot be solved within a timeout of 1,000 seconds by
 any solver. Furthermore, the CP-FC algorithm and the clique encoding run out of
 memory on many of the instances (these are treated as timeouts).
 
-The basic \McSplit\ is beaten by the $k\downarrow$ algorithm of
+The basic \McSplit\ is beaten by the $k{\downarrow}$ algorithm of
 \citet{UpcomingAAAIPaper} on this dataset. However, we can modify the \McSplit\
-algorithm to use a top-down strategy similar to that used by $k\downarrow$  by
+algorithm to use a top-down strategy similar to that used by $k{\downarrow}$  by
 calling the main \FuncSty{McSplit} method once per goal size ($g, g-1, g-2,
 \dots$); we backtrack (\lineref{PruneSearch} of \cref{McSplitAlg}) when the
 bound is strictly less than the goal size, and terminate when a solution of the
@@ -705,11 +705,11 @@ first, simultaneously, but we do not have the overheads of having to maintain
 and channel between the dual viewpoint that would be required when using a
 conventional domain store.
 
-What about our relationship to the $k\downarrow$ of \citet{UpcomingAAAIPaper}?
+What about our relationship to the $k{\downarrow}$ of \citet{UpcomingAAAIPaper}?
 \Cref{figure:prettyheatmaps3} plots the number of
-recursive calls made by $k\downarrow$ and \McSplit\ on each of the subgraph
+recursive calls made by $k{\downarrow}$ and \McSplit\ on each of the subgraph
 isomorphism instances. Although \McSplit\ is the faster algorithm overall, it
-explores more search nodes than $k\downarrow$ for most instances.
+explores more search nodes than $k{\downarrow}$ for most instances.
 
 ?? Talk about the classic tradeoff, and dynamically switching.
 
@@ -725,7 +725,7 @@ loops, directed edges and the requirement that the resultant graph be
 connected.
 
 To further improve the state of the art, we could try creating a hybrid
-algorithm.  This could use $k\downarrow$ initially, switching to \McSplit\ when
+algorithm.  This could use $k{\downarrow}$ initially, switching to \McSplit\ when
 the extra filtering is ineffective, and finally switching to a clique encoding
 when fewer than some threshold number of vertices remain to be selected. This
 might deliver the benefits of the clique encoding for labelled graphs, while

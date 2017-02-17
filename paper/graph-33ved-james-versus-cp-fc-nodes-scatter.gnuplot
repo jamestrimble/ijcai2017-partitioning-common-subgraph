@@ -3,7 +3,7 @@
 set terminal tikz standalone color size 6cm,5.5cm font '\scriptsize' preamble '\usepackage{times,microtype,algorithm2e,algpseudocode,amssymb}'
 set output "gen-graph-33ved-james-versus-cp-fc-nodes-scatter.tex"
 
-set xlabel 'CP-FC Recursive Calls\vphantom{$\downarrow$}'
+set xlabel 'CP-FC Recursive Calls\vphantom{${\downarrow}$}'
 set ylabel '\textproc{McSplit} Recursive Calls'
 set border 3
 set grid x y front
