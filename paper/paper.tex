@@ -639,7 +639,7 @@ instances, and \McSplit{$\downarrow$} is the best algorithm for every choice of 
     \label{figure:prettyheatmaps}
 \end{figure*}
 
-Our results so far suggest that \McSplit\ has broadly similar performance
+Our experimental results suggest that \McSplit\ has broadly similar performance
 trends to the constraint programming, forward-checking (CP-FC) algorithm of
 \citet{DBLP:conf/cp/NdiayeS11}, but with much lower constant factors and memory usage. Indeed,
 in \cref{figure:prettyheatmaps1,figure:prettyheatmaps2} we plot the number of
@@ -647,13 +647,13 @@ recursive calls made by our algorithm versus the number made by
 CP-FC, for the unlabelled and labelled, unconnected problem
 instances. (Rather than a simple scatter plot, we use darker colours to
 indicate a higher density of points around a location.) We see a close
-correlation: we typically do slightly less work, and sometimes do more, but
-instances with more than one order of magnitude difference in search space size
+correlation: \McSplit\ typically does slightly less work, and sometimes does more, but
+instances with more than one order of magnitude difference in search tree size
 are rare.
 
-Why is this? We do not see a similar correlation between our search space size
+Why is this? We do not see a similar correlation between our search tree size
 and that of the clique approach. The key observation is that \McSplit\ may be
-considered to be a different version of the constraint CP-FC algorithm, using
+considered to be a different version of the CP-FC algorithm, using
 an unconventional domain store and more efficient filtering algorithms. We now
 explore this relationship further.
 
