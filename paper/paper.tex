@@ -738,11 +738,11 @@ vertices in $\V(\graphG)$, it would be equally valid to branch on a vertex in
 $\V(\graphH)$, since our data structure treats the two graphs symmetrically. More
 interestingly, we could choose which graph to branch on at each search node
 using some heuristic (perhaps choosing based on whether the $\setG$ or $\setH$ set is
-smaller), so long as we can ensure that the search remains complete.
+smaller).
 
 It would be interesting to see whether these techniques are more broadly
 applicable---we suspect that some other problems may have a similar branching
-structure which would also benefit from a different domain store
+structure which would also benefit from a partitioning domain store
 representation. Most obviously, we could solve the induced subgraph isomorphism
 problem in the same way (and with nearly no changes to the code), and our
 connected variant shows that certain side constraints can also be handled.
