@@ -657,16 +657,16 @@ an unconventional domain store and more efficient filtering algorithms. We now
 explore this relationship further.
 
 In the CP-FC algorithm, each vertex $v \in \V(\graphG)$ is represented by a
-variable, whose domain corresponds to the set of vertices in $\V(\graphH)$ to which
-$v$ may currently be mapped, with an additional special $\bot$ value
-representing an unmapped vertex.
-Given a label class $\langle \setG,\setH \rangle$ in \McSplit\, the vertices in $\setG$
-correspond to variables in CP-FC. The label-class representation of domains is
-possible because throughout the CP-FC algorithm for maximum common subgraph, the
-domains of any two variables are either identical or disjoint (excluding
-$\bot$, which is slightly more complicated). To the best of our knowledge, this
-observation has not been made previously, and it is not exploited in other
-implementations.
+variable, whose domain corresponds to the set of vertices in $\V(\graphH)$ to
+which $v$ may currently be mapped, with an additional special $\bot$ value
+representing an unmapped vertex.  Given a label class $\langle \setG,\setH
+\rangle$ in \McSplit\, the vertices in $\setG$ correspond to variables in
+CP-FC, and the vertices in $\setH$ to domain values. The label-class
+representation of domains is possible because throughout the CP-FC algorithm
+for maximum common subgraph, the domains of any two variables are either
+identical or disjoint (excluding $\bot$, which is slightly more complicated).
+To the best of our knowledge, this observation has not been made previously,
+and it is not exploited in other implementations.
 
 CP-FC uses a soft all-different constraint to compute a bound, which requires
 running a matching algorithm on a supporting compatibility graph.  Careful
