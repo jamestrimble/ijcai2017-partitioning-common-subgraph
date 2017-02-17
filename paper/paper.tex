@@ -56,7 +56,6 @@
 \newcommand{\BigO}[1]{\ensuremath{\operatorname{O}\left(#1\right)}}
 
 \newcommand{\exampleG} {
-    \begin{minipage}{.2\textwidth}
     \tikz {
         \graph [nodes={draw, circle, minimum width=.5cm, inner sep=1pt}, circular placement, radius=0.8cm,
                 clockwise=5] {
@@ -64,10 +63,8 @@
             1--4; 1--5; 2--3; 2--5; 3--5;
         };
     }
-    \end{minipage}
 }
 \newcommand{\exampleH} {
-    \begin{minipage}{.2\textwidth}
     \tikz {
         \graph [nodes={draw, circle, minimum width=.5cm, inner sep=1pt}, circular placement, radius=0.8cm,
                 clockwise=6, phase=60] {
@@ -75,7 +72,6 @@
             a--b; a--c; a--e; b--d; b--f; c--d; c--e; c--f; d--f; e--f;
         };
     }
-    \end{minipage}
 }
 
 \newcommand{\LabelTables}[3] {
@@ -217,6 +213,7 @@ assigned to vertex $a$, $2$ is assigned to $f$, $3$ to $d$ and $5$ to $b$.
 \begin{figure}[t]
 \centering
     \exampleG
+    \qquad
     \exampleH
 \caption{Example graphs $G$ and $H$.}
 \label{fig:alg1}
