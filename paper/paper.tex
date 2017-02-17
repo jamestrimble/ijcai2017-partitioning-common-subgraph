@@ -192,7 +192,7 @@ vertices. A \emph{common subgraph} of two graphs is a graph which is
 common subgraph is one with as many vertices as possible. (In this paper, all
 subgraphs are induced. The \emph{maximum common partial subgraph} problem
 instead asks for a common non-induced subgraph with as many \emph{edges} as
-possible.)
+possible \citep{DBLP:conf/cp/NdiayeS11}.)
 
 Let $\graphG$ and $\graphH$ be the two input graphs to our maximum common subgraph problem.
 The orders (vertex counts) of these graphs are denoted $g$ and $h$.
@@ -329,7 +329,7 @@ store any label class which is present only in one graph but not the other (or
 which is not present at all).  Together, these facts allow us to store all the
 necessary information in two pairs of flat arrays. One pair of arrays is used
 to store a permutation of the vertices in $\setG$ having like-labelled vertices
-stored consecutively, together with the indices of the start of each label in
+stored consecutively, together with the size and indices of the start of each label in
 turn (in some arbitrary order). The second pair stores the permutation of
 vertices in $\setH$, together with label start indices \emph{in the same order} as
 they are used in the first pair of arrays. This representation has
@@ -339,14 +339,14 @@ clique enumeration algorithm.
 
 \begin{algorithm}[t]
 \DontPrintSemicolon
-\nl $\FuncSty{expand}(\AlgVar{future},M)$ \;
+\nl $\FuncSty{search}(\AlgVar{future},M)$ \;
 \nl \Begin{
 %\nl \lIf {$\AlgVar{future} = \emptyset$ \bf{and} $|M| > |\AlgVar{incumbent}|$}
-\nl \lIf {$|M| > |\AlgVar{incumbent}|$}{$\AlgVar{incumbent} \gets \AlgVar{M}$} \label{StoreIncumbent}
+\nl \lIf {$|M| > |\AlgVar{incumbent}|$}{$\AlgVar{incumbent} \gets M$} \label{StoreIncumbent}
 %\nl \lIf {$\AlgVar{future} = \emptyset$}{return}
 \medskip
 \nl $\AlgVar{bound} \gets |M|  + \sum_{\langle \setG,\setH \rangle \in \AlgVar{future}} \min(|\setG|,|\setH|)$ \label{CalcBound} \;
-\nl \lIf {$\AlgVar{bound} \leq |\AlgVar{incumbent}|$}{return} \label{PruneSearch}
+\nl \lIf {$\AlgVar{bound} \leq |\AlgVar{incumbent}|$}{\KwSty{return}} \label{PruneSearch}
 \medskip
 \nl $\langle \setG,\setH \rangle \gets \FuncSty{SelectLabelClass}(\AlgVar{future})$ \label{SelectClass} \;
 \nl $v \gets \FuncSty{SelectVertex}(\setG)$ \label{SelectVertex} \;
@@ -363,30 +363,30 @@ clique enumeration algorithm.
 \nl        \If {$\setG'' \neq \emptyset$ \bf{and} $\setH'' \neq \emptyset$}{
 \nl            $\AlgVar{future'} \gets \AlgVar{future'} \cup \{\langle \setG'' , \setH'' \rangle\}$} \label{InnerLoopEnd}
        }
-\nl   $\FuncSty{expand}(\AlgVar{future'},M)$ \label{ExpandWithV} \;
+\nl   $\FuncSty{search}(\AlgVar{future'},M)$ \label{ExpandWithV} \;
 \nl   $M \gets M \setminus \{(v,w)\}$ \label{ShrinkM} \;
   }
 \nl $\setG' \gets \setG \setminus \{v\}$ \label{RemoveV} \;
 \nl $\AlgVar{future} \gets \AlgVar{future} \setminus \{\langle \setG,\setH \rangle\}$\;
 \nl \lIf {$\setG' \neq \emptyset$} {$\AlgVar{future} \gets \AlgVar{future} \cup \{\langle \setG',\setH \rangle \}$}
-\nl $\FuncSty{expand}(\AlgVar{future},M)$ \label{ExpandWithoutV} \;
+\nl $\FuncSty{search}(\AlgVar{future},M)$ \label{ExpandWithoutV} \;
 }
 \;
 \nl $\FuncSty{McSplit}(\graphG,\graphH)$ \label{McSplitFun} \;
 \nl \Begin{
-\nl $\AlgVar{incumbent} \gets \emptyset$ \;
-\nl $\FuncSty{expand}(\{\langle V(\graphG),V(\graphH) \rangle \},\emptyset)$ \label{FirstExpandCall} \;
-\nl return $|\AlgVar{incumbent}|$ \;
+    \nl $\KwSty{global}~\AlgVar{incumbent} \gets \emptyset$ \;
+\nl $\FuncSty{search}(\{\langle V(\graphG),V(\graphH) \rangle \},\emptyset)$ \label{FirstExpandCall} \;
+\nl $\KwSty{return}$~$\AlgVar{incumbent}$ \;
 }
 \caption{Finding a maximum common subgraph.}
 \label{McSplitAlg}
 \end{algorithm}
 
 \paragraph{\cref{McSplitAlg} in detail} The recursive procedure,
-$\FuncSty{expand}$, has two parameters.  The parameter $\AlgVar{future}$ is a
+$\FuncSty{search}$, has two parameters.  The parameter $\AlgVar{future}$ is a
 list of label classes, each represented as a $\langle \setG, \setH \rangle$ pair as
 described above.  The parameter $M$ is the current mapping of vertices.  On
-each call to $\FuncSty{expand}$, the invariant holds that a $(v,w)$ pair may be
+each call to $\FuncSty{search}$, the invariant holds that a $(v,w)$ pair may be
 added to $M$ if and only if $v$ and $w$ belong to the same label class in
 $\AlgVar{future}$.
 
@@ -394,7 +394,7 @@ $\AlgVar{future}$.
 to unseat the incumbent.  \Linerangeref{CalcBound}{PruneSearch} prune the
 search when a calculated upper bound is not larger than the incumbent.
 
-The remainder of $\FuncSty{expand}$ performs the search.  A label class
+The remainder of $\FuncSty{search}$ performs the search.  A label class
 $\langle \setG, \setH \rangle$ is selected from $\AlgVar{future}$, where $\setG \subseteq
 V(\graphG)$ and $\setH \subseteq V(\graphH)$, using some heuristic (\lineref{SelectClass}).
 From this label class, a vertex $v$ is selected from $\setG$ using a heuristic
@@ -416,7 +416,7 @@ consider what happens if $v$ is not matched
 We start our search at the function $\FuncSty{McSplit}$ (\lineref{McSplitFun}),
 with graphs $\graphG$ and $\graphH$ as inputs.  This function returns the size of the
 largest mapping.  In \lineref{FirstExpandCall} the initial call is made to
-$\FuncSty{expand}$; at this point we have a single label-class containing all
+$\FuncSty{search}$; at this point we have a single label-class containing all
 vertices, and the mapping $M$ is empty.
 
 \subsection{Heuristics}
@@ -500,7 +500,7 @@ vertices in the class are adjacent to at least one vertex in $M$.
 
 Experiments were performed on machines with dual Intel Xeon E5-2640 v2 CPUs and
 64GBytes RAM. Our algorithm was implemented\footnote{URL removed for anonymous
-review} in C++ and compiled using g++ 5.3.0. For comparison, we compare against
+review} in C++ and compiled using g++ 5.3.0. We compare against
 the best constraint programming implementations of
 \citet{DBLP:conf/cp/NdiayeS11} and \citet{DBLP:conf/cp/McCreeshNPS16} (CP-FC in
 the unlabelled cases, and CP-MAC in the labelled cases, using both branching
@@ -563,7 +563,8 @@ in the very easy region of instances that can be solved in well under 100 ms.
 \paragraph{Unlabelled, undirected, connected} This class of instances are shown
 in \cref{figure:plain-connected-cumulative}.  These results are very similar to
 the corresponding experiment in \cref{figure:plain-cumulative} in which the
-subgraph is not required to be connected.
+subgraph is not required to be connected: \McSplit\ is the clear winner by more
+than an order of magnitude.
 
 \paragraph{Vertex and edge labels, undirected, connected} For the labelled,
 connected case, clique slightly outperforms \McSplit\ on harder instances
@@ -601,7 +602,8 @@ vertices to 900 with a median of 80; target graphs range from 10 vertices to
 \cref{figure:sip-cumulative}.  This is a challenging set of instances, and more
 than half of the instances cannot be solved within a timeout of 1,000 seconds by
 any solver. Furthermore, the CP-FC algorithm and the clique encoding run out of
-memory on many of the instances (these are treated as timeouts).
+memory on many of the instances (these are treated as timeouts, following
+\citet{UpcomingAAAIPaper}).
 
 The basic \McSplit\ is beaten by the $k{\downarrow}$ algorithm of
 \citet{UpcomingAAAIPaper} on this dataset. However, we can modify the \McSplit\
@@ -612,7 +614,7 @@ bound is strictly less than the goal size, and terminate when a solution of the
 goal size is found. We expect that this could do well because in many cases the
 matching covers nearly all of the smaller graph---indeed,
 \cref{figure:sip-cumulative} shows that this approach is the strongest on these
-instances.
+instances, and \McSplit{$\downarrow$} is the best algorithm for every choice of timeout.
 
 \begin{figure}[t]
     \centering
@@ -639,7 +641,7 @@ instances.
 
 Our results so far suggest that \McSplit\ has broadly similar performance
 trends to the constraint programming, forward-checking (CP-FC) algorithm of
-\citet{DBLP:conf/cp/NdiayeS11}, but with much lower constant factors. Indeed,
+\citet{DBLP:conf/cp/NdiayeS11}, but with much lower constant factors and memory usage. Indeed,
 in \cref{figure:prettyheatmaps1,figure:prettyheatmaps2} we plot the number of
 recursive calls made by our algorithm versus the number made by
 CP-FC, for the unlabelled and labelled, unconnected problem
@@ -656,16 +658,16 @@ an unconventional domain store and more efficient filtering algorithms. We now
 explore this relationship further.
 
 In the CP-FC algorithm, each vertex $v \in \V(\graphG)$ is represented by a
-variable, whose domain corresponds to the set of vertices in $\V(\graphH)$ to which
-$v$ may currently be mapped, with an additional special $\bot$ value
-representing an unmapped vertex.
-Given a label class $\langle \setG,\setH \rangle$ in \McSplit\, the vertices in $\setG$
-correspond to variables in CP-FC. The label-class representation of domains is
-possible because throughout the CP-FC algorithm for maximum common subgraph, the
-domains of any two variables are either identical or disjoint (excluding
-$\bot$, which is slightly more complicated). To the best of our knowledge, this
-observation has not been made previously, and it is not exploited in other
-implementations.
+variable, whose domain corresponds to the set of vertices in $\V(\graphH)$ to
+which $v$ may currently be mapped, with an additional special $\bot$ value
+representing an unmapped vertex.  Given a label class $\langle \setG,\setH
+\rangle$ in \McSplit\, the vertices in $\setG$ correspond to variables in
+CP-FC, and the vertices in $\setH$ to domain values. The label-class
+representation of domains is possible because throughout the CP-FC algorithm
+for maximum common subgraph, the domains of any two variables are either
+identical or disjoint (excluding $\bot$, which is slightly more complicated).
+To the best of our knowledge, this observation has not been made previously,
+and it is not exploited in other implementations.
 
 CP-FC uses a soft all-different constraint to compute a bound, which requires
 running a matching algorithm on a supporting compatibility graph.  Careful
