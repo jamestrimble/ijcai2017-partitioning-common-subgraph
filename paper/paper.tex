@@ -345,7 +345,7 @@ clique enumeration algorithm.
 %\nl \lIf {$\AlgVar{future} = \emptyset$}{return}
 \medskip
 \nl $\AlgVar{bound} \gets |M|  + \sum_{\langle \setG,\setH \rangle \in \AlgVar{future}} \min(|\setG|,|\setH|)$ \label{CalcBound} \;
-\nl \lIf {$\AlgVar{bound} \leq |\AlgVar{incumbent}|$}{return} \label{PruneSearch}
+\nl \lIf {$\AlgVar{bound} \leq |\AlgVar{incumbent}|$}{\KwSty{return}} \label{PruneSearch}
 \medskip
 \nl $\langle \setG,\setH \rangle \gets \FuncSty{SelectLabelClass}(\AlgVar{future})$ \label{SelectClass} \;
 \nl $v \gets \FuncSty{SelectVertex}(\setG)$ \label{SelectVertex} \;
@@ -375,7 +375,7 @@ clique enumeration algorithm.
 \nl \Begin{
     \nl $\KwSty{global}~\AlgVar{incumbent} \gets \emptyset$ \;
 \nl $\FuncSty{search}(\{\langle V(\graphG),V(\graphH) \rangle \},\emptyset)$ \label{FirstExpandCall} \;
-\nl return $\AlgVar{incumbent}$ \;
+\nl $\KwSty{return}$~$\AlgVar{incumbent}$ \;
 }
 \caption{Finding a maximum common subgraph.}
 \label{McSplitAlg}
