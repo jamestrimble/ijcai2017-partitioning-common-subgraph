@@ -467,7 +467,7 @@ entry from $v$ or $w$.  This is shown in \cref{labDirAlg}, where
 $L=\{0,1,2,3\}$.
 
 \paragraph{Undirected with edge labels} Each adjacency matrix entry contains an
-edge label, or a null entry (non-adjacent) $0$.  We use \cref{labDirAlg}, by
+edge label, or a null entry $0$ indicating that no edge is present.  We use \cref{labDirAlg}, by
 letting $L$ be the union of $\{0\}$ with the set of all labels that appear in
 the input graphs. Since there may be up to $g + h$ distinct labels, the loop in
 \cref{labDirAlg} may execute up to $g + h$ times, resulting in $\BigO{(g+h)^2}$
