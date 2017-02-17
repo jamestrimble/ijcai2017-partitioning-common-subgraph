@@ -24,3 +24,5 @@ gen-graph-%.pdf : graph-%.gnuplot
 	sed -i -e '19s/^\(\\path.*\)/\% \1/' gen-graph-$*.tex # epic haxx
 	latexmk -pdf gen-graph-$*
 
+clean :
+	rm *.aux *.bbl *.blg *.fdb_latexmk *.fls *.log *.pdf
