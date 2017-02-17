@@ -373,7 +373,7 @@ clique enumeration algorithm.
 \;
 \nl $\FuncSty{McSplit}(\graphG,\graphH)$ \label{McSplitFun} \;
 \nl \Begin{
-\nl $\AlgVar{incumbent} \gets \emptyset$ \;
+    \nl $\KwSty{global}~\AlgVar{incumbent} \gets \emptyset$ \;
 \nl $\FuncSty{search}(\{\langle V(\graphG),V(\graphH) \rangle \},\emptyset)$ \label{FirstExpandCall} \;
 \nl return $\AlgVar{incumbent}$ \;
 }
