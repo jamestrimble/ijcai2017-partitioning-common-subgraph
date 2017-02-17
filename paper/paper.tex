@@ -181,7 +181,7 @@ earlier constraint programming or clique approaches due to lower memory usage.
 
 We initially assume that graphs are unlabelled, undirected and without loops
 (\cref{sec:extensions} describes how these restrictions may be relaxed).
-The vertices and edge sets of a graph $\graphG$ are denoted $\V(\graphG)$ and $\E(\graphG)$.  The
+The vertex and edge sets of a graph $\graphG$ are denoted $\V(\graphG)$ and $\E(\graphG)$.  The
 set of vertices adjacent to vertex $v$ in graph $\graphG$ is called the
 \emph{neighbourhood} of $v$, denoted $\N(\graphG, v)$. We denote by $\invN(\graphG, v)$ the
 \emph{inverse neighbourhood} of $v$, being the set of the vertices not adjacent
@@ -199,15 +199,15 @@ The orders (vertex counts) of these graphs are denoted $g$ and $h$.
 
 With these definitions established, we now present \McSplit. This algorithm
 finds a maximum-cardinality mapping $M^* = \{(v_1, w_1), \dots, (v_{m},
-w_{m})\}$ with $|M^*| = m$ vertex pairs, where the $v_i$ are distinct members
-of $\V(\graphG)$ and the $w_i$ are distinct vertices of $\V(\graphH)$, such
+w_{m})\}$ with $|M^*| = m$ vertex pairs, where the $v_i$ are distinct vertices
+from $\V(\graphG)$ and the $w_i$ are distinct vertices from $\V(\graphH)$, such
 that $v_i$ and $v_j$ are adjacent in $\graphG$ if and only if $w_i$ and $w_j$
 are adjacent in $\graphH$.  Given such a mapping, the subgraph of $\graphG$
 induced by $\{v_i, \dots, v_{m}\}$ and the subgraph of $\graphH$ induced by
 $\{w_i, \dots, w_{m}\}$ are a maximum common subgraph.
 
-\paragraph{Walkthrough} Before discussing the algorithm in detail, we start
-with an illustration of the main concepts using the graphs $\graphG$ and $\graphH$ in
+\paragraph{Walkthrough} Before discussing the algorithm in detail, we illustrate
+the main concepts using the graphs $\graphG$ and $\graphH$ in
 \cref{fig:alg1}.  These graphs have a maximum common subgraph with four
 vertices; one example is the mapping $\{1a, 2f, 3d, 5b\}$ where vertex $1$ is
 assigned to vertex $a$, $2$ is assigned to $f$, $3$ to $d$ and $5$ to $b$.
@@ -227,11 +227,12 @@ our example we will arbitrarily choose vertex $1$. Each of the vertices in
 $\V(\graphH)$ to which vertex $1$ may be mapped will be tried in turn, and finally the
 possibility where vertex $1$ remains unmatched will be tried.
 
-We begin by mapping vertex $1$ to vertex $a$, giving $M=\{1a\}$.  Now label
-each unmatched vertex according to whether it is adjacent to vertex $1$ (in
-$\graphG$) or vertex $a$ (in $\graphH$), as shown in \cref{fig:alg2}.  Adjacent
+We begin by mapping vertex $1$ to vertex $a$, giving $M=\{1a\}$.  Now
+label each unmatched vertex in $\V(\graphG)$ according to whether it is adjacent to vertex $1$, and
+label each unmatched vertex in $\V(\graphH)$ according to whether it is adjacent to vertex $a$,
+as shown in \cref{fig:alg2}.  Adjacent
 vertices have label 1; non-adjacent vertices have label 0.  We can extend $M$
-with a vertex mapping $vw$, with $v \in \V(\graphG)$ and $w \in \V(\graphH)$, if and only
+with a mapping $vw$, with $v \in \V(\graphG)$ and $w \in \V(\graphH)$, if and only
 if $v$ and $w$ have the same label.  This property, that two vertices may be
 mapped together if and only if they share a label, is the algorithm's main
 invariant.
@@ -341,7 +342,7 @@ clique enumeration algorithm.
 \nl $\FuncSty{expand}(\AlgVar{future},M)$ \;
 \nl \Begin{
 %\nl \lIf {$\AlgVar{future} = \emptyset$ \bf{and} $|M| > |\AlgVar{incumbent}|$}
-\nl \lIf {$|M| > |\AlgVar{incumbent}|$}{$save(matching)$} \label{StoreIncumbent}
+\nl \lIf {$|M| > |\AlgVar{incumbent}|$}{$\AlgVar{incumbent} \gets \AlgVar{M}$} \label{StoreIncumbent}
 %\nl \lIf {$\AlgVar{future} = \emptyset$}{return}
 \medskip
 \nl $\AlgVar{bound} \gets |M|  + \sum_{\langle \setG,\setH \rangle \in \AlgVar{future}} \min(|\setG|,|\setH|)$ \label{CalcBound} \;
@@ -356,11 +357,11 @@ clique enumeration algorithm.
 \nl        \bf{Let} $\setG'' \gets \setG' \cap \N(\graphG, v) \setminus \{v\}$ \label{NewPWithEdge} \;
 \nl        \bf{Let} $\setH'' \gets \setH' \cap \N(\graphH, w) \setminus \{w\}$ \;
 \nl        \If {$\setG'' \neq \emptyset$ \bf{and} $\setH'' \neq \emptyset$}{
-\nl            $\AlgVar{future'} \gets \AlgVar{future'} + \langle \setG'' , \setH'' \rangle$ \label{AddToFutureWithEdge}}
+\nl            $\AlgVar{future'} \gets \AlgVar{future'} \cup \{\langle \setG'' , \setH'' \rangle\}$ \label{AddToFutureWithEdge}}
 \nl        \bf{Let} $\setG'' \gets \setG' \cap \invN(\graphG, v) \setminus \{v\}$ \label{NewPWithoutEdge}  \;
 \nl        \bf{Let} $\setH'' \gets \setH' \cap \invN(\graphH, w) \setminus \{w\}$ \;
 \nl        \If {$\setG'' \neq \emptyset$ \bf{and} $\setH'' \neq \emptyset$}{
-\nl            $\AlgVar{future'} \gets \AlgVar{future'} + \langle \setG'' , \setH'' \rangle$} \label{InnerLoopEnd}
+\nl            $\AlgVar{future'} \gets \AlgVar{future'} \cup \{\langle \setG'' , \setH'' \rangle\}$} \label{InnerLoopEnd}
        }
 \nl   $\FuncSty{expand}(\AlgVar{future'},M)$ \label{ExpandWithV} \;
 \nl   $M \gets M \setminus \{(v,w)\}$ \label{ShrinkM} \;
@@ -375,7 +376,7 @@ clique enumeration algorithm.
 \nl \Begin{
 \nl $\AlgVar{incumbent} \gets \emptyset$ \;
 \nl $\FuncSty{expand}(\{\langle V(\graphG),V(\graphH) \rangle \},\emptyset)$ \label{FirstExpandCall} \;
-\nl return $|\AlgVar{incubent}|$ \;
+\nl return $|\AlgVar{incumbent}|$ \;
 }
 \caption{Finding a maximum common subgraph.}
 \label{McSplitAlg}
