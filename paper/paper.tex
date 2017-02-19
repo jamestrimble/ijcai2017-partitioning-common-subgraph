@@ -342,7 +342,7 @@ clique enumeration algorithm.
 
 \begin{algorithm}[t]
 \DontPrintSemicolon
-\nl $\FuncSty{search}(\AlgVar{future},M)$ \;
+\nl $\FuncSty{Search}(\AlgVar{future},M)$ \;
 \nl \Begin{
 %\nl \lIf {$\AlgVar{future} = \emptyset$ \bf{and} $|M| > |\AlgVar{incumbent}|$}
 \nl \lIf {$|M| > |\AlgVar{incumbent}|$}{$\AlgVar{incumbent} \gets M$} \label{StoreIncumbent}
@@ -366,19 +366,19 @@ clique enumeration algorithm.
 \nl        \If {$\setG'' \neq \emptyset$ \bf{and} $\setH'' \neq \emptyset$}{
 \nl            $\AlgVar{future'} \gets \AlgVar{future'} \cup \{\langle \setG'' , \setH'' \rangle\}$} \label{InnerLoopEnd}
        }
-\nl   $\FuncSty{search}(\AlgVar{future'},M)$ \label{ExpandWithV} \;
+\nl   $\FuncSty{Search}(\AlgVar{future'},M)$ \label{ExpandWithV} \;
 \nl   $M \gets M \setminus \{(v,w)\}$ \label{ShrinkM} \;
   }
 \nl $\setG' \gets \setG \setminus \{v\}$ \label{RemoveV} \;
 \nl $\AlgVar{future} \gets \AlgVar{future} \setminus \{\langle \setG,\setH \rangle\}$\;
 \nl \lIf {$\setG' \neq \emptyset$} {$\AlgVar{future} \gets \AlgVar{future} \cup \{\langle \setG',\setH \rangle \}$}
-\nl $\FuncSty{search}(\AlgVar{future},M)$ \label{ExpandWithoutV} \;
+\nl $\FuncSty{Search}(\AlgVar{future},M)$ \label{ExpandWithoutV} \;
 }
 \;
 \nl $\FuncSty{McSplit}(\graphG,\graphH)$ \label{McSplitFun} \;
 \nl \Begin{
     \nl $\KwSty{global}~\AlgVar{incumbent} \gets \emptyset$ \;
-\nl $\FuncSty{search}(\{\langle V(\graphG),V(\graphH) \rangle \},\emptyset)$ \label{FirstExpandCall} \;
+\nl $\FuncSty{Search}(\{\langle V(\graphG),V(\graphH) \rangle \},\emptyset)$ \label{FirstExpandCall} \;
 \nl $\KwSty{return}$~$\AlgVar{incumbent}$ \;
 }
 \caption{Finding a maximum common subgraph.}
@@ -386,10 +386,10 @@ clique enumeration algorithm.
 \end{algorithm}
 
 \paragraph{\cref{McSplitAlg} in detail} The recursive procedure,
-$\FuncSty{search}$, has two parameters.  The parameter $\AlgVar{future}$ is a
+$\FuncSty{Search}$, has two parameters.  The parameter $\AlgVar{future}$ is a
 list of label classes, each represented as a $\langle \setG, \setH \rangle$ pair as
 described above.  The parameter $M$ is the current mapping of vertices.  On
-each call to $\FuncSty{search}$, the invariant holds that a $(v,w)$ pair may be
+each call to $\FuncSty{Search}$, the invariant holds that a $(v,w)$ pair may be
 added to $M$ if and only if $v$ and $w$ belong to the same label class in
 $\AlgVar{future}$.
 
@@ -421,7 +421,7 @@ consider what happens if $v$ is not matched
 We start our search at the function $\FuncSty{McSplit}$ (\lineref{McSplitFun}),
 with graphs $\graphG$ and $\graphH$ as inputs.  This function returns a mapping of
 maximum cardinality.  In \lineref{FirstExpandCall} the initial call is made to
-$\FuncSty{search}$; at this point we have a single label-class containing all
+$\FuncSty{Search}$; at this point we have a single label-class containing all
 vertices, and the mapping $M$ is empty.
 
 \subsection{Heuristics}
