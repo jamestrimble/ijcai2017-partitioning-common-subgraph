@@ -397,14 +397,16 @@ $\AlgVar{future}$.
 to unseat the incumbent.  \Linerangeref{CalcBound}{PruneSearch} prune the
 search when a calculated upper bound is not larger than the incumbent.
 
-The remainder of $\FuncSty{search}$ performs the search.  A label class
-$\langle \setG, \setH \rangle$ is selected from $\AlgVar{future}$, where $\setG \subseteq
-V(\graphG)$ and $\setH \subseteq V(\graphH)$, using some heuristic (\lineref{SelectClass}).
-From this label class, a vertex $v$ is selected from $\setG$ using a heuristic
-(\lineref{SelectVertex}). We now iterate over all possible vertices in $\setH$
-(\linerangeref{WLoop}{ShrinkM}). A vertex $w \in \setH$ is selected and mapping $M$
-is extended (\lineref{GrowM}). A new set of label-classes, $\AlgVar{future'}$,
-is created (\lineref{NewFuture}).  Every label-class in $\AlgVar{future}$ can
+The remainder of the procedure performs the search.  A label class
+$\langle \setG, \setH \rangle$ is selected from $\AlgVar{future}$, where $\setG
+\subseteq V(\graphG)$ and $\setH \subseteq V(\graphH)$, using some heuristic
+(\lineref{SelectClass}), and from this label class, a vertex $v$ is selected
+from $\setG$ (\lineref{SelectVertex}). We now iterate over all 
+vertices $w$ in $\setH$ , exploring the consequences of adding $(v,w)$ to $M$
+(\linerangeref{WLoop}{ShrinkM}).  A new set of label-classes,
+$\AlgVar{future'}$,
+is created (\lineref{NewFuture}); this will be the labelling that results
+from adding $(v,w)$ to our mapping.  Every label-class in $\AlgVar{future}$ can
 now be split (\linerangeref{InnerLoop}{InnerLoopEnd}) into two new classes. The
 first of these classes (\linerangeref{NewPWithEdge}{AddToFutureWithEdge})
 contains vertices in $\setG$ adjacent to $v$ and vertices in $\setH$ adjacent to $w$.
