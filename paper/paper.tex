@@ -675,8 +675,8 @@ and it is not exploited in other algorithms for maximum common subgraph.
 CP-FC uses a soft all-different constraint to compute a bound, which requires
 running a matching algorithm on a supporting compatibility graph.  Careful
 thought shows that \McSplit\ computes the same bound, but using a simple
-counting loop---this is only possible because of the disjoint nature of the
-domains.
+counting loop (\cref{McSplitAlg}, \lineref{CalcBound})---this is only possible
+because of the disjoint nature of the domains.
 
 %%% This equivalence to CP-FC makes the correctness of \McSplit\ easy to establish:
 %%% if we replace the label-class representation of $\mathit{future}$ with
