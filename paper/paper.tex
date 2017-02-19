@@ -438,7 +438,7 @@ is selected from $\setG$. We discuss this further in \cref{sec:comparison}.
 \nl        $\setG'' \gets \{ u \in \setG' : u \neq v \wedge A_G[v][u] = l \}$ \;
 \nl        $\setH'' \gets \{ u \in \setH' : u \neq w \wedge A_H[w][u] = l \}$ \;
 \nl        \If {$\setG'' \negmedspace\neq \emptyset$ \bf{and} $\setH'' \negmedspace \neq \emptyset$}{
-    \nl $\AlgVar{future'} \gets \AlgVar{future'} + \langle \setG''\negmedspace, \setH'' \rangle$}
+    \nl $\AlgVar{future'} \gets \AlgVar{future'} \cup \{\langle \setG''\negmedspace, \setH'' \rangle\}$}
        }
     \caption{Replacement for \linerangeref{NewPWithEdge}{InnerLoopEnd} of \cref{McSplitAlg} to handle directed and labelled cases.}
 \label{labDirAlg}
