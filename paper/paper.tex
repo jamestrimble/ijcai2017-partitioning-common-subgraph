@@ -701,7 +701,7 @@ domains.
 A further advantage of our encoding is that it gives us efficient access to a
 better branching heuristic. The CP-FC algorithm uses smallest domain first,
 which in our algorithm corresponds to branching on a label class with smallest
-$|\setH|$. We instead branch on the label class with smallest $\min(|\setG|,|\setH|)$.
+$|\setH|$. We instead branch on the label class with smallest $\max(|\setG|,|\setH|)$.
 This is empirically better, and accounts for much of the difference between
 the number of recursive calls made; branching on the smallest $|\setG| |\setH|$ gives
 very similar results. This can be viewed as exploiting both smallest domain first,
