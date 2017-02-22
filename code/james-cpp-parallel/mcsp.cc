@@ -223,19 +223,26 @@ namespace
 
     using PerThreadIncumbents = std::map<std::thread::id, vector<VtxPair> >;
 
-    const constexpr int split_levels = 3;
+    const constexpr int split_levels = 10;
 
     struct Position
     {
         std::array<unsigned, split_levels + 1> values;
+        unsigned depth;
 
         Position()
         {
             std::fill(values.begin(), values.end(), 0);
+            depth = 0;
         }
 
         bool operator< (const Position & other) const
         {
+            if (depth < other.depth)
+                return true;
+            else if (depth > other.depth)
+                return false;
+
             for (unsigned p = 0 ; p < split_levels + 1 ; ++p)
                 if (values.at(p) < other.values.at(p))
                     return true;
@@ -247,6 +254,7 @@ namespace
 
         void add(unsigned d, unsigned v)
         {
+            depth = d;
             if (d <= split_levels)
                 values[d] = v;
         }
@@ -256,18 +264,19 @@ namespace
     {
         struct Task
         {
-            const std::function<void ()> * func;
+            const std::function<void (unsigned long long &)> * func;
             int pending;
         };
 
-        std::mutex mutex;
+        std::mutex general_mutex;
         std::condition_variable cv;
         std::map<Position, Task> tasks;
         std::atomic<bool> finish;
 
-        std::vector<std::thread> threads;
+        vector<std::thread> threads;
 
         std::list<std::chrono::milliseconds> times;
+        std::list<unsigned long long> nodes;
 
         HelpMe(int n_threads) :
             finish(false)
@@ -275,8 +284,9 @@ namespace
             for (int t = 0 ; t < n_threads ; ++t)
                 threads.emplace_back([this, n_threads, t] {
                         std::chrono::milliseconds total_work_time = std::chrono::milliseconds::zero();
+                        unsigned long long this_thread_nodes = 0;
                         while (! finish.load()) {
-                            std::unique_lock<std::mutex> guard(mutex);
+                        std::unique_lock<std::mutex> guard(general_mutex);
                             bool did_something = false;
                             for (auto task = tasks.begin() ; task != tasks.end() ; ++task) {
                                 if (task->second.func) {
@@ -286,7 +296,7 @@ namespace
 
                                     auto start_work_time = std::chrono::steady_clock::now(); // local start time
 
-                                    (*f)();
+                                    (*f)(this_thread_nodes);
 
                                     auto work_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start_work_time);
                                     total_work_time += work_time;
@@ -305,15 +315,16 @@ namespace
                                 cv.wait(guard);
                         }
 
-                        std::unique_lock<std::mutex> guard(mutex);
+                        std::unique_lock<std::mutex> guard(general_mutex);
                         times.push_back(total_work_time);
+                        nodes.push_back(this_thread_nodes);
                         });
         }
 
         auto kill_workers() -> void
         {
             {
-                std::unique_lock<std::mutex> guard(mutex);
+                std::unique_lock<std::mutex> guard(general_mutex);
                 finish.store(true);
                 cv.notify_all();
             }
@@ -324,7 +335,7 @@ namespace
             threads.clear();
 
             if (! times.empty()) {
-                cout << "Worker thread times (ms):  ";
+                cout << "Worker times (ms):  ";
                 for (auto & t : times)
                     cout << " " << t.count();
                 cout << endl;
@@ -339,21 +350,21 @@ namespace
 
         HelpMe(const HelpMe &) = delete;
 
-        void get_help_with(const Position & position, const std::function<void ()> & func)
+        void get_help_with(const Position & position, const std::function<void (unsigned long long &)> & func, unsigned long long & my_nodes)
         {
             std::map<Position, HelpMe::Task>::iterator task;
             {
-                std::unique_lock<std::mutex> guard(mutex);
+                std::unique_lock<std::mutex> guard(general_mutex);
                 auto r = tasks.emplace(position, HelpMe::Task{ &func, 0 });
                 assert(r.second);
                 task = r.first;
                 cv.notify_all();
             }
 
-            func();
+            func(my_nodes);
 
             {
-                std::unique_lock<std::mutex> guard(mutex);
+                std::unique_lock<std::mutex> guard(general_mutex);
                 while (0 != task->second.pending)
                     cv.wait(guard);
                 tasks.erase(task);
@@ -614,7 +625,7 @@ void solve(const Graph & g0, const Graph & g1,
     // Try assigning v to each vertex w in the colour class beginning at bd.r, in turn
     int w = -1;
     bd.right_len--;
-    std::vector<std::function<void ()> > funcs;
+    std::vector<std::function<void (unsigned long long &)> > funcs;
     funcs.reserve(bd.right_len + 1);
     for (int i=0; i<=bd.right_len; i++) {
         int idx = index_of_next_smallest(right, bd.r, bd.right_len+1, w);
@@ -624,8 +635,8 @@ void solve(const Graph & g0, const Graph & g1,
         right[bd.r + idx] = right[bd.r + bd.right_len];
         right[bd.r + bd.right_len] = w;
 
-        funcs.emplace_back([&g0, &g1, &global_incumbent, &per_thread_incumbents, &matching_size_goal, &this_thread_nodes, &domains, &help_me,
-             /* these are copied --> */ v, w, left, right, current, position, i, depth]() mutable {
+        funcs.emplace_back([&g0, &g1, &global_incumbent, &per_thread_incumbents, &matching_size_goal, &domains, &help_me,
+             /* these are copied --> */ v, w, left, right, current, position, i, depth] (unsigned long long & active_nodes) mutable {
             auto new_domains = filter_domains(domains, left, right, g0, g1, v, w, arguments.directed || arguments.edge_labelled);
             current.push_back(VtxPair(v, w));
 
@@ -634,25 +645,25 @@ void solve(const Graph & g0, const Graph & g1,
 
             if (depth > split_levels)
                 solve_nopar(g0, g1, global_incumbent, per_thread_incumbents.find(std::this_thread::get_id())->second,
-                        current, new_domains, left, right, matching_size_goal, this_thread_nodes);
+                        current, new_domains, left, right, matching_size_goal, active_nodes);
             else
                 solve(g0, g1, global_incumbent, per_thread_incumbents,
-                        current, new_domains, left, right, matching_size_goal, this_thread_nodes, depth + 1, new_position, help_me);
+                        current, new_domains, left, right, matching_size_goal, active_nodes, depth + 1, new_position, help_me);
         });
     }
 
     if (! funcs.empty()) {
         std::atomic<int> shared_b{ 0 };
-        auto this_thread_function = [&] () {
+        auto this_thread_function = [&] (unsigned long long & active_nodes) {
             for (int b = shared_b++, b_end = funcs.size() ; b < b_end /* not != */ ; b = shared_b++) {
-                (*std::next(funcs.begin(), b))();
+                (*std::next(funcs.begin(), b))(active_nodes);
             }
         };
 
         if (depth <= split_levels)
-            help_me.get_help_with(position, this_thread_function);
+            help_me.get_help_with(position, this_thread_function, this_thread_nodes);
         else
-            this_thread_function();
+            this_thread_function(this_thread_nodes);
     }
 
     bd.right_len++;
