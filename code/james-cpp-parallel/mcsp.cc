@@ -666,7 +666,7 @@ void solve(const Graph & g0, const Graph & g1,
                 if (bd.left_len == 0)
                     remove_bidomain(new_domains, bd_idx);
                 auto new_position = position;
-                new_position.add(depth + 1, new_domains[bd_idx].right_len + 1);
+                new_position.add(depth + 1, bd.right_len + 2);
 
                 if (depth > split_levels)
                     solve_nopar(g0, g1, global_incumbent, per_thread_incumbents.find(std::this_thread::get_id())->second,
