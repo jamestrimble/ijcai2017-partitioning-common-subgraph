@@ -655,8 +655,24 @@ void solve(const Graph & g0, const Graph & g1,
     if (! funcs.empty()) {
         std::atomic<int> shared_b{ 0 };
         auto this_thread_function = [&] (unsigned long long & active_nodes) {
-            for (int b = shared_b++, b_end = funcs.size() ; b < b_end /* not != */ ; b = shared_b++) {
+            int b = shared_b++, b_end = funcs.size();
+            for ( ; b < b_end /* not != */ ; b = shared_b++) {
                 (*std::next(funcs.begin(), b))(active_nodes);
+            }
+
+            if (b == b_end) {
+                auto new_domains = domains;
+                new_domains[bd_idx].right_len++;
+                if (bd.left_len == 0)
+                    remove_bidomain(new_domains, bd_idx);
+                auto new_position = position;
+                new_position.add(depth + 1, new_domains[bd_idx].right_len + 1);
+
+                if (depth > split_levels)
+                    solve_nopar(g0, g1, global_incumbent, per_thread_incumbents.find(std::this_thread::get_id())->second,
+                            current, new_domains, left, right, matching_size_goal, this_thread_nodes);
+                else
+                    solve(g0, g1, global_incumbent, per_thread_incumbents, current, new_domains, left, right, matching_size_goal, this_thread_nodes, depth + 1, new_position, help_me);
             }
         };
 
@@ -665,18 +681,6 @@ void solve(const Graph & g0, const Graph & g1,
         else
             this_thread_function(this_thread_nodes);
     }
-
-    bd.right_len++;
-    if (bd.left_len == 0)
-        remove_bidomain(domains, bd_idx);
-    auto new_position = position;
-    new_position.add(depth + 1, bd.right_len + 1);
-
-    if (depth > split_levels)
-        solve_nopar(g0, g1, global_incumbent, per_thread_incumbents.find(std::this_thread::get_id())->second,
-                current, domains, left, right, matching_size_goal, this_thread_nodes);
-    else
-        solve(g0, g1, global_incumbent, per_thread_incumbents, current, domains, left, right, matching_size_goal, this_thread_nodes, depth + 1, new_position, help_me);
 }
 
 vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
