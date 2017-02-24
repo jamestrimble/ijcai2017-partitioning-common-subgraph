@@ -375,7 +375,7 @@ void solve(const Graph & g0, const Graph & g1,
         AtomicIncumbent & global_incumbent,
         PerThreadIncumbents & per_thread_incumbents,
         vector<VtxPair> & current, vector<Bidomain> & domains,
-        vector<int> & left, vector<int> & right, unsigned int matching_size_goal)
+        vector<int> & left, vector<int> & right, const unsigned int matching_size_goal)
 {
     if (abort_due_to_timeout)
         return;
@@ -399,20 +399,73 @@ void solve(const Graph & g0, const Graph & g1,
         return;
     Bidomain &bd = domains[bd_idx];
 
-    int v = find_min_value(left, bd.l, bd.left_len);
-    remove_vtx_from_left_domain(left, domains[bd_idx], v);
-
-    // Try assigning v to each vertex w in the colour class beginning at bd.r, in turn
-    int w = -1;
     bd.right_len--;
     std::atomic<int> shared_i{ 0 };
+    const int i_end = bd.right_len + 2; /* including the null */
 
-    int i_end = bd.right_len + 2; /* including the null */
+    // Version of the loop used by helpers
+    std::function<void ()> helper_function = [&shared_i, &g0, &g1, &global_incumbent, &per_thread_incumbents, i_end, matching_size_goal, current, domains, left, right] () {
+        int which_i_should_i_run_next = shared_i++;
 
-    int which_i_should_i_run_next = shared_i++;
+        if (which_i_should_i_run_next >= i_end)
+            return; /* don't waste time recomputing */
+
+        /* recalculate position */
+        vector<VtxPair> help_current = current;
+        vector<Bidomain> help_domains = domains;
+        vector<int> help_left = left, help_right = right;
+
+        /* rerun important stuff from before the loop */
+        int help_bd_idx = select_bidomain(help_domains, help_left, help_current.size());
+        if (help_bd_idx == -1)   // In the MCCS case, there may be nothing we can branch on
+            return;
+        Bidomain &help_bd = help_domains[help_bd_idx];
+
+        int help_v = find_min_value(help_left, help_bd.l, help_bd.left_len);
+        remove_vtx_from_left_domain(help_left, help_domains[help_bd_idx], help_v);
+
+        int help_w = -1;
+
+        for (int i = 0 ; i < i_end /* not != */ ; i++) {
+            if (i != i_end - 1) {
+                int idx = index_of_next_smallest(help_right, help_bd.r, help_bd.right_len+1, help_w);
+                help_w = help_right[help_bd.r + idx];
+
+                // swap w to the end of its colour class
+                help_right[help_bd.r + idx] = help_right[help_bd.r + help_bd.right_len];
+                help_right[help_bd.r + help_bd.right_len] = help_w;
+
+                if (i == which_i_should_i_run_next) {
+                    which_i_should_i_run_next = shared_i++;
+                    auto new_domains = filter_domains(help_domains, help_left, help_right, g0, g1, help_v, help_w,
+                            arguments.directed || arguments.edge_labelled);
+                    help_current.push_back(VtxPair(help_v, help_w));
+                    solve(g0, g1, global_incumbent, per_thread_incumbents, help_current, new_domains, help_left, help_right, matching_size_goal);
+                    help_current.pop_back();
+                }
+            }
+            else {
+                // Last assign is null. Keep it in the loop to simplify parallelism.
+                help_bd.right_len++;
+                if (help_bd.left_len == 0)
+                    remove_bidomain(help_domains, help_bd_idx);
+
+                if (i == which_i_should_i_run_next) {
+                    which_i_should_i_run_next = shared_i++;
+                    solve(g0, g1, global_incumbent, per_thread_incumbents, help_current, help_domains, help_left, help_right, matching_size_goal);
+                }
+            }
+        }
+    };
+
+    helper_function();
+
+    int v = find_min_value(left, bd.l, bd.left_len);
+    remove_vtx_from_left_domain(left, domains[bd_idx], v);
+    int w = -1;
 
     // Version of the loop used by the main thread
-    for (int i = 0 ; i < i_end /* not != */ ; i++) {
+    for (int i = 0, which_i_should_i_run_next = shared_i++ ; i < i_end /* not != */ ; i++) {
         if (i != i_end - 1) {
             int idx = index_of_next_smallest(right, bd.r, bd.right_len+1, w);
             w = right[bd.r + idx];
