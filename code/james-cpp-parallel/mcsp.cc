@@ -405,24 +405,43 @@ void solve(const Graph & g0, const Graph & g1,
     // Try assigning v to each vertex w in the colour class beginning at bd.r, in turn
     int w = -1;
     bd.right_len--;
-    for (int i=0; i<=bd.right_len; i++) {
-        int idx = index_of_next_smallest(right, bd.r, bd.right_len+1, w);
-        w = right[bd.r + idx];
+    std::atomic<int> shared_i{ 0 };
 
-        // swap w to the end of its colour class
-        right[bd.r + idx] = right[bd.r + bd.right_len];
-        right[bd.r + bd.right_len] = w;
+    int i_end = bd.right_len + 2; /* including the null */
 
-        auto new_domains = filter_domains(domains, left, right, g0, g1, v, w,
-                arguments.directed || arguments.edge_labelled);
-        current.push_back(VtxPair(v, w));
-        solve(g0, g1, global_incumbent, per_thread_incumbents, current, new_domains, left, right, matching_size_goal);
-        current.pop_back();
+    int which_i_should_i_run_next = shared_i++;
+
+    // Version of the loop used by the main thread
+    for (int i = 0 ; i < i_end /* not != */ ; i++) {
+        if (i != i_end - 1) {
+            int idx = index_of_next_smallest(right, bd.r, bd.right_len+1, w);
+            w = right[bd.r + idx];
+
+            // swap w to the end of its colour class
+            right[bd.r + idx] = right[bd.r + bd.right_len];
+            right[bd.r + bd.right_len] = w;
+
+            if (i == which_i_should_i_run_next) {
+                which_i_should_i_run_next = shared_i++;
+                auto new_domains = filter_domains(domains, left, right, g0, g1, v, w,
+                        arguments.directed || arguments.edge_labelled);
+                current.push_back(VtxPair(v, w));
+                solve(g0, g1, global_incumbent, per_thread_incumbents, current, new_domains, left, right, matching_size_goal);
+                current.pop_back();
+            }
+        }
+        else {
+            // Last assign is null. Keep it in the loop to simplify parallelism.
+            bd.right_len++;
+            if (bd.left_len == 0)
+                remove_bidomain(domains, bd_idx);
+
+            if (i == which_i_should_i_run_next) {
+                which_i_should_i_run_next = shared_i++;
+                solve(g0, g1, global_incumbent, per_thread_incumbents, current, domains, left, right, matching_size_goal);
+            }
+        }
     }
-    bd.right_len++;
-    if (bd.left_len == 0)
-        remove_bidomain(domains, bd_idx);
-    solve(g0, g1, global_incumbent, per_thread_incumbents, current, domains, left, right, matching_size_goal);
 }
 
 vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
