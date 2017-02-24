@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 INSTANCES_FILE := sipinstances.txt
 INSTANCES := $(shell cut -d' ' -f1 $(INSTANCES_FILE) )
-ALGORITHMS := clique cp-fc kdown james-cpp-max james-cpp-max-down
+ALGORITHMS := clique cp-fc kdown james-cpp-max james-cpp-max-down kdown-par/t32
 RESULTS := gpgnode-results/sip
 
 all : $(RESULTS)/runtimes.data $(RESULTS)/nodes.data
@@ -30,6 +30,10 @@ $(RESULTS)/kdown/%.runtime : $(RESULTS)/kdown/%.out
 	tail -n2 < $^ | head -n1 | cut -d' ' -f1 > $@
 	[[ -s $@ ]]
 
+$(RESULTS)/kdown-par/t32/%.runtime : $(RESULTS)/kdown-par/t32/%.out
+	tail -n2 < $^ | head -n1 | cut -d' ' -f1 > $@
+	[[ -s $@ ]]
+
 $(RESULTS)/clique/%.nodes : $(RESULTS)/clique/%.out
 	if grep -q 'too big\|aborted' $^ ; then echo NaN ; else tail -n3 < $^ | head -n1 | cut -d' ' -f2 ; fi > $@
 	[[ -s $@ ]]
@@ -47,6 +51,10 @@ $(RESULTS)/james-cpp-max-down/%.nodes : $(RESULTS)/james-cpp-max-down/%.out
 	[[ -s $@ ]]
 
 $(RESULTS)/kdown/%.nodes : $(RESULTS)/kdown/%.out
+	if grep -q aborted $^ ; then echo NaN ; else tail -n4 < $^ | head -n1 | cut -d' ' -f2 ; fi > $@
+	[[ -s $@ ]]
+
+$(RESULTS)/kdown-par/t32/%.nodes : $(RESULTS)/kdown-par/t32/%.out
 	if grep -q aborted $^ ; then echo NaN ; else tail -n4 < $^ | head -n1 | cut -d' ' -f2 ; fi > $@
 	[[ -s $@ ]]
 
