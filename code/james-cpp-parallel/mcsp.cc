@@ -212,6 +212,43 @@ struct AtomicIncumbent
 
 using PerThreadIncumbents = std::map<std::thread::id, vector<VtxPair> >;
 
+const constexpr int split_levels = 3;
+
+struct Position
+{
+    std::array<unsigned, split_levels + 1> values;
+    unsigned depth;
+
+    Position()
+    {
+        std::fill(values.begin(), values.end(), 0);
+        depth = 0;
+    }
+
+    bool operator< (const Position & other) const
+    {
+        if (depth < other.depth)
+            return true;
+        else if (depth > other.depth)
+            return false;
+
+        for (unsigned p = 0 ; p < split_levels + 1 ; ++p)
+            if (values.at(p) < other.values.at(p))
+                return true;
+            else if (values.at(p) > other.values.at(p))
+                return false;
+
+        return false;
+    }
+
+    void add(unsigned d, unsigned v)
+    {
+        depth = d;
+        if (d <= split_levels)
+            values[d] = v;
+    }
+};
+
 bool check_sol(const Graph & g0, const Graph & g1 , const vector<VtxPair> & solution) {
     return true;
     vector<bool> used_left(g0.n, false);
@@ -371,11 +408,12 @@ void remove_bidomain(vector<Bidomain>& domains, int idx) {
     domains.pop_back();
 }
 
-void solve(const Graph & g0, const Graph & g1,
+void solve(const unsigned depth, const Graph & g0, const Graph & g1,
         AtomicIncumbent & global_incumbent,
         PerThreadIncumbents & per_thread_incumbents,
         vector<VtxPair> & current, vector<Bidomain> & domains,
-        vector<int> & left, vector<int> & right, const unsigned int matching_size_goal)
+        vector<int> & left, vector<int> & right, const unsigned int matching_size_goal,
+        const Position & position)
 {
     if (abort_due_to_timeout)
         return;
@@ -404,13 +442,14 @@ void solve(const Graph & g0, const Graph & g1,
     const int i_end = bd.right_len + 2; /* including the null */
 
     // Version of the loop used by helpers
-    std::function<void ()> helper_function = [&shared_i, &g0, &g1, &global_incumbent, &per_thread_incumbents, i_end, matching_size_goal, current, domains, left, right] () {
+    std::function<void ()> helper_function = [&shared_i, &g0, &g1, &global_incumbent, &per_thread_incumbents, &position, &depth,
+        i_end, matching_size_goal, &current, &domains, &left, &right] () {
         int which_i_should_i_run_next = shared_i++;
 
         if (which_i_should_i_run_next >= i_end)
             return; /* don't waste time recomputing */
 
-        /* recalculate position */
+        /* recalculate to this point */
         vector<VtxPair> help_current = current;
         vector<Bidomain> help_domains = domains;
         vector<int> help_left = left, help_right = right;
@@ -440,7 +479,9 @@ void solve(const Graph & g0, const Graph & g1,
                     auto new_domains = filter_domains(help_domains, help_left, help_right, g0, g1, help_v, help_w,
                             arguments.directed || arguments.edge_labelled);
                     help_current.push_back(VtxPair(help_v, help_w));
-                    solve(g0, g1, global_incumbent, per_thread_incumbents, help_current, new_domains, help_left, help_right, matching_size_goal);
+                    auto new_position = position;
+                    new_position.add(depth + 1, i + 1);
+                    solve(depth + 1, g0, g1, global_incumbent, per_thread_incumbents, help_current, new_domains, help_left, help_right, matching_size_goal, new_position);
                     help_current.pop_back();
                 }
             }
@@ -452,13 +493,15 @@ void solve(const Graph & g0, const Graph & g1,
 
                 if (i == which_i_should_i_run_next) {
                     which_i_should_i_run_next = shared_i++;
-                    solve(g0, g1, global_incumbent, per_thread_incumbents, help_current, help_domains, help_left, help_right, matching_size_goal);
+                    auto new_position = position;
+                    new_position.add(depth + 1, i + 1);
+                    solve(depth + 1, g0, g1, global_incumbent, per_thread_incumbents, help_current, help_domains, help_left, help_right, matching_size_goal, new_position);
                 }
             }
         }
     };
 
-    helper_function();
+    // helper_function();
 
     int v = find_min_value(left, bd.l, bd.left_len);
     remove_vtx_from_left_domain(left, domains[bd_idx], v);
@@ -479,7 +522,9 @@ void solve(const Graph & g0, const Graph & g1,
                 auto new_domains = filter_domains(domains, left, right, g0, g1, v, w,
                         arguments.directed || arguments.edge_labelled);
                 current.push_back(VtxPair(v, w));
-                solve(g0, g1, global_incumbent, per_thread_incumbents, current, new_domains, left, right, matching_size_goal);
+                auto new_position = position;
+                new_position.add(depth + 1, i + 1);
+                solve(depth + 1, g0, g1, global_incumbent, per_thread_incumbents, current, new_domains, left, right, matching_size_goal, new_position);
                 current.pop_back();
             }
         }
@@ -491,7 +536,9 @@ void solve(const Graph & g0, const Graph & g1,
 
             if (i == which_i_should_i_run_next) {
                 which_i_should_i_run_next = shared_i++;
-                solve(g0, g1, global_incumbent, per_thread_incumbents, current, domains, left, right, matching_size_goal);
+                auto new_position = position;
+                new_position.add(depth + 1, i + 1);
+                solve(depth + 1, g0, g1, global_incumbent, per_thread_incumbents, current, domains, left, right, matching_size_goal, new_position);
             }
         }
     }
@@ -543,7 +590,8 @@ vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
             vector<VtxPair> current;
             PerThreadIncumbents per_thread_incumbents;
             per_thread_incumbents.emplace(std::this_thread::get_id(), vector<VtxPair>());
-            solve(g0, g1, global_incumbent, per_thread_incumbents, current, domains_copy, left_copy, right_copy, goal);
+            Position position;
+            solve(0, g0, g1, global_incumbent, per_thread_incumbents, current, domains_copy, left_copy, right_copy, goal, position);
             for (auto & i : per_thread_incumbents)
                 if (i.second.size() > incumbent.size())
                     incumbent = i.second;
@@ -555,7 +603,8 @@ vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
         vector<VtxPair> current;
         PerThreadIncumbents per_thread_incumbents;
         per_thread_incumbents.emplace(std::this_thread::get_id(), vector<VtxPair>());
-        solve(g0, g1, global_incumbent, per_thread_incumbents, current, domains, left, right, 1);
+        Position position;
+        solve(0, g0, g1, global_incumbent, per_thread_incumbents, current, domains, left, right, 1, position);
         for (auto & i : per_thread_incumbents)
             if (i.second.size() > incumbent.size())
                 incumbent = i.second;
