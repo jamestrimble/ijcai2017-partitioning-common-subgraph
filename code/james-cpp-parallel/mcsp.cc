@@ -218,7 +218,7 @@ struct AtomicIncumbent
 
 using PerThreadIncumbents = std::map<std::thread::id, vector<VtxPair> >;
 
-const constexpr int split_levels = 3;
+const constexpr int split_levels = 20;
 
 struct Position
 {
