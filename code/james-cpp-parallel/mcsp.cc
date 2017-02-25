@@ -723,6 +723,8 @@ std::pair<vector<VtxPair>, unsigned long long> mcs(const Graph & g0, const Graph
             per_thread_incumbents.emplace(std::this_thread::get_id(), vector<VtxPair>());
             Position position;
             HelpMe help_me(arguments.threads - 1);
+            for (auto & t : help_me.threads)
+                per_thread_incumbents.emplace(t.get_id(), vector<VtxPair>());
             solve(0, g0, g1, global_incumbent, per_thread_incumbents, current, domains_copy, left_copy, right_copy, goal, position, help_me, global_nodes);
             help_me.kill_workers();
             for (auto & n : help_me.nodes)
@@ -740,6 +742,8 @@ std::pair<vector<VtxPair>, unsigned long long> mcs(const Graph & g0, const Graph
         per_thread_incumbents.emplace(std::this_thread::get_id(), vector<VtxPair>());
         Position position;
         HelpMe help_me(arguments.threads - 1);
+        for (auto & t : help_me.threads)
+            per_thread_incumbents.emplace(t.get_id(), vector<VtxPair>());
         solve(0, g0, g1, global_incumbent, per_thread_incumbents, current, domains, left, right, 1, position, help_me, global_nodes);
         help_me.kill_workers();
         for (auto & n : help_me.nodes)
