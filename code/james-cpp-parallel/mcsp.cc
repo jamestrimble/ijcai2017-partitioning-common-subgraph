@@ -13,6 +13,8 @@
 #include <condition_variable>
 #include <atomic>
 #include <map>
+#include <list>
+#include <cassert>
 
 #include <argp.h>
 #include <limits.h>
@@ -23,6 +25,10 @@
 using std::vector;
 using std::cout;
 using std::endl;
+
+using std::chrono::steady_clock;
+using std::chrono::milliseconds;
+using std::chrono::duration_cast;
 
 static void fail(std::string msg) {
     std::cerr << msg << std::endl;
@@ -48,6 +54,7 @@ static struct argp_option options[] = {
     {"vertex-labelled-only", 'x', 0, 0, "Use vertex labels, but not edge labels"},
     {"big-first", 'b', 0, 0, "First try to find an induced subgraph isomorphism, then decrement the target size"},
     {"timeout", 't', "timeout", 0, "Specify a timeout (seconds)"},
+    {"threads", 'T', "threads", 0, "Specify how many threads to use"},
     { 0 }
 };
 
@@ -65,6 +72,7 @@ static struct {
     char *filename1;
     char *filename2;
     int timeout;
+    int threads;
     int arg_num;
 } arguments;
 
@@ -83,6 +91,7 @@ void set_default_arguments() {
     arguments.filename1 = NULL;
     arguments.filename2 = NULL;
     arguments.timeout = 0;
+    arguments.threads = std::thread::hardware_concurrency();
     arguments.arg_num = 0;
 }
 
@@ -131,6 +140,9 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
         case 't':
             arguments.timeout = std::stoi(arg);
             break;
+        case 'T':
+            arguments.threads = std::stoi(arg);
+            break;
         case ARGP_KEY_ARG:
             if (arguments.arg_num == 0) {
                 if (std::string(arg) == "min_max")
@@ -158,12 +170,6 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
 }
 
 static struct argp argp = { options, parse_opt, args_doc, doc };
-
-/*******************************************************************************
-                                     Stats
-*******************************************************************************/
-
-unsigned long long nodes{ 0 };
 
 /*******************************************************************************
                                  MCS functions
@@ -246,6 +252,122 @@ struct Position
         depth = d;
         if (d <= split_levels)
             values[d] = v;
+    }
+};
+
+struct HelpMe
+{
+    struct Task
+    {
+        const std::function<void (unsigned long long &)> * func;
+        int pending;
+    };
+
+    std::mutex general_mutex;
+    std::condition_variable cv;
+    std::map<Position, Task> tasks;
+    std::atomic<bool> finish;
+
+    vector<std::thread> threads;
+
+    std::list<milliseconds> times;
+    std::list<unsigned long long> nodes;
+
+    HelpMe(int n_threads) :
+        finish(false)
+    {
+        for (int t = 0 ; t < n_threads ; ++t)
+            threads.emplace_back([this, n_threads, t] {
+                    milliseconds total_work_time = milliseconds::zero();
+                    unsigned long long this_thread_nodes = 0;
+                    while (! finish.load()) {
+                        std::unique_lock<std::mutex> guard(general_mutex);
+                        bool did_something = false;
+                        for (auto task = tasks.begin() ; task != tasks.end() ; ++task) {
+                            if (task->second.func) {
+                                auto f = task->second.func;
+                                ++task->second.pending;
+                                guard.unlock();
+
+                                auto start_work_time = steady_clock::now(); // local start time
+
+                                (*f)(this_thread_nodes);
+
+                                auto work_time = duration_cast<milliseconds>(steady_clock::now() - start_work_time);
+                                total_work_time += work_time;
+
+                                guard.lock();
+                                task->second.func = nullptr;
+                                if (0 == --task->second.pending)
+                                    cv.notify_all();
+
+                                did_something = true;
+                                break;
+                            }
+                        }
+
+                        if ((! did_something) && (! finish.load()))
+                            cv.wait(guard);
+                    }
+
+                    std::unique_lock<std::mutex> guard(general_mutex);
+                    times.push_back(total_work_time);
+                    nodes.push_back(this_thread_nodes);
+                    });
+    }
+
+    auto kill_workers() -> void
+    {
+        {
+            std::unique_lock<std::mutex> guard(general_mutex);
+            finish.store(true);
+            cv.notify_all();
+        }
+
+        for (auto & t : threads)
+            t.join();
+
+        threads.clear();
+
+        if (! times.empty()) {
+            cout << "Thread work times";
+            for (auto & t : times)
+                cout << " " << t.count();
+            cout << endl;
+            times.clear();
+        }
+    }
+
+    ~HelpMe()
+    {
+        kill_workers();
+    }
+
+    HelpMe(const HelpMe &) = delete;
+
+    void get_help_with(
+            const Position & position,
+            const std::function<void (unsigned long long &)> & main_func,
+            const std::function<void (unsigned long long &)> & thread_func,
+            unsigned long long & main_nodes)
+    {
+        std::map<Position, HelpMe::Task>::iterator task;
+        {
+            std::unique_lock<std::mutex> guard(general_mutex);
+            auto r = tasks.emplace(position, HelpMe::Task{ &thread_func, 0 });
+            assert(r.second);
+            task = r.first;
+            cv.notify_all();
+        }
+
+        main_func(main_nodes);
+
+        {
+            std::unique_lock<std::mutex> guard(general_mutex);
+            while (0 != task->second.pending)
+                cv.wait(guard);
+            tasks.erase(task);
+        }
     }
 };
 
@@ -413,12 +535,12 @@ void solve(const unsigned depth, const Graph & g0, const Graph & g1,
         PerThreadIncumbents & per_thread_incumbents,
         vector<VtxPair> & current, vector<Bidomain> & domains,
         vector<int> & left, vector<int> & right, const unsigned int matching_size_goal,
-        const Position & position)
+        const Position & position, HelpMe & help_me, unsigned long long & my_thread_nodes)
 {
     if (abort_due_to_timeout)
         return;
 
-    nodes++;
+    my_thread_nodes++;
 
     if (per_thread_incumbents.find(std::this_thread::get_id())->second.size() < current.size()) {
         per_thread_incumbents.find(std::this_thread::get_id())->second = current;
@@ -442,8 +564,8 @@ void solve(const unsigned depth, const Graph & g0, const Graph & g1,
     const int i_end = bd.right_len + 2; /* including the null */
 
     // Version of the loop used by helpers
-    std::function<void ()> helper_function = [&shared_i, &g0, &g1, &global_incumbent, &per_thread_incumbents, &position, &depth,
-        i_end, matching_size_goal, &current, &domains, &left, &right] () {
+    std::function<void (unsigned long long &)> helper_function = [&shared_i, &g0, &g1, &global_incumbent, &per_thread_incumbents, &position, &depth,
+        i_end, matching_size_goal, current, domains, left, right, &help_me] (unsigned long long & help_thread_nodes) {
         int which_i_should_i_run_next = shared_i++;
 
         if (which_i_should_i_run_next >= i_end)
@@ -481,7 +603,7 @@ void solve(const unsigned depth, const Graph & g0, const Graph & g1,
                     help_current.push_back(VtxPair(help_v, help_w));
                     auto new_position = position;
                     new_position.add(depth + 1, i + 1);
-                    solve(depth + 1, g0, g1, global_incumbent, per_thread_incumbents, help_current, new_domains, help_left, help_right, matching_size_goal, new_position);
+                    solve(depth + 1, g0, g1, global_incumbent, per_thread_incumbents, help_current, new_domains, help_left, help_right, matching_size_goal, new_position, help_me, help_thread_nodes);
                     help_current.pop_back();
                 }
             }
@@ -495,56 +617,64 @@ void solve(const unsigned depth, const Graph & g0, const Graph & g1,
                     which_i_should_i_run_next = shared_i++;
                     auto new_position = position;
                     new_position.add(depth + 1, i + 1);
-                    solve(depth + 1, g0, g1, global_incumbent, per_thread_incumbents, help_current, help_domains, help_left, help_right, matching_size_goal, new_position);
+                    solve(depth + 1, g0, g1, global_incumbent, per_thread_incumbents, help_current, help_domains, help_left, help_right, matching_size_goal, new_position, help_me, help_thread_nodes);
                 }
             }
         }
     };
 
-    // helper_function();
-
-    int v = find_min_value(left, bd.l, bd.left_len);
-    remove_vtx_from_left_domain(left, domains[bd_idx], v);
-    int w = -1;
+    // Grab this first, before advertising that we can get help
+    int which_i_should_i_run_next = shared_i++;
 
     // Version of the loop used by the main thread
-    for (int i = 0, which_i_should_i_run_next = shared_i++ ; i < i_end /* not != */ ; i++) {
-        if (i != i_end - 1) {
-            int idx = index_of_next_smallest(right, bd.r, bd.right_len+1, w);
-            w = right[bd.r + idx];
+    std::function<void (unsigned long long &)> main_function = [&] (unsigned long long & main_thread_nodes) {
+        int v = find_min_value(left, bd.l, bd.left_len);
+        remove_vtx_from_left_domain(left, domains[bd_idx], v);
+        int w = -1;
 
-            // swap w to the end of its colour class
-            right[bd.r + idx] = right[bd.r + bd.right_len];
-            right[bd.r + bd.right_len] = w;
+        for (int i = 0 ; i < i_end /* not != */ ; i++) {
+            if (i != i_end - 1) {
+                int idx = index_of_next_smallest(right, bd.r, bd.right_len+1, w);
+                w = right[bd.r + idx];
 
-            if (i == which_i_should_i_run_next) {
-                which_i_should_i_run_next = shared_i++;
-                auto new_domains = filter_domains(domains, left, right, g0, g1, v, w,
-                        arguments.directed || arguments.edge_labelled);
-                current.push_back(VtxPair(v, w));
-                auto new_position = position;
-                new_position.add(depth + 1, i + 1);
-                solve(depth + 1, g0, g1, global_incumbent, per_thread_incumbents, current, new_domains, left, right, matching_size_goal, new_position);
-                current.pop_back();
+                // swap w to the end of its colour class
+                right[bd.r + idx] = right[bd.r + bd.right_len];
+                right[bd.r + bd.right_len] = w;
+
+                if (i == which_i_should_i_run_next) {
+                    which_i_should_i_run_next = shared_i++;
+                    auto new_domains = filter_domains(domains, left, right, g0, g1, v, w,
+                            arguments.directed || arguments.edge_labelled);
+                    current.push_back(VtxPair(v, w));
+                    auto new_position = position;
+                    new_position.add(depth + 1, i + 1);
+                    solve(depth + 1, g0, g1, global_incumbent, per_thread_incumbents, current, new_domains, left, right, matching_size_goal, new_position, help_me, main_thread_nodes);
+                    current.pop_back();
+                }
+            }
+            else {
+                // Last assign is null. Keep it in the loop to simplify parallelism.
+                bd.right_len++;
+                if (bd.left_len == 0)
+                    remove_bidomain(domains, bd_idx);
+
+                if (i == which_i_should_i_run_next) {
+                    which_i_should_i_run_next = shared_i++;
+                    auto new_position = position;
+                    new_position.add(depth + 1, i + 1);
+                    solve(depth + 1, g0, g1, global_incumbent, per_thread_incumbents, current, domains, left, right, matching_size_goal, new_position, help_me, main_thread_nodes);
+                }
             }
         }
-        else {
-            // Last assign is null. Keep it in the loop to simplify parallelism.
-            bd.right_len++;
-            if (bd.left_len == 0)
-                remove_bidomain(domains, bd_idx);
+    };
 
-            if (i == which_i_should_i_run_next) {
-                which_i_should_i_run_next = shared_i++;
-                auto new_position = position;
-                new_position.add(depth + 1, i + 1);
-                solve(depth + 1, g0, g1, global_incumbent, per_thread_incumbents, current, domains, left, right, matching_size_goal, new_position);
-            }
-        }
-    }
+    if (depth <= split_levels)
+        help_me.get_help_with(position, main_function, helper_function, my_thread_nodes);
+    else
+        main_function(my_thread_nodes);
 }
 
-vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
+std::pair<vector<VtxPair>, unsigned long long> mcs(const Graph & g0, const Graph & g1) {
     vector<int> left;  // the buffer of vertex indices for the left partitions
     vector<int> right;  // the buffer of vertex indices for the right partitions
 
@@ -580,6 +710,7 @@ vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
 
     AtomicIncumbent global_incumbent;
     vector<VtxPair> incumbent;
+    unsigned long long global_nodes = 0;
 
     if (arguments.big_first) {
         for (int k=0; k<g0.n; k++) {
@@ -591,7 +722,11 @@ vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
             PerThreadIncumbents per_thread_incumbents;
             per_thread_incumbents.emplace(std::this_thread::get_id(), vector<VtxPair>());
             Position position;
-            solve(0, g0, g1, global_incumbent, per_thread_incumbents, current, domains_copy, left_copy, right_copy, goal, position);
+            HelpMe help_me(arguments.threads - 1);
+            solve(0, g0, g1, global_incumbent, per_thread_incumbents, current, domains_copy, left_copy, right_copy, goal, position, help_me, global_nodes);
+            help_me.kill_workers();
+            for (auto & n : help_me.nodes)
+                global_nodes += n;
             for (auto & i : per_thread_incumbents)
                 if (i.second.size() > incumbent.size())
                     incumbent = i.second;
@@ -604,13 +739,17 @@ vector<VtxPair> mcs(const Graph & g0, const Graph & g1) {
         PerThreadIncumbents per_thread_incumbents;
         per_thread_incumbents.emplace(std::this_thread::get_id(), vector<VtxPair>());
         Position position;
-        solve(0, g0, g1, global_incumbent, per_thread_incumbents, current, domains, left, right, 1, position);
+        HelpMe help_me(arguments.threads - 1);
+        solve(0, g0, g1, global_incumbent, per_thread_incumbents, current, domains, left, right, 1, position, help_me, global_nodes);
+        help_me.kill_workers();
+        for (auto & n : help_me.nodes)
+            global_nodes += n;
         for (auto & i : per_thread_incumbents)
             if (i.second.size() > incumbent.size())
                 incumbent = i.second;
     }
 
-    return incumbent;
+    return { incumbent, global_nodes };
 }
 
 vector<int> calculate_degrees(const Graph & g) {
@@ -647,7 +786,7 @@ int main(int argc, char** argv) {
 
     if (0 != arguments.timeout) {
         timeout_thread = std::thread([&] {
-                auto abort_time = std::chrono::steady_clock::now() + std::chrono::seconds(arguments.timeout);
+                auto abort_time = steady_clock::now() + std::chrono::seconds(arguments.timeout);
                 {
                     /* Sleep until either we've reached the time limit,
                      * or we've finished all the work. */
@@ -664,7 +803,7 @@ int main(int argc, char** argv) {
                 });
     }
 
-    auto start = std::chrono::steady_clock::now();
+    auto start = steady_clock::now();
 
     vector<int> g0_deg = calculate_degrees(g0);
     vector<int> g1_deg = calculate_degrees(g1);
@@ -691,16 +830,16 @@ int main(int argc, char** argv) {
     struct Graph g0_sorted = induced_subgraph(g0, vv0);
     struct Graph g1_sorted = induced_subgraph(g1, vv1);
 
-    vector<VtxPair> solution = mcs(g0_sorted, g1_sorted);
+    std::pair<vector<VtxPair>, unsigned long long> solution = mcs(g0_sorted, g1_sorted);
 
     // Convert to indices from original, unsorted graphs
-    for (auto& vtx_pair : solution) {
+    for (auto& vtx_pair : solution.first) {
         vtx_pair.v = vv0[vtx_pair.v];
         vtx_pair.w = vv1[vtx_pair.w];
     }
 
-    auto stop = std::chrono::steady_clock::now();
-    auto time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
+    auto stop = steady_clock::now();
+    auto time_elapsed = duration_cast<milliseconds>(stop - start).count();
 
     /* Clean up the timeout thread */
     if (timeout_thread.joinable()) {
@@ -712,17 +851,17 @@ int main(int argc, char** argv) {
         timeout_thread.join();
     }
 
-    if (!check_sol(g0, g1, solution))
+    if (!check_sol(g0, g1, solution.first))
         fail("*** Error: Invalid solution\n");
 
-    cout << "Solution size " << solution.size() << std::endl;
+    cout << "Solution size " << solution.first.size() << std::endl;
     for (int i=0; i<g0.n; i++)
-        for (unsigned int j=0; j<solution.size(); j++)
-            if (solution[j].v == i)
-                cout << "(" << solution[j].v << " -> " << solution[j].w << ") ";
+        for (unsigned int j=0; j<solution.first.size(); j++)
+            if (solution.first[j].v == i)
+                cout << "(" << solution.first[j].v << " -> " << solution.first[j].w << ") ";
     cout << std::endl;
 
-    cout << "Nodes:                      " << nodes << endl;
+    cout << "Nodes:                      " << solution.second << endl;
     cout << "CPU time (ms):              " << time_elapsed << endl;
     if (aborted)
         cout << "TIMEOUT" << endl;
