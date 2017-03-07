@@ -1,0 +1,21 @@
+-- 1 <20
+-- worker thread times 0 0 0 0 0 0 0
+-- 1 <19
+-- worker thread times 0 0 0 0 0 0 0
+-- worker thread times 0 0 0 0 0 0 0
+-- 1 <18
+-- worker thread times 2 0 2 2 2 2 1
+-- 4 <17
+-- worker thread times 11 12 13 12 12 12 12
+-- 15 <16
+-- worker thread times 52 51 53 52 53 52 50
+-- 55 <15
+-- worker thread times 143 143 143 142 143 143 142
+-- 146 <14
+-- worker thread times 362 362 360 361 361 361 362
+-- 365 <13
+-- worker thread times 13 13 13 13 13 13 13
+true 138400
+(0 -> -1) (1 -> -1) (2 -> 19) (3 -> -1) (4 -> 8) (5 -> 9) (6 -> -1) (7 -> 18) (8 -> 16) (9 -> 7) (10 -> -1) (11 -> 0) (12 -> 11) (13 -> 17) (14 -> -1) (15 -> 15) (16 -> 5) (17 -> 3) (18 -> -1) (19 -> -1) 
+606 1 1 1 4 15 55 146 365 14
+EXCEPT=8 FAIL0=1 FAIL1=1 FAIL2=1 FAIL3=4 FAIL4=15 FAIL5=55 FAIL6=146 FAIL7=365 SIZE=12 

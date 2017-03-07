@@ -1,0 +1,11 @@
+-- 0 <15
+-- worker thread times 0 0 0 0 0 0 0
+-- worker thread times 0 0 0 0 0 0 0
+-- 1 <14
+-- worker thread times 2 2 2 0 2 1 2
+-- 4 <13
+-- worker thread times 3 3 4 4 4 3 3
+true 1213
+(0 -> -1) (1 -> -1) (2 -> 14) (3 -> 3) (4 -> 8) (5 -> 4) (6 -> 2) (7 -> 13) (8 -> 11) (9 -> 12) (10 -> 5) (11 -> 9) (12 -> 6) (13 -> 10) (14 -> -1) 
+11 0 1 4 5
+EXCEPT=3 FAIL0=0 FAIL1=1 FAIL2=4 SIZE=12 

@@ -1,0 +1,21 @@
+-- 1 <20
+-- worker thread times 0 0 0 0 0 0 0
+-- worker thread times 0 0 0 0 0 0 0
+-- 1 <19
+-- worker thread times 0 0 1 0 0 0 0
+-- 2 <18
+-- worker thread times 6 6 6 5 5 5 5
+-- 8 <17
+-- worker thread times 17 16 17 15 16 17 16
+-- 19 <16
+-- worker thread times 71 70 71 70 70 70 69
+-- 74 <15
+-- worker thread times 191 192 190 190 189 191 191
+-- 195 <14
+-- worker thread times 333 333 332 332 333 333 332
+-- 337 <13
+-- worker thread times 406 406 406 406 405 406 406
+true 285418
+(0 -> 12) (1 -> -1) (2 -> 9) (3 -> 0) (4 -> -1) (5 -> 7) (6 -> -1) (7 -> -1) (8 -> 13) (9 -> 3) (10 -> -1) (11 -> 6) (12 -> 14) (13 -> 10) (14 -> -1) (15 -> 15) (16 -> 17) (17 -> 5) (18 -> -1) (19 -> -1) 
+1047 1 1 2 8 19 74 195 337 408
+EXCEPT=8 FAIL0=1 FAIL1=1 FAIL2=2 FAIL3=8 FAIL4=19 FAIL5=74 FAIL6=195 FAIL7=337 SIZE=12 
