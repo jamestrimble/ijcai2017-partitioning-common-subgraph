@@ -511,7 +511,9 @@ the unlabelled cases, and CP-MAC in the labelled cases, using both branching
 and filtering for connected subgraphs), the clique encodings of
 \citet{DBLP:conf/cp/McCreeshNPS16}, and the $k{\downarrow}$ algorithm of
 \citet{UpcomingAAAIPaper} (which only supports unlabelled, undirected,
-unconnected instances).
+unconnected instances).  Each of these comparator programs is an optimised,
+dedicated implementation and does not use a general-purpose constraint programming
+toolkit.  We used the original authors' code in each case.
 
 Our first set of experiments uses a database of randomly-generated maximum
 common subgraph instances
