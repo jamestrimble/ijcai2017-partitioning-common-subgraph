@@ -226,10 +226,11 @@ assigned to vertex $a$, $2$ is assigned to $f$, $3$ to $d$ and $5$ to $b$.
 \end{figure}
 
 The algorithm builds up a mapping $M$, starting with the empty mapping
-$\emptyset$. Select a vertex in $\V(\graphG)$ as the first vertex to be mapped; in
-our example we will arbitrarily choose vertex $1$. Each of the vertices in
-$\V(\graphH)$ to which vertex $1$ may be mapped will be tried in turn, and finally the
-possibility where vertex $1$ remains unmatched will be tried.
+$\emptyset$ and adding a $(v_i, w_i)$ pair at each level of the search tree.
+Select a vertex in $\V(\graphG)$ as the first vertex to be mapped; in our
+example we will arbitrarily choose vertex $1$. Each of the vertices in
+$\V(\graphH)$ to which vertex $1$ may be mapped will be tried in turn, and
+finally the possibility where vertex $1$ remains unmatched will be tried.
 
 We begin by mapping vertex $1$ to vertex $a$, giving $M=\{1a\}$.  Now
 label each unmatched vertex in $\V(\graphG)$ according to whether it is adjacent to vertex $1$, and
