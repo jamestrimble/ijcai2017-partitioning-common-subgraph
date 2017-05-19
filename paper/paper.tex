@@ -825,6 +825,16 @@ identical to the \McSplit\ bound.
 %%% \label{cpAlg}
 %%% \end{algorithm}
 
+This bound is incomparable to the clique bound, which is given by a greedy
+colouring of a microstructure-like graph \citep{DBLP:conf/cp/McCreeshNPS16}.
+The clique bound is potentially stronger, in that it can reason about
+compatibilities between individual variable-vertex assignments. The clique
+bound is also able to make use of edge label information, which CP-FC and our
+equivalent bound cannot---this comes at the expense of much higher memory
+requirements, and also longer calculation times for unlabelled graphs. The
+clique bound is also potentially weaker: it is not even guaranteed to be less
+than or equal to the number of remaining variables, in the CP-FC sense.
+
 A further advantage of our encoding is that it gives us efficient access to a
 better branching heuristic. The CP-FC algorithm uses smallest domain first,
 which in our algorithm corresponds to branching on a label class with smallest
