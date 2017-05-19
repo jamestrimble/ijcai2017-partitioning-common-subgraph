@@ -227,7 +227,7 @@ assigned to vertex $a$, $2$ is assigned to $f$, $3$ to $d$ and $5$ to $b$.
 \label{fig:alg1}
 \end{figure}
 
-The algorithm builds up a mapping $M$, starting with the empty mapping
+The algorithm builds up a mapping $M$ using a depth-first search, starting with the empty mapping
 $\emptyset$ and adding a $(v_i, w_i)$ pair at each level of the search tree.
 Select a vertex in $\V(\graphG)$ as the first vertex to be mapped; in our
 example we will arbitrarily choose vertex $1$. Each of the vertices in
