@@ -182,7 +182,7 @@ state of the art by more than an order of magnitude on the unlabelled variant
 of the problem, and showing that it can handle much larger instances than
 earlier constraint programming or clique approaches due to lower memory usage.
 
-\section{The \McSplit\ Algorithm}
+\section{The \McSplit\ Algorithm \label{sec:mcsplit}}
 
 We initially assume that graphs are unlabelled, undirected and without loops
 (\cref{sec:extensions} describes how these restrictions may be relaxed).  The
@@ -459,12 +459,13 @@ vertices have labels (for example, denoting what kind of atom they represent in
 a molecule), and vertices may only be mapped to like-labelled vertices. We now
 outline how to adapt \cref{McSplitAlg} to handle this and other cases.
 
-\paragraph{Vertex labels and loops} If vertices are labelled, replace ${\langle
-V(\graphG),V(\graphH) \rangle}$ in \lineref{FirstExpandCall} with a set of label classes,
-one for each label that appears on at least one vertex of both $\graphG$ and $\graphH$.
-Loops may be treated as a label modifier: assuming the original vertex labels
-are positive integers, we replace the label $l$ with $-l$ on each vertex that
-has a loop.
+\paragraph{Vertex labels and loops} If vertices in the input graphs have labels
+(as distinct from the bit-string labels described in \cref{sec:mcsplit}),
+replace ${\langle V(\graphG),V(\graphH) \rangle}$ in \lineref{FirstExpandCall}
+with a set of label classes, one for each label that appears on at least one
+vertex of both $\graphG$ and $\graphH$.  If some vertices have loops, we create
+two label classes for each input label: one class containing vertices with
+loops, and the other containing vertices without loops.
 
 \paragraph{Directed graphs without edge labels} Let $A_G$ and $A_H$ be
 adjacency matrices of $\graphG$ and $\graphH$. For each vertex pair $(t,u)$ in graph $\graphG$ or
