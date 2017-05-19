@@ -838,7 +838,7 @@ explores more search nodes than $k{\downarrow}$ for most instances (even taking
 into account that $k{\downarrow}$ uses a unit propagation loop, and so measures
 the search tree slightly differently). This is the classic tradeoff between
 speed and cleverness. A hybrid algorithm could be beneficial here: it could use
-$k{\downarrow}$ initially, switching to \McSplit\ when the extra filtering is
+$k{\downarrow}$ initially, switching to \McSplit{$\downarrow$} when the extra filtering is
 ineffective, and finally switching to a clique encoding when fewer than some
 threshold number of vertices remain to be selected. This might deliver the
 benefits of the clique encoding for labelled graphs, while avoiding the high
