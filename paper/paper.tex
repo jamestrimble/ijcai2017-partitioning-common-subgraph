@@ -1,5 +1,5 @@
 \documentclass[letterpaper]{article}
-%\usepackage[pass,showframe]{geometry}
+\usepackage[showframe,pass]{geometry}
 
 \usepackage{ijcai17}
 \usepackage{times}
@@ -245,7 +245,7 @@ if $v$ and $w$ have the same label.  This property, that two vertices may be
 mapped together if and only if they share a label, is the algorithm's main
 invariant.
 
-\begin{figure}[h]
+\begin{figure}[tb]
     \centering\subfiguretopcaptrue
     \subfigure[][After mapping $1$ to $a$] {
       \LabelTables{$\{1a\}$}
@@ -289,9 +289,6 @@ invariant.
     and third mapped vertices of $\graphH$ ($a$ and $f$) but not adjacent to the second
     mapped vertex ($d$).}
     \label{figure:mcsplit-examples}
-\end{figure}
-
-\begin{figure}[ht]
 \end{figure}
 
 Next, extend the mapping by pairing a vertex in $\graphG$ with a vertex in $\graphH$ of the
@@ -446,18 +443,6 @@ $\FuncSty{SelectLabelClass}$ function in \cref{sec:comparison}.
 
 \subsection{Extensions}\label{sec:extensions}
 
-\begin{algorithm}[t]
-\DontPrintSemicolon
-\nl    \For {$l \in L$}{
-\nl        $\setG'' \gets \{ u \in \setG' : u \neq v \wedge A_\graphG[v][u] = l \}$ \;
-\nl        $\setH'' \gets \{ u \in \setH' : u \neq w \wedge A_\graphH[w][u] = l \}$ \;
-\nl        \If {$\setG'' \negmedspace\neq \emptyset$ \bf{and} $\setH'' \negmedspace \neq \emptyset$}{
-    \nl $\AlgVar{future'} \gets \AlgVar{future'} \cup \{\langle \setG''\negmedspace, \setH'' \rangle\}$}
-       }
-    \caption{Replacement for \linerangeref{NewPWithEdge}{InnerLoopEnd} of \cref{McSplitAlg} to handle directed and edge-labelled cases.}
-\label{labDirAlg}
-\end{algorithm}
-
 Maximum common subgraph problems come in many variants. Often
 vertices or edges have labels (for example, denoting the kind of atom or bond they represent in
 a molecule \cite{Ehrlich:2011}), and the induced subgraphs of the two input graphs are
@@ -472,6 +457,18 @@ with a set of label classes, one for each label that appears on at least one
 vertex of both $\graphG$ and $\graphH$.  If some vertices have loops, we create
 two label classes for each input label: one class containing vertices with
 loops, and the other containing vertices without loops.
+
+\begin{algorithm}[t]
+\DontPrintSemicolon
+\nl    \For {$l \in L$}{
+\nl        $\setG'' \gets \{ u \in \setG' : u \neq v \wedge A_\graphG[v][u] = l \}$ \;
+\nl        $\setH'' \gets \{ u \in \setH' : u \neq w \wedge A_\graphH[w][u] = l \}$ \;
+\nl        \If {$\setG'' \negmedspace\neq \emptyset$ \bf{and} $\setH'' \negmedspace \neq \emptyset$}{
+    \nl $\AlgVar{future'} \gets \AlgVar{future'} \cup \{\langle \setG''\negmedspace, \setH'' \rangle\}$}
+       }
+    \caption{Replacement for \linerangeref{NewPWithEdge}{InnerLoopEnd} of \cref{McSplitAlg} to handle directed and edge-labelled cases.}
+\label{labDirAlg}
+\end{algorithm}
 
 \paragraph{Directed graphs without edge labels} Before running the algorithm,
 we create two-dimensional arrays $A_\graphG$ and $A_\graphH$ representing adjacencies in
@@ -549,21 +546,33 @@ for a total of 8,140 instances with up to 100 vertices; like
 number of distinct vertex labels and the number of distinct edge labels is
 approximately equal to 33 percent of the number of vertices in each graph.
 
-\begin{figure}[t]
+\begin{figure}[p]
     \centering\subfiguretopcaptrue
-    \subfigure[][Unlabelled, undirected instances] {
+    \subfigure[][Unlabelled, undirected, not connected] {
         \centering
         \includegraphics*{gen-graph-plain-cumulative.pdf}
         \label{figure:plain-cumulative}
     }
 
-    \subfigure[][Vertex and edge labelled, directed instances] {
+    \subfigure[][Vertex and edge labelled, directed, not connected] {
         \centering
         \includegraphics*{gen-graph-33ved-cumulative.pdf}
         \label{figure:33ved-cumulative}
     }
-    \caption{Cumulative numbers of instances solved over time for the maximum
-    common subgraph problem.}\label{figure:mcs-cumulative}
+
+    \subfigure[][Unlabelled, undirected, connected] {
+        \centering
+        \includegraphics*{gen-graph-plain-connected-cumulative.pdf}
+        \label{figure:plain-connected-cumulative}
+    }
+
+    \subfigure[][Vertex and edge labelled, undirected, connected] {
+        \centering
+        \includegraphics*{gen-graph-33ve-connected-cumulative.pdf}
+        \label{figure:33ve-connected-cumulative}
+    }
+    \caption{Cumulative numbers of instances solved over time for maximum
+    common subgraph problems.}\label{figure:mcs-cumulative}
 \end{figure}
 
 \paragraph{Unlabelled, undirected}
@@ -603,21 +612,12 @@ runtime just below 100 seconds. Additionally, \McSplit\ is the clear winner for
 easier instances, where the clique encoding is relatively expensive to
 construct but trivial to solve.
 
-\begin{figure}[t]
-    \centering\subfiguretopcaptrue
-    \subfigure[][Unlabelled, undirected, connected instances] {
-        \centering
-        \includegraphics*{gen-graph-plain-connected-cumulative.pdf}
-        \label{figure:plain-connected-cumulative}
-    }
-
-    \subfigure[][Vertex and edge labelled, undirected, connected instances] {
-        \centering
-        \includegraphics*{gen-graph-33ve-connected-cumulative.pdf}
-        \label{figure:33ve-connected-cumulative}
-    }
+\begin{figure}[b]
+    \centering
+    \includegraphics*{gen-graph-sip-cumulative.pdf}
     \caption{Cumulative numbers of instances solved over time for the maximum
-    common connected subgraph problem.} \label{figure:mcs-connected-cumulative}
+    common connected subgraph problem on the large subgraph isomorphism benchmark
+    suite.} \label{figure:sip-cumulative}
 \end{figure}
 
 \paragraph{Large subgraph isomorphism instances} We also ran the algorithms on
@@ -632,6 +632,19 @@ than half of the instances cannot be solved within a timeout of 1,000 seconds by
 any solver. Furthermore, the CP-FC algorithm and the clique encoding run out of
 memory on many of the instances (these are treated as timeouts, following
 \citet{UpcomingAAAIPaper}).
+
+\begin{figure*}[t]
+    \centering\subfiguretopcaptrue
+    \subfigure[][Unlabelled, undirected instances] {\label{figure:prettyheatmaps1}
+    \includegraphics*{gen-graph-plain-james-versus-cp-fc-nodes-scatter.pdf}
+    }\subfigure[][Labelled, directed instances] {\label{figure:prettyheatmaps2}
+    \includegraphics*{gen-graph-33ved-james-versus-cp-fc-nodes-scatter.pdf}
+    }\subfigure[][Subgraph isomorphism instances]{\label{figure:prettyheatmaps3}
+    \includegraphics*{gen-graph-sip-james-versus-kdown-nodes-scatter.pdf}
+}
+    \caption{Relative search space sizes for instances which were solved by both algorithms within the timeout.}
+    \label{figure:prettyheatmaps}
+\end{figure*}
 
 The basic \McSplit\ is beaten by the $k{\downarrow}$ algorithm of
 \citet{UpcomingAAAIPaper} on this dataset. However, we can modify the \McSplit\
@@ -649,14 +662,6 @@ input graphs, and \McSplit{$\downarrow$} is often more than a magnitude slower t
 the plain \McSplit\ algorithm for these instances; the \McSplit{$\downarrow$} results
 are not shown for these instances.)
 
-\begin{figure}[htb]
-    \centering
-    \includegraphics*{gen-graph-sip-cumulative.pdf}
-    \caption{Cumulative numbers of instances solved over time for the maximum
-    common connected subgraph problem on the large subgraph isomorphism benchmark
-    suite.} \label{figure:sip-cumulative}
-\end{figure}
-
 \bigskip
 
 Overall, we find that \McSplit\ improves on the
@@ -672,19 +677,6 @@ there is no requirement for the common subgraph to be connected.
 
 
 \section{Comparison with Existing Algorithms}\label{sec:comparison}
-
-\begin{figure*}[t]
-    \centering\subfiguretopcaptrue
-    \subfigure[][Unlabelled, undirected instances] {\label{figure:prettyheatmaps1}
-    \includegraphics*{gen-graph-plain-james-versus-cp-fc-nodes-scatter.pdf}
-    }\subfigure[][Labelled, directed instances] {\label{figure:prettyheatmaps2}
-    \includegraphics*{gen-graph-33ved-james-versus-cp-fc-nodes-scatter.pdf}
-    }\subfigure[][Subgraph isomorphism instances]{\label{figure:prettyheatmaps3}
-    \includegraphics*{gen-graph-sip-james-versus-kdown-nodes-scatter.pdf}
-}
-    \caption{Relative search space sizes for instances which were solved by both algorithms within the timeout.}
-    \label{figure:prettyheatmaps}
-\end{figure*}
 
 Our experimental results suggest that \McSplit\ has broadly similar performance
 trends to the constraint programming, forward-checking (CP-FC) algorithm of
@@ -750,7 +742,7 @@ subgraph, and each of these matchings in turn have the same size as the smaller
 of the left and right sets of vertices.  It follows that the CP-FC bound is
 identical to the \McSplit\ bound.
 
-\begin{figure}[htb]
+\begin{figure}[tb]
 \centering
 % Bipartite graph TikZ based on code from
 % https://tex.stackexchange.com/a/15094/61367
