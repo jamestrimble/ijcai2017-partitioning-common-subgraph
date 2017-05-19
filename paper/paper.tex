@@ -1,5 +1,5 @@
 \documentclass[letterpaper]{article}
-\usepackage[showframe,pass]{geometry}
+\usepackage[pass]{geometry}
 
 \usepackage{ijcai17}
 \usepackage{times}
@@ -249,37 +249,37 @@ invariant.
     \centering\subfiguretopcaptrue
     \subfigure[][After mapping $1$ to $a$] {
       \LabelTables{$\{1a\}$}
-                  {$2$ & 0 \\
-                   $3$ & 0 \\
-                   $4$ & 1 \\
-                   $5$ & 1 \\}
-                  {$b$ & 1 \\
-                   $c$ & 1 \\
-                   $d$ & 0 \\
-                   $e$ & 1 \\
-                   $f$ & 0 \\}
+                  {$2$ & $0$ \\
+                   $3$ & $0$ \\
+                   $4$ & $1$ \\
+                   $5$ & $1$ \\}
+                  {$b$ & $1$ \\
+                   $c$ & $1$ \\
+                   $d$ & $0$ \\
+                   $e$ & $1$ \\
+                   $f$ & $0$ \\}
       \label{fig:alg2}
     }
 
     \subfigure[][After mapping $2$ to $d$] {
       \LabelTables{$\{1a,2d\}$}
-                  {$3$ & 01 \\
-                   $4$ & 10 \\
-                   $5$ & 11 \\}
-                  {$b$ & 11 \\
-                   $c$ & 11 \\
-                   $e$ & 10 \\
-                   $f$ & 01 \\}
+                  {$3$ & $01$ \\
+                   $4$ & $10$ \\
+                   $5$ & $11$ \\}
+                  {$b$ & $11$ \\
+                   $c$ & $11$ \\
+                   $e$ & $10$ \\
+                   $f$ & $01$ \\}
       \label{fig:alg3}
     }
 
     \subfigure[][After mapping $3$ to $f$] {
       \LabelTables{$\{1a,2d,3f\}$}
-                  {$4$ & 100 \\
-                   $5$ & 111 \\}
-                  {$b$ & 111 \\
-                   $c$ & 111 \\
-                   $e$ & 101 \\}
+                  {$4$ & $100$ \\
+                   $5$ & $111$ \\}
+                  {$b$ & $111$ \\
+                   $c$ & $111$ \\
+                   $e$ & $101$ \\}
       \label{fig:alg4}
     }
 
@@ -759,22 +759,22 @@ identical to the \McSplit\ bound.
 
 \begin{scope}[start chain=going below,node distance=3mm]
 \foreach \i in {2,3}
-  \node[class1node,on chain] (f\i) [label=left: \i] {};
+  \node[class1node,on chain] (f\i) [label=left: $\i$] {};
 \end{scope}
 
 \begin{scope}[yshift=-1.8cm,start chain=going below,node distance=3mm]
 \foreach \i in {4,5}
-  \node[class2node,on chain] (f\i) [label=left: \i] {};
+  \node[class2node,on chain] (f\i) [label=left: $\i$] {};
 \end{scope}
 
 \begin{scope}[xshift=2.2cm,start chain=going below,node distance=3mm]
 \foreach \i in {d,f}
-  \node[class1node,on chain] (s\i) [label=right: \i] {};
+  \node[class1node,on chain] (s\i) [label=right: $\i$] {};
 \end{scope}
 
 \begin{scope}[xshift=2.2cm,yshift=-1.5cm,start chain=going below,node distance=3mm]
 \foreach \i in {b,c,e}
-  \node[class2node,on chain] (s\i) [label=right: \i] {};
+  \node[class2node,on chain] (s\i) [label=right: $\i$] {};
 \end{scope}
 
 % the edges
