@@ -435,10 +435,13 @@ vertices, and the mapping $M$ is empty.
 \subsection{Heuristics}
 
 Small scale experiments (not presented here) were performed to identify
-suitable heuristics for selecting a label class and a vertex within a label
-class. Our heuristic of choice selects the label class with the
-smallest $\max(|\setG|,|\setH|)$. From this class, a vertex with maximum degree
-is selected from $\setG$. We discuss this further in \cref{sec:comparison}.
+suitable heuristics for the $\FuncSty{SelectLabelClass}$ and
+$\FuncSty{SelectVertex}$ functions.  Our $\FuncSty{SelectLabelClass}$
+function chooses a label class with the smallest $\max(|\setG|,|\setH|)$,
+breaking ties by selecting a class containing a vertex in $G$ with the largest degree. From
+the selected class, $\FuncSty{SelectVertex}$ chooses a vertex in $\setG$ with
+maximum degree. We further discuss the effectiveness of our
+$\FuncSty{SelectLabelClass}$ function in \cref{sec:comparison}.
 
 \subsection{Extensions}\label{sec:extensions}
 
