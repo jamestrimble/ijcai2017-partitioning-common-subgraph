@@ -208,7 +208,7 @@ from $\V(\graphG)$ and the $w_i$ are distinct vertices from $\V(\graphH)$, such
 that $v_i$ and $v_j$ are adjacent in $\graphG$ if and only if $w_i$ and $w_j$
 are adjacent in $\graphH$.  Given such a mapping, the subgraph of $\graphG$
 induced by $\{v_1, \dots, v_{m}\}$ and the subgraph of $\graphH$ induced by
-$\{w_1, \dots, w_{m}\}$ are a maximum common subgraph.
+$\{w_1, \dots, w_{m}\}$ are isomorphic and correspond to a maximum common subgraph.
 
 \paragraph{Walkthrough} Before discussing the algorithm in detail, we illustrate
 the main concepts using the graphs $\graphG$ and $\graphH$ in
@@ -362,7 +362,6 @@ clique enumeration algorithm.
 \nl $\langle \setG,\setH \rangle \gets \FuncSty{SelectLabelClass}(\AlgVar{future})$ \label{SelectClass} \;
 \nl $v \gets \FuncSty{SelectVertex}(\setG)$ \label{SelectVertex} \;
 \nl \For {$w \in \setH$ \label{WLoop}} {
-    \nl    $M \gets M \cup \{(v,w)\}$ \label{GrowM} \;
 \nl    $\AlgVar{future'} \gets \emptyset$ \label{NewFuture} \;
 \nl    \For {$\langle \setG',\setH'\rangle \in future$ \label{InnerLoop}}{
 \nl        $\setG'' \gets \setG' \cap \N(\graphG, v) \setminus \{v\}$ \label{NewPWithEdge} \;
@@ -374,8 +373,7 @@ clique enumeration algorithm.
 \nl        \If {$\setG'' \neq \emptyset$ \bf{and} $\setH'' \neq \emptyset$}{
 \nl            $\AlgVar{future'} \gets \AlgVar{future'} \cup \{\langle \setG'' , \setH'' \rangle\}$} \label{InnerLoopEnd}
        }
-\nl   $\FuncSty{Search}(\AlgVar{future'},M)$ \label{ExpandWithV} \;
-\nl   $M \gets M \setminus \{(v,w)\}$ \label{ShrinkM} \;
+\nl   $\FuncSty{Search}(\AlgVar{future'},M\cup \{(v,w)\})$ \label{ExpandWithV} \;
   }
 \nl $\setG' \gets \setG \setminus \{v\}$ \label{RemoveV} \;
 \nl $\AlgVar{future} \gets \AlgVar{future} \setminus \{\langle \setG,\setH \rangle\}$\;
@@ -411,7 +409,7 @@ using some heuristic
 (\lineref{SelectClass}); from this label class, a vertex $v$ is selected
 from $\setG$ (\lineref{SelectVertex}). We now iterate over all
 vertices $w$ in $\setH$, exploring the consequences of adding $(v,w)$ to $M$
-(\linerangeref{WLoop}{ShrinkM}).  A new set of label-classes,
+(\linerangeref{WLoop}{ExpandWithV}).  A new set of label-classes,
 $\AlgVar{future'}$,
 is created (\lineref{NewFuture}); this will be the labelling that results
 from adding $(v,w)$ to our mapping.  Every label-class in $\AlgVar{future}$ can
