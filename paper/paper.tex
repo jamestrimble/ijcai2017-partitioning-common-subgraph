@@ -166,12 +166,17 @@ adapting subgraph isomorphism algorithms \citep{UpcomingAAAIPaper}. Some
 special cases also have practical polynomial time algorithms
 \citep{DBLP:conf/mfcs/DroschinskyKM16,DBLP:conf/sofsem/DroschinskyKM17}.
 
-This paper introduces a new branch and bound algorithm which exploits special
-properties of these problems to allow a much faster exploration of the search
-space, whilst retaining the filtering and bounding benefits of the constraint
-programming approach. We describe the algorithm for the basic maximum common
-subgraph problem, and discuss how it may be adapted to handle vertex labels,
-edge labels, and the requirement that the found subgraph be connected. We then
+This paper considers the \emph{maximum common induced subgraph} problem, in
+which the objective is to find a graph with as many vertices as possible which
+is an induced subgraph of each of two input graphs.  (The \emph{maximum common
+partial subgraph} problem instead asks for a common non-induced subgraph with
+as many \emph{edges} as possible \citep{DBLP:conf/cp/NdiayeS11}.) We introduce
+a new branch and bound algorithm which exploits special properties of the
+problem to allow a much faster exploration of the search space, whilst
+retaining the filtering and bounding benefits of the constraint programming
+approach. We describe the algorithm for the basic maximum common subgraph
+problem, and discuss how it may be adapted to handle vertex labels, edge
+labels, and the requirement that the found subgraph be connected. We then
 present an empirical study of the algorithm, demonstrating that it improves the
 state of the art by more than an order of magnitude on the unlabelled variant
 of the problem, and showing that it can handle much larger instances than
@@ -180,19 +185,17 @@ earlier constraint programming or clique approaches due to lower memory usage.
 \section{The \McSplit\ Algorithm}
 
 We initially assume that graphs are unlabelled, undirected and without loops
-(\cref{sec:extensions} describes how these restrictions may be relaxed).
-The vertex and edge sets of a graph $\graphG$ are denoted $\V(\graphG)$ and $\E(\graphG)$.  The
-set of vertices adjacent to vertex $v$ in graph $\graphG$ is called the
-\emph{neighbourhood} of $v$, denoted $\N(\graphG, v)$. We denote by $\invN(\graphG, v)$ the
-\emph{inverse neighbourhood} of $v$, being the set of the vertices not adjacent
-to $v$ (excluding $v$ itself). A \emph{subgraph} of a graph $\graphG$ is a graph
-consisting of some of the vertices of $\graphG$, and all of the edges between these
-vertices. A \emph{common subgraph} of two graphs is a graph which is
-(isomorphic to) a subgraph of two graphs simultaneously, and a \emph{maximum}
-common subgraph is one with as many vertices as possible. (In this paper, all
-subgraphs are induced. The \emph{maximum common partial subgraph} problem
-instead asks for a common non-induced subgraph with as many \emph{edges} as
-possible \citep{DBLP:conf/cp/NdiayeS11}.)
+(\cref{sec:extensions} describes how these restrictions may be relaxed).  The
+vertex and edge sets of a graph $\graphG$ are denoted $\V(\graphG)$ and
+$\E(\graphG)$.  The set of vertices adjacent to vertex $v$ in graph $\graphG$
+is called the \emph{neighbourhood} of $v$, denoted $\N(\graphG, v)$. We denote
+by $\invN(\graphG, v)$ the \emph{inverse neighbourhood} of $v$, being the set
+of the vertices not adjacent to $v$ (excluding $v$ itself). A \emph{subgraph}
+of a graph $\graphG$ is a graph consisting of some of the vertices of
+$\graphG$, and all of the edges between these vertices. (All subgraphs in this
+paper are induced subgraphs.) A \emph{common subgraph} of two graphs is a graph
+which is (isomorphic to) a subgraph of two graphs simultaneously, and a
+\emph{maximum} common subgraph is one with as many vertices as possible.
 
 Throughout, $\graphG$ and $\graphH$ will be the two input graphs to our maximum
 common subgraph problem.  The orders (number of vertices) of these graphs are
