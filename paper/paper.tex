@@ -445,8 +445,8 @@ is selected from $\setG$. We discuss this further in \cref{sec:comparison}.
 \begin{algorithm}[t]
 \DontPrintSemicolon
 \nl    \For {$l \in L$}{
-\nl        $\setG'' \gets \{ u \in \setG' : u \neq v \wedge A_G[v][u] = l \}$ \;
-\nl        $\setH'' \gets \{ u \in \setH' : u \neq w \wedge A_H[w][u] = l \}$ \;
+\nl        $\setG'' \gets \{ u \in \setG' : u \neq v \wedge A_\graphG[v][u] = l \}$ \;
+\nl        $\setH'' \gets \{ u \in \setH' : u \neq w \wedge A_\graphH[w][u] = l \}$ \;
 \nl        \If {$\setG'' \negmedspace\neq \emptyset$ \bf{and} $\setH'' \negmedspace \neq \emptyset$}{
     \nl $\AlgVar{future'} \gets \AlgVar{future'} \cup \{\langle \setG''\negmedspace, \setH'' \rangle\}$}
        }
@@ -467,19 +467,24 @@ vertex of both $\graphG$ and $\graphH$.  If some vertices have loops, we create
 two label classes for each input label: one class containing vertices with
 loops, and the other containing vertices without loops.
 
-\paragraph{Directed graphs without edge labels} Let $A_G$ and $A_H$ be
-adjacency matrices of $\graphG$ and $\graphH$. For each vertex pair $(t,u)$ in graph $\graphG$ or
-$\graphH$, the adjacency matrix entry takes the value 0 if the vertices are not
+\paragraph{Directed graphs without edge labels} Before running the algorithm,
+we create two-dimensional arrays $A_\graphG$ and $A_\graphH$ representing adjacencies in
+$\graphG$ and $\graphH$ respectively.  These store the same information as the graphs'
+adjacency matrices, but allow us to determine in a single memory access which of
+the two possible edges exist between a pair of vertices.
+We now describe the entries of $A_\graphG$.
+For each vertex pair $(t,u)$ in $\graphG$,
+$A_\graphG[t][u]$ takes the value 0 if $t$ and $u$ are not
 adjacent, 1 if the two vertices share a single edge in the direction $t
 \rightarrow u$, 2 if they share a single edge in the direction $u \rightarrow
 t$, and 3 if there are edges in both directions. Where
 \linerangeref{NewPWithEdge}{InnerLoopEnd} of the basic algorithm split the
 label class $\langle \setG',\setH' \rangle$ in two, we now perform a four-way split
-where each vertex is classified according to the label on its adjacency matrix
-entry from $v$ or $w$.  This is shown in \cref{labDirAlg}, where
+where each vertex is classified according to the label on its array entry indexed by
+$v$ and $w$.  This is shown in \cref{labDirAlg}, where
 $L=\{0,1,2,3\}$.
 
-\paragraph{Undirected with edge labels} Each adjacency matrix entry contains an
+\paragraph{Undirected with edge labels} Each entry of $A_\graphG$ or $A_\graphH$ contains an
 edge label, or a null entry $0$ indicating that no edge is present.  We use \cref{labDirAlg}, by
 letting $L$ be the union of $\{0\}$ with the set of all labels that appear in
 the input graphs. Since there may be up to $g + h$ distinct labels, the loop in
@@ -495,7 +500,7 @@ corresponding to each edge label by simultaneously traversing $\setG'$ and $\set
 from left to right, in a manner that resembles the merging step of merge sort.
 
 \paragraph{Directed with edge labels} This case is similar to its undirected
-counterpart, except that each element $A[u][v]$ in an adjacency matrix is a
+counterpart, except that each element $A_\graphG[u][v]$ or $A_\graphH[u][v]$ is a
 pair $(l_1, l_2)$, where $l_1$ is the label on the edge $u \rightarrow v$ (or 0
 if no edge exists) and $l_2$ is the label on the reverse edge.
 
