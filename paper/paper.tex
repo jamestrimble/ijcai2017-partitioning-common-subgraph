@@ -457,10 +457,12 @@ $\FuncSty{SelectLabelClass}$ function in \cref{sec:comparison}.
 \label{labDirAlg}
 \end{algorithm}
 
-Maximum common subgraph problems come in many variants. For example, often
-vertices or edges have labels (for example, denoting what kind of atom or bond they represent in
-a molecule), and vertices may only be mapped to like-labelled vertices. We now
-outline how to adapt \cref{McSplitAlg} to handle this and other cases.
+Maximum common subgraph problems come in many variants. Often
+vertices or edges have labels (for example, denoting the kind of atom or bond they represent in
+a molecule \cite{Ehrlich:2011}), and the induced subgraphs of the two input graphs are
+required to have identical labels.  Directed edges are used in an application to systems
+of biochemical reactions \cite{DAM2014}.
+We now outline how to adapt \cref{McSplitAlg} to handle these cases.
 
 \paragraph{Vertex labels and loops} If vertices in the input graphs have labels
 (as distinct from the bit-string labels described in \cref{sec:mcsplit}),
