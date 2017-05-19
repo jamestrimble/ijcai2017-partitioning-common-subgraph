@@ -637,6 +637,11 @@ goal size is found. We expect that this could do well because in many cases the
 maximum common subgraph covers nearly all of the smaller graph---indeed,
 \cref{figure:sip-cumulative} shows that this approach is the strongest on these
 instances, and \McSplit{$\downarrow$} is the best algorithm for every choice of timeout.
+(By contrast, the optimal solutions for the instances in
+\cref{figure:mcs-cumulative} typically cover a smaller proportion of the
+input graphs, and \McSplit{$\downarrow$} is often more than a magnitude slower than
+the plain \McSplit\ algorithm for these instances; the \McSplit{$\downarrow$} results
+are not shown for these instances.)
 
 \begin{figure}[t]
     \centering
