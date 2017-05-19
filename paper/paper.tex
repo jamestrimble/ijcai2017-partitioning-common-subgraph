@@ -302,7 +302,7 @@ showing adjacency to matched vertices $a$ and $d$.  Our invariant is
 maintained: we can extend $M$ by a vertex pairing if and only if the two
 vertices have the same label.
 
-The algorithm backtracks when the incumbent (the largest matching found so far) is at least as large
+The algorithm backtracks when the incumbent (the largest mapping found so far) is at least as large
 as a calculated bound given $M$ and the current labelling. To demonstrate how
 this bound is calculated, we consider the situation one level deeper in the
 search tree shown in \cref{fig:alg4}.
@@ -312,7 +312,7 @@ Three vertex labels are used: 100,
 there is no way to add a pair of vertices with label 100 or 101 to the mapping.
 The final label, 111, appears once in $\graphG$ and twice in $\graphH$, and therefore at
 most one pair with this label can be added to $M$.  Thus, the upper bound on
-matching size is $|M| + 1 = 4$. The general formula for the upper bound is
+mapping size is $|M| + 1 = 4$. The general formula for the upper bound is
 \begin{multline*}
     \mathit{bound} = |M| + \sum_{l \in L} \min\big(|\{ v \in \V(\graphG) : \vtxlabel(v)=l\}|, \\[-0.3cm]
         |\{ v \in \V(\graphH) : \vtxlabel(v)=l \}|\big) \text{,}
@@ -625,7 +625,7 @@ calling the main \FuncSty{McSplit} method once per goal size ($g, g-1, g-2,
 \dots$); we backtrack (\lineref{PruneSearch} of \cref{McSplitAlg}) when the
 bound is strictly less than the goal size, and terminate when a solution of the
 goal size is found. We expect that this could do well because in many cases the
-matching covers nearly all of the smaller graph---indeed,
+maximum common subgraph covers nearly all of the smaller graph---indeed,
 \cref{figure:sip-cumulative} shows that this approach is the strongest on these
 instances, and \McSplit{$\downarrow$} is the best algorithm for every choice of timeout.
 
