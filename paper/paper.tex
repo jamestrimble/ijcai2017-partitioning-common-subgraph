@@ -29,6 +29,8 @@
 
 \newcommand{\nmax}{n_{\max}}
 
+\newcommand{\graphB}{\mathcal{B}}
+
 \newcommand{\graphG}{\mathcal{G}}
 \newcommand{\graphH}{\mathcal{H}}
 \newcommand{\setG}{G}
@@ -641,7 +643,7 @@ input graphs, and \McSplit{$\downarrow$} is often more than a magnitude slower t
 the plain \McSplit\ algorithm for these instances; the \McSplit{$\downarrow$} results
 are not shown for these instances.)
 
-\begin{figure}[t]
+\begin{figure}[htb]
     \centering
     \includegraphics*{gen-graph-sip-cumulative.pdf}
     \caption{Cumulative numbers of instances solved over time for the maximum
@@ -707,10 +709,92 @@ To the best of our knowledge, this observation has not been made previously,
 and it is not exploited in other algorithms for maximum common subgraph.
 
 CP-FC uses a soft all-different constraint to compute a bound, which requires
-running a matching algorithm on a supporting compatibility graph.  Careful
-thought shows that \McSplit\ computes the same bound, but using a simple
-counting loop (\cref{McSplitAlg}, \lineref{CalcBound})---this is only possible
+running a matching algorithm on a supporting compatibility graph.  We now
+show that \McSplit\ computes the same bound, but using a simple
+counting loop (\cref{McSplitAlg}, \lineref{CalcBound})---this is possible
 because of the disjoint nature of the domains.
+
+To illustrate the method used by CP-FC to calculate a bound, we consider the
+input graphs $\graphG$ and $\graphH$ in \cref{fig:alg1}. Suppose that the
+variable corresponding to vertex 1 has been matched to the value corresponding
+to vertex $a$, and that no other assignments have been made.  In the
+terminology of \McSplit, we now have two label classes: $\langle \{2,3\},
+\{d,f\} \rangle$ and $\langle \{4,5\}, \{b,c,e\} \rangle$.  CP-FC represents
+this state by storing the domain of each remaining variable: 2 and 3 each
+have the domain $\{d,f\}$; 4 and 5 each have the domain $\{b,c,e\}$.
+
+As described previously, the \McSplit\ algorithm finds the size of the smaller
+set in each label class, and adds these sizes to the size of the current
+mapping, giving a bound of 5.  CP-FC uses the compatibility graph $\graphB$ in
+\cref{fig:cpfc-bipartite} to calculate an upper bound; variables are
+represented by vertices on the left, values are represented by vertices on the
+right, and a variable may take a value if and only if the corresponding
+vertices are adjacent.  The upper bound is calculated by CP-FC by computing a
+maximum matching on this bipartite graph, and adding the size of this matching
+to the size of the current mapping.
+
+The vertices in the bipartite graph are coloured to emphasise how they
+correspond to the two label classes.  Each label class corresponse to a
+complete bipartite graph, and there are no edges between the components
+corresponding to different label classes.  Clearly, a maximum matching in
+$\graphB$ must be the union of the maximum matching in each complete bipartite
+subgraph, and each of these matchings in turn have the same size as the smaller
+of the left and right sets of vertices.  It follows that the CP-FC bound is
+identical to the \McSplit\ bound.
+
+\begin{figure}[htb]
+\centering
+% Bipartite graph TikZ based on code from
+% https://tex.stackexchange.com/a/15094/61367
+\definecolor{myblue}{RGB}{240,240,240}
+\definecolor{mygreen}{RGB}{120,120,120}
+\usetikzlibrary{positioning,chains,fit,shapes,calc}
+
+\begin{tikzpicture}[thick,
+  every node/.style={draw,circle},
+  class1node/.style={fill=myblue},
+  class2node/.style={fill=mygreen},
+  every fit/.style={ellipse,draw,inner sep=-2pt,text width=2cm}
+]
+
+\begin{scope}[start chain=going below,node distance=3mm]
+\foreach \i in {2,3}
+  \node[class1node,on chain] (f\i) [label=left: \i] {};
+\end{scope}
+
+\begin{scope}[yshift=-1.8cm,start chain=going below,node distance=3mm]
+\foreach \i in {4,5}
+  \node[class2node,on chain] (f\i) [label=left: \i] {};
+\end{scope}
+
+\begin{scope}[xshift=2.2cm,start chain=going below,node distance=3mm]
+\foreach \i in {d,f}
+  \node[class1node,on chain] (s\i) [label=right: \i] {};
+\end{scope}
+
+\begin{scope}[xshift=2.2cm,yshift=-1.5cm,start chain=going below,node distance=3mm]
+\foreach \i in {b,c,e}
+  \node[class2node,on chain] (s\i) [label=right: \i] {};
+\end{scope}
+
+% the edges
+\draw (f2) -- (sd);
+\draw (f3) -- (sd);
+\draw (f2) -- (sf);
+\draw (f3) -- (sf);
+
+\draw (f4) -- (sb);
+\draw (f4) -- (sc);
+\draw (f4) -- (se);
+\draw (f5) -- (sb);
+\draw (f5) -- (sc);
+\draw (f5) -- (se);
+\end{tikzpicture}
+
+\caption{A bipartite graph of the type used to calculate a bound in CP-FC}
+\label{fig:cpfc-bipartite}
+\end{figure}
+
 
 %%% This equivalence to CP-FC makes the correctness of \McSplit\ easy to establish:
 %%% if we replace the label-class representation of $\mathit{future}$ with
