@@ -23,10 +23,10 @@ set format x '$10^{%T}$'
 set format y '$10^{%T}$'
 set logscale cb
 
-load "magmafromwhite.pal"
+load "magmafromwhite-adjusted-for-heatmaps.pal"
 set palette negative
 
 plot \
-    "sip-james-versus-kdown-heatmap.data" u 2:1:($3+1) matrix w image axes x2y2 notitle, \
+    "sip-james-versus-kdown-heatmap.data.adjusted" u 2:1:3 matrix w image axes x2y2 notitle, \
     x w l ls 0 notitle
 
