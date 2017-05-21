@@ -32,7 +32,7 @@ gen-graph-%.pdf : graph-%.gnuplot $(ADJUSTED_HEATMAP_DATA)
 	latexmk -pdf gen-graph-$*
 
 %-heatmap.data.adjusted: %-heatmap.data
-	sed 's/\b1\b/1.01/g' $< > $@
+	sed 's/\b1\b/1.03/g' $< > $@
 
 clean :
 	rm *.aux *.bbl *.blg *.fdb_latexmk *.fls *.log *.pdf *.data.adjusted gen-graph*
