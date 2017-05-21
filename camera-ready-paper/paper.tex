@@ -1,0 +1,888 @@
+\documentclass[letterpaper]{article}
+\usepackage[pass]{geometry}
+
+\usepackage{ijcai17}
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{cleveref}
+%\usepackage{microtype}
+\usepackage{booktabs}
+
+\usepackage{subfigure}
+
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{MnSymbol,wasysym}
+\usepackage{latexsym}
+\usepackage{algpseudocode}
+\usepackage{amsmath}
+
+\usepackage{tikz}
+
+\usetikzlibrary{graphs}
+
+\newcommand{\citet}[1]{\citeauthor{#1} \shortcite{#1}}
+\newcommand{\citep}[1]{\cite{#1}}
+
+\newcommand{\AlgVar}[1]{\mathit{#1}}
+
+\newcommand{\McSplit}{\textproc{McSplit}}
+
+\newcommand{\nmax}{n_{\max}}
+
+\newcommand{\graphB}{\mathcal{B}}
+
+\newcommand{\graphG}{\mathcal{G}}
+\newcommand{\graphH}{\mathcal{H}}
+\newcommand{\setG}{G}
+\newcommand{\setH}{H}
+
+% cref style
+\crefname{algorithm}{Algorithm}{Algorithms}
+\Crefname{algorithm}{Algorithm}{Algorithms}
+\crefname{algocf}{Algorithm}{Algorithms}
+\Crefname{algocf}{Algorithm}{Algorithms}
+\crefname{figure}{Figure}{Figures}
+\Crefname{figure}{Figure}{Figures}
+\crefname{table}{Table}{Tables}
+\Crefname{table}{Table}{Tables}
+\crefname{section}{Section}{Sections}
+\Crefname{section}{Section}{Sections}
+
+\newcommand{\lineref}[1]{line~\ref{#1}}
+\newcommand{\linerangeref}[2]{\count255=\ref{#1}\advance\count255 by 1 \ifnum\count255=\ref{#2}lines~\ref{#1} and~\ref{#2}\else lines~\ref{#1} to~\ref{#2}\fi}
+\newcommand{\Lineref}[1]{Line~\ref{#1}}
+\newcommand{\Linerangeref}[2]{\count255=\ref{#1}\advance\count255 by 1 \ifnum\count255=\ref{#2}Lines~\ref{#1} and~\ref{#2}\else Lines~\ref{#1} to~\ref{#2}\fi}
+
+% TODO: use operatorname for these
+\DeclareMathOperator{\V}{V}
+\DeclareMathOperator{\E}{E}
+\DeclareMathOperator{\N}{N}
+\DeclareMathOperator{\invN}{\overline{N}}
+\DeclareMathOperator{\vtxlabel}{label}
+
+\newcommand{\BigO}[1]{\ensuremath{\operatorname{O}\left(#1\right)}}
+
+\newcommand{\exampleG} {
+    \tikz {
+        \graph [nodes={draw, circle, minimum width=.5cm, inner sep=1pt}, circular placement, radius=0.8cm,
+                clockwise=5] {
+                    1,2,3,4,5;
+            1--4; 1--5; 2--3; 2--5; 3--5;
+        };
+    }
+}
+\newcommand{\exampleH} {
+    \tikz {
+        \graph [nodes={draw, circle, minimum width=.5cm, inner sep=1pt}, circular placement, radius=0.8cm,
+                clockwise=6, phase=60] {
+                    a,b,c,d,e,f;
+            a--b; a--c; a--e; b--d; b--f; c--d; c--e; c--f; d--f; e--f;
+        };
+    }
+}
+
+\newcommand{\LabelTables}[3] {
+  {\footnotesize
+    \centering
+    \begin{minipage}[t]{.20\linewidth}
+        Mapping
+
+        \medskip
+
+        #1
+    \end{minipage}
+    \quad
+    \begin{minipage}[t]{0.31\linewidth}
+        \centering
+        Labelling of $\graphG$
+        \begin{tabular}[t]{cc}
+        \toprule
+            Vertex & Label\\
+        \midrule
+            #2
+        \bottomrule
+        \end{tabular}
+    \end{minipage}
+    \quad
+    \begin{minipage}[t]{0.31\linewidth}
+        \centering
+        Labelling of $\graphH$
+        \begin{tabular}[t]{cc}
+        \toprule
+            Vertex & Label\\
+        \midrule
+            #3
+        \bottomrule
+        \end{tabular}
+        \medskip
+    \end{minipage}
+  }
+}
+
+\title{A Partitioning Algorithm for Maximum Common Subgraph Problems\thanks{This work
+was supported by the Engineering and Physical Sciences Research Council [grant
+numbers EP/K503058/1 and EP/M508056/1]}}
+\author{Ciaran McCreesh \and Patrick Prosser \and James Trimble \\
+University of Glasgow, Glasgow, Scotland \\
+j.trimble.1@research.gla.ac.uk}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    We introduce a new branch and bound algorithm for the maximum common
+    subgraph and maximum common connected subgraph problems which is based
+    around vertex labelling and partitioning. Our method in some ways resembles
+    a traditional constraint programming approach, but uses a novel compact
+    domain store and supporting inference algorithms which dramatically reduce
+    the memory and computation requirements during search, and allow better
+    dual viewpoint ordering heuristics to be calculated cheaply.  Experiments
+    show a speedup of more than an order of magnitude over the state of the
+    art, and demonstrate that we can operate on much larger graphs without
+    running out of memory.
+\end{abstract}
+
+\section{Introduction}
+
+To determine the similarity or difference between two graphs, we must first
+find what they have in common
+\citep{DBLP:journals/prl/Bunke97,DBLP:journals/prl/FernandezV01,KriegeThesis}.
+The \emph{maximum common subgraph} family of problems involves finding a large
+graph which is isomorphic to subgraphs of two given graphs simultaneously.
+Because graphs are widely used to model real-world phenomena, maximum common
+subgraph problems have arisen in molecular science (where graphs often represent
+molecules)
+\citep{DBLP:journals/jcamd/RaymondW02a,Ehrlich:2011,DAM2014,Grindley1993707},
+and also in other domains including malware detection
+\citep{DBLP:journals/compsec/ParkRS13}, source code analysis
+\cite{DBLP:journals/tkde/DjokoCH97}, and computer vision
+\cite{DBLP:journals/jair/CookH94}.
+
+Maximum common subgraph problems are NP-hard, and remain challenging
+computationally. Recent practical progress has been made by using constraint
+programming \citep{DBLP:conf/mco/VismaraV08,DBLP:conf/cp/NdiayeS11,DBLP:conf/cp/McCreeshNPS16} and
+mathematical programming \citep{DBLP:journals/dam/BahienseMPS12}, by reducing
+to the maximum clique problem \citep{LeviG,DBLP:conf/cp/McCreeshNPS16}, and by
+adapting subgraph isomorphism algorithms \citep{UpcomingAAAIPaper}. Some
+special cases also have practical polynomial time algorithms
+\citep{DBLP:conf/mfcs/DroschinskyKM16,DBLP:conf/sofsem/DroschinskyKM17}.
+
+This paper considers the \emph{maximum common induced subgraph} problem, in
+which the objective is to find a graph with as many vertices as possible which
+is an induced subgraph of each of two input graphs.  (The \emph{maximum common
+partial subgraph} problem instead asks for a common non-induced subgraph with
+as many \emph{edges} as possible \citep{DBLP:conf/cp/NdiayeS11}; we discuss
+only the induced variant in this paper.) We introduce
+a new branch and bound algorithm which exploits special properties of the
+problem to allow a much faster exploration of the search space, whilst
+retaining the filtering and bounding benefits of the constraint programming
+approach. We describe the algorithm for the basic maximum common subgraph
+problem, and discuss how it may be adapted to handle vertex labels, edge
+labels, and the requirement that the found subgraph be connected. We then
+present an empirical study of the algorithm, demonstrating that it improves the
+state of the art by more than an order of magnitude on the unlabelled variant
+of the problem, and showing that it can handle much larger instances than
+earlier constraint programming or clique approaches due to lower memory usage.
+
+\section{The \McSplit\ Algorithm \label{sec:mcsplit}}
+
+We initially assume that graphs are unlabelled, undirected and without loops
+(\cref{sec:extensions} describes how these restrictions may be relaxed).  The
+vertex and edge sets of a graph $\graphG$ are denoted $\V(\graphG)$ and
+$\E(\graphG)$.  The set of vertices adjacent to vertex $v$ in graph $\graphG$
+is called the \emph{neighbourhood} of $v$, denoted $\N(\graphG, v)$. We denote
+by $\invN(\graphG, v)$ the \emph{inverse neighbourhood} of $v$, being the set
+of the vertices not adjacent to $v$ (excluding $v$ itself). A \emph{subgraph}
+of a graph $\graphG$ is a graph consisting of some of the vertices of
+$\graphG$, and all of the edges between these vertices. (All subgraphs in this
+paper are induced subgraphs.) A \emph{common subgraph} of two graphs is a graph
+which is (isomorphic to) a subgraph of two graphs simultaneously, and a
+\emph{maximum} common subgraph is one with as many vertices as possible.
+
+Throughout, $\graphG$ and $\graphH$ will be the two input graphs to our maximum
+common subgraph problem.  The orders (number of vertices) of these graphs are
+denoted $g$ and $h$ respectively.
+
+With these definitions established, we now present \McSplit. This algorithm
+finds a maximum-cardinality mapping $M^* = \{(v_1, w_1), \dots, (v_{m},
+w_{m})\}$ with $|M^*| = m$ vertex pairs, where the $v_i$ are distinct vertices
+from $\V(\graphG)$ and the $w_i$ are distinct vertices from $\V(\graphH)$, such
+that $v_i$ and $v_j$ are adjacent in $\graphG$ if and only if $w_i$ and $w_j$
+are adjacent in $\graphH$.  Given such a mapping, the subgraph of $\graphG$
+induced by $\{v_1, \dots, v_{m}\}$ and the subgraph of $\graphH$ induced by
+$\{w_1, \dots, w_{m}\}$ are isomorphic and correspond to a maximum common subgraph.
+
+\paragraph{Walkthrough} Before discussing the algorithm in detail, we illustrate
+the main concepts using the graphs $\graphG$ and $\graphH$ in
+\cref{fig:alg1}.  These graphs have a maximum common subgraph with four
+vertices; one example is the mapping $\{1a, 2f, 3d, 5b\}$ where vertex $1$ is
+assigned to vertex $a$, $2$ is assigned to $f$, $3$ to $d$ and $5$ to $b$.
+
+\begin{figure}[t]
+\centering
+    \exampleG
+    \qquad
+    \exampleH
+\caption{Example graphs $\graphG$ and $\graphH$.}
+\label{fig:alg1}
+\end{figure}
+
+The algorithm builds up a mapping $M$ using a depth-first search, starting with the empty mapping
+$\emptyset$ and adding a $(v_i, w_i)$ pair or choosing to leave a vertex in $\V(\graphG)$ unmatched at each level of the search tree.
+Select a vertex in $\V(\graphG)$ as the first vertex to be mapped; in our
+example we will arbitrarily choose vertex $1$. Each of the vertices in
+$\V(\graphH)$ to which vertex $1$ may be mapped will be tried in turn, and
+finally the possibility where vertex $1$ remains unmatched will be tried.
+
+We begin by mapping vertex $1$ to vertex $a$, giving $M=\{1a\}$.  Now
+label each unmatched vertex in $\V(\graphG)$ according to whether it is adjacent to vertex $1$, and
+label each unmatched vertex in $\V(\graphH)$ according to whether it is adjacent to vertex $a$,
+as shown in \cref{fig:alg2}.  Adjacent
+vertices have label 1; non-adjacent vertices have label 0.  We can extend $M$
+with a mapping $vw$, with $v \in \V(\graphG)$ and $w \in \V(\graphH)$, if and only
+if $v$ and $w$ have the same label.  This property, that two vertices may be
+mapped together if and only if they share a label, is the algorithm's main
+invariant.
+
+\begin{figure}[tb]
+    \centering\subfiguretopcaptrue
+    \subfigure[][After mapping $1$ to $a$] {
+      \LabelTables{$\{1a\}$}
+                  {$2$ & $0$ \\
+                   $3$ & $0$ \\
+                   $4$ & $1$ \\
+                   $5$ & $1$ \\}
+                  {$b$ & $1$ \\
+                   $c$ & $1$ \\
+                   $d$ & $0$ \\
+                   $e$ & $1$ \\
+                   $f$ & $0$ \\}
+      \label{fig:alg2}
+    }
+
+    \subfigure[][After mapping $2$ to $d$] {
+      \LabelTables{$\{1a,2d\}$}
+                  {$3$ & $01$ \\
+                   $4$ & $10$ \\
+                   $5$ & $11$ \\}
+                  {$b$ & $11$ \\
+                   $c$ & $11$ \\
+                   $e$ & $10$ \\
+                   $f$ & $01$ \\}
+      \label{fig:alg3}
+    }
+
+    \subfigure[][After mapping $3$ to $f$] {
+      \LabelTables{$\{1a,2d,3f\}$}
+                  {$4$ & $100$ \\
+                   $5$ & $111$ \\}
+                  {$b$ & $111$ \\
+                   $c$ & $111$ \\
+                   $e$ & $101$ \\}
+      \label{fig:alg4}
+    }
+
+    \caption{Mapping $M$ and vertex labels during search on example graphs $\graphG$ and
+    $\graphH$ from \cref{fig:alg1}.  Labels represent adjacencies; for example, the label
+    101 on vertex $e$ in the final table signifies that $e$ is adjacent to the first
+    and third mapped vertices of $\graphH$ ($a$ and $f$) but not adjacent to the second
+    mapped vertex ($d$).}
+    \label{figure:mcsplit-examples}
+\end{figure}
+
+Next, extend the mapping by pairing a vertex in $\graphG$ with a vertex in $\graphH$ of the
+same label; we will choose to map vertex $2$ to vertex $d$, giving $M=\{1a,
+2d\}$ (\cref{fig:alg3}).  Each unmapped vertex $v \in \V(\graphG)$ is labelled
+with a two-character bit string, indicating its adjacency to each of
+the two mapped vertices in $\V(\graphG)$ (vertices $1$ and $2$).  For example, vertex
+$3$ is labelled $01$, indicating that it is not adjacent to vertex $1$ but is adjacent
+to vertex $2$.  Labels are given to unmapped vertices in $\V(\graphH)$ in a similar fashion,
+showing adjacency to matched vertices $a$ and $d$.  Our invariant is
+maintained: we can extend $M$ by a vertex pairing if and only if the two
+vertices have the same label.
+
+The algorithm backtracks when the incumbent (the largest mapping found so far) is at least as large
+as a calculated bound given $M$ and the current labelling. To demonstrate how
+this bound is calculated, we consider the situation one level deeper in the
+search tree shown in \cref{fig:alg4}.
+
+Three vertex labels are used: 100,
+101, and 111.  The first two of these only appear in one graph, and therefore
+there is no way to add a pair of vertices with label 100 or 101 to the mapping.
+The final label, 111, appears once in $\graphG$ and twice in $\graphH$, and therefore at
+most one pair with this label can be added to $M$.  Thus, the upper bound on
+mapping size is $|M| + 1 = 4$. The general formula for the upper bound is
+\begin{multline*}
+    \mathit{bound} = |M| + \sum_{l \in L} \min\big(|\{ v \in \V(\graphG) : \vtxlabel(v)=l\}|, \\[-0.3cm]
+        |\{ v \in \V(\graphH) : \vtxlabel(v)=l \}|\big) \text{,}
+\end{multline*} where $L$ is the set of labels used in both graphs.
+
+%When we have explored the full
+%search space of matchings containing $\{1a, 2d\}$, we try reassigning $2$ to
+%$f$.  Since $d$ and $f$ are the only vertices to which $2$ can be matched given
+%the decision to match $1$ to $a$, we lastly explore the possibility that $2$ is
+%left unmatched, by giving $2$ the label $\bot$ and selecting another vertex in
+%$\V(\graphG)$ to assign.
+
+\paragraph{Label classes} We require only $\BigO{g+h}$ space per level of the
+search tree to store labelling information.  This is done by storing a
+\emph{label class} as a pair $\langle \setG,\setH \rangle$ for each label $l$ that is
+used, where $\setG$ is the set of vertices in $\V(\graphG)$ labelled $l$, and $\setH$ is the
+set of vertices in $\V(\graphH)$ labelled $l$. Since there are $g + h$ vertices in the two graphs, at most
+$g + h$ label classes can exist at once, and there are at most $g + h$ vertices
+in the union of all of the $\setG$ and $\setH$ sets. Furthermore, we do not actually
+need to store the bits making up a label---we care only that like-labelled
+vertices are kept together, and the label itself is not used. Nor do we need to
+store any label class which is present only in one graph but not the other (or
+which is not present at all).  Together, these facts allow us to store all the
+necessary information in three arrays.  The first 
+stores a permutation of $\V(\graphG)$ in which like-labelled vertices appear
+consecutively.  The second array, similarly, stores a permutation
+of $\V(\graphH)$ with like-labelled vertices together.  The third array
+contains a record for each label class $\langle \setG,\setH \rangle$.  Each
+record contains start and end pointers to the portion of the first
+array that contains $\setG$, and start and end pointers to the portion
+of the second array that contains $\setH$.  This representation has
+similarities to data structures used in partition backtracking for graph isomorphism
+\citep{DBLP:conf/wea/Lopez-PresaA09,DBLP:journals/jsc/McKayP14} and the \citet{DBLP:journals/cacm/BronK73}
+clique enumeration algorithm.
+
+\begin{algorithm}[t]
+\DontPrintSemicolon
+\nl $\FuncSty{Search}(\AlgVar{future},M)$ \;
+\nl \Begin{
+%\nl \lIf {$\AlgVar{future} = \emptyset$ \bf{and} $|M| > |\AlgVar{incumbent}|$}
+\nl \lIf {$|M| > |\AlgVar{incumbent}|$}{$\AlgVar{incumbent} \gets M$} \label{StoreIncumbent}
+%\nl \lIf {$\AlgVar{future} = \emptyset$}{return}
+\medskip
+\nl $\AlgVar{bound} \gets |M|  + \sum_{\langle \setG,\setH \rangle \in \AlgVar{future}} \min(|\setG|,|\setH|)$ \label{CalcBound} \;
+\nl \lIf {$\AlgVar{bound} \leq |\AlgVar{incumbent}|$}{\KwSty{return}} \label{PruneSearch}
+\medskip
+\nl $\langle \setG,\setH \rangle \gets \FuncSty{SelectLabelClass}(\AlgVar{future})$ \label{SelectClass} \;
+\nl $v \gets \FuncSty{SelectVertex}(\setG)$ \label{SelectVertex} \;
+\nl \For {$w \in \setH$ \label{WLoop}} {
+\nl    $\AlgVar{future'} \gets \emptyset$ \label{NewFuture} \;
+\nl    \For {$\langle \setG',\setH'\rangle \in future$ \label{InnerLoop}}{
+\nl        $\setG'' \gets \setG' \cap \N(\graphG, v) \setminus \{v\}$ \label{NewPWithEdge} \;
+\nl        $\setH'' \gets \setH' \cap \N(\graphH, w) \setminus \{w\}$ \;
+\nl        \If {$\setG'' \neq \emptyset$ \bf{and} $\setH'' \neq \emptyset$}{
+\nl            $\AlgVar{future'} \gets \AlgVar{future'} \cup \{\langle \setG'' , \setH'' \rangle\}$ \label{AddToFutureWithEdge}}
+\nl        $\setG'' \gets \setG' \cap \invN(\graphG, v) \setminus \{v\}$ \label{NewPWithoutEdge}  \;
+\nl        $\setH'' \gets \setH' \cap \invN(\graphH, w) \setminus \{w\}$ \;
+\nl        \If {$\setG'' \neq \emptyset$ \bf{and} $\setH'' \neq \emptyset$}{
+\nl            $\AlgVar{future'} \gets \AlgVar{future'} \cup \{\langle \setG'' , \setH'' \rangle\}$} \label{InnerLoopEnd}
+       }
+\nl   $\FuncSty{Search}(\AlgVar{future'},M\cup \{(v,w)\})$ \label{ExpandWithV} \;
+  }
+\nl $\setG' \gets \setG \setminus \{v\}$ \label{RemoveV} \;
+\nl $\AlgVar{future} \gets \AlgVar{future} \setminus \{\langle \setG,\setH \rangle\}$\;
+\nl \lIf {$\setG' \neq \emptyset$} {$\AlgVar{future} \gets \AlgVar{future} \cup \{\langle \setG',\setH \rangle \}$}
+\nl $\FuncSty{Search}(\AlgVar{future},M)$ \label{ExpandWithoutV} \;
+}
+\;
+\nl $\FuncSty{McSplit}(\graphG,\graphH)$ \label{McSplitFun} \;
+\nl \Begin{
+    \nl $\KwSty{global}~\AlgVar{incumbent} \gets \emptyset$ \;
+\nl $\FuncSty{Search}(\{\langle V(\graphG),V(\graphH) \rangle \},\emptyset)$ \label{FirstExpandCall} \;
+\nl $\KwSty{return}$~$\AlgVar{incumbent}$ \;
+}
+\caption{Finding a maximum common subgraph.}
+\label{McSplitAlg}
+\end{algorithm}
+
+\paragraph{\cref{McSplitAlg} in detail} The recursive procedure,
+$\FuncSty{Search}$, has two parameters.  The parameter $\AlgVar{future}$ is a
+list of label classes, each represented as a $\langle \setG, \setH \rangle$ pair as
+described above.  The parameter $M$ is the current mapping of vertices.  On
+each call to $\FuncSty{Search}$, the invariant holds that a $(v,w)$ pair may be
+added to $M$ if and only if $v$ and $w$ belong to the same label class in
+$\AlgVar{future}$.
+
+\Lineref{StoreIncumbent} stores the current mapping $M$ if it is large enough
+to unseat the incumbent.  \Linerangeref{CalcBound}{PruneSearch} prune the
+search when a calculated upper bound is not larger than the incumbent.
+
+The remainder of the procedure performs the search.  A label class
+$\langle \setG, \setH \rangle$ is selected from $\AlgVar{future}$
+using some heuristic
+(\lineref{SelectClass}); from this label class, a vertex $v$ is selected
+from $\setG$ (\lineref{SelectVertex}). We now iterate over all
+vertices $w$ in $\setH$, exploring the consequences of adding $(v,w)$ to $M$
+(\linerangeref{WLoop}{ExpandWithV}).  A new set of label-classes,
+$\AlgVar{future'}$,
+is created (\lineref{NewFuture}); this will be the labelling that results
+from adding $(v,w)$ to our mapping.  Every label-class in $\AlgVar{future}$ can
+now be split (\linerangeref{InnerLoop}{InnerLoopEnd}) into two new classes. The
+first of these classes (\linerangeref{NewPWithEdge}{AddToFutureWithEdge})
+contains vertices in $\setG$ adjacent to $v$ and vertices in $\setH$ adjacent to $w$.
+This is added to $\AlgVar{future'}$ if both sets contain at least one vertex.
+This is then repeated symmetrically for non-adjacency
+(\linerangeref{NewPWithoutEdge}{InnerLoopEnd}). A recursive call is made
+(\lineref{ExpandWithV}), on return from which we remove the mapping $(v,w)$.
+Having explored all possible mappings of $v$ with vertices in $\setH$ we now
+consider what happens if $v$ is not matched
+(\linerangeref{RemoveV}{ExpandWithoutV}).
+
+We start our search at the function $\FuncSty{McSplit}$ (\lineref{McSplitFun}),
+with graphs $\graphG$ and $\graphH$ as inputs.  This function returns a mapping of
+maximum cardinality.  In \lineref{FirstExpandCall} the initial call is made to
+$\FuncSty{Search}$; at this point we have a single label-class containing all
+vertices, and the mapping $M$ is empty.
+
+\subsection{Heuristics}
+
+Small scale experiments (not presented here) were performed to identify
+suitable heuristics for the $\FuncSty{SelectLabelClass}$ and
+$\FuncSty{SelectVertex}$ functions.  Our $\FuncSty{SelectLabelClass}$
+function chooses a label class with the smallest $\max(|\setG|,|\setH|)$,
+breaking ties by selecting a class containing a vertex in $G$ with the largest degree. From
+the selected class, $\FuncSty{SelectVertex}$ chooses a vertex in $\setG$ with
+maximum degree. We further discuss the effectiveness of our
+$\FuncSty{SelectLabelClass}$ function in \cref{sec:comparison}.
+
+\subsection{Extensions}\label{sec:extensions}
+
+Maximum common subgraph problems come in many variants. Often
+vertices or edges have labels (for example, denoting the kind of atom or bond they represent in
+a molecule \cite{Ehrlich:2011}), and the induced subgraphs of the two input graphs are
+required to have identical labels.  Directed edges are used in an application to systems
+of biochemical reactions \cite{DAM2014}.
+We now outline how to adapt \cref{McSplitAlg} to handle these cases.
+
+\paragraph{Vertex labels and loops} If vertices in the input graphs have labels
+(as distinct from the bit-string labels described in \cref{sec:mcsplit}),
+replace ${\langle V(\graphG),V(\graphH) \rangle}$ in \lineref{FirstExpandCall}
+with a set of label classes, one for each label that appears on at least one
+vertex of both $\graphG$ and $\graphH$.  If some vertices have loops, we create
+two label classes for each input label: one class containing vertices with
+loops, and the other containing vertices without loops.
+
+\begin{algorithm}[t]
+\DontPrintSemicolon
+\nl    \For {$l \in L$}{
+\nl        $\setG'' \gets \{ u \in \setG' : u \neq v \wedge A_\graphG[v][u] = l \}$ \;
+\nl        $\setH'' \gets \{ u \in \setH' : u \neq w \wedge A_\graphH[w][u] = l \}$ \;
+\nl        \If {$\setG'' \negmedspace\neq \emptyset$ \bf{and} $\setH'' \negmedspace \neq \emptyset$}{
+    \nl $\AlgVar{future'} \gets \AlgVar{future'} \cup \{\langle \setG''\negmedspace, \setH'' \rangle\}$}
+       }
+    \caption{Replacement for \linerangeref{NewPWithEdge}{InnerLoopEnd} of \cref{McSplitAlg} to handle directed and edge-labelled cases.}
+\label{labDirAlg}
+\end{algorithm}
+
+\paragraph{Directed graphs without edge labels} Before running the algorithm,
+we create two-dimensional arrays $A_\graphG$ and $A_\graphH$ representing adjacencies in
+$\graphG$ and $\graphH$ respectively.  These store the same information as the graphs'
+adjacency matrices, but allow us to determine in a single memory access which of
+the two possible edges exist between a pair of vertices.
+We now describe the entries of $A_\graphG$.
+For each vertex pair $(t,u)$ in $\graphG$,
+$A_\graphG[t][u]$ takes the value 0 if $t$ and $u$ are not
+adjacent, 1 if the two vertices share a single edge in the direction $t
+\rightarrow u$, 2 if they share a single edge in the direction $u \rightarrow
+t$, and 3 if there are edges in both directions. Where
+\linerangeref{NewPWithEdge}{InnerLoopEnd} of the basic algorithm split the
+label class $\langle \setG',\setH' \rangle$ in two, we now perform a four-way split
+where each vertex is classified according to the label on its array entry indexed by
+$v$ and $w$.  This is shown in \cref{labDirAlg}, where
+$L=\{0,1,2,3\}$.
+
+\paragraph{Undirected with edge labels} Each entry of $A_\graphG$ or $A_\graphH$ contains an
+edge label, or a null entry $0$ indicating that no edge is present.  We use \cref{labDirAlg}, by
+letting $L$ be the union of $\{0\}$ with the set of all labels that appear in
+the input graphs. Since there may be up to $g + h$ distinct labels, the loop in
+\cref{labDirAlg} may execute up to $g + h$ times, resulting in $\BigO{(g+h)^2}$
+time complexity per search node.  To achieve $\BigO{(g+h) \log (g+h)}$ time
+complexity per search node, we can modify the algorithms to use sorting rather
+than explicitly looping over all label classes, as follows.  First, run lines
+17-19 of \cref{McSplitAlg} to create a new label-class of vertices that are
+not adjacent to $v$ or $w$, and remove these vertices from $\langle \setG',\setH'
+\rangle$.  Next, sort $\setG'$ and $\setH'$ in ascending order of the label on the edge
+from $v$ or $w$ to each vertex. We can then create the label classes
+corresponding to each edge label by simultaneously traversing $\setG'$ and $\setH'$
+from left to right, in a manner that resembles the merging step of merge sort.
+
+\paragraph{Directed with edge labels} This case is similar to its undirected
+counterpart, except that each element $A_\graphG[u][v]$ or $A_\graphH[u][v]$ is a
+pair $(l_1, l_2)$, where $l_1$ is the label on the edge $u \rightarrow v$ (or 0
+if no edge exists) and $l_2$ is the label on the reverse edge.
+
+\paragraph{Maximum common \emph{connected} subgraph} In chemistry applications,
+it is sometimes desirable to require the common subgraph be connected
+\citep{Ehrlich:2011}. We consider only undirected graphs. We may modify \McSplit\ by
+permitting branching only on a vertex $v$ that has at least one non-zero
+element in its bit-string label, following the scheme described by
+\citet{DBLP:conf/mco/VismaraV08}.  We can represent this information compactly,
+and without increasing time complexity at each search node, by storing an extra
+bit with each label class.  This bit takes the value $1$ if and only if the
+vertices in the class are adjacent to at least one vertex in $M$.
+
+\section{Experimental Evaluation}
+
+Experiments were performed on machines with dual Intel Xeon E5-2640 v2 CPUs and
+64GBytes RAM. Our algorithm was
+implemented\footnote{Source code, instances, experimental scripts and raw
+results are available at
+https://github.com/jamestrimble/ijcai2017-partitioning-common-subgraph}
+in C++ and compiled using g++ 5.3.0. We compare against the best constraint
+programming implementations of \citet{DBLP:conf/cp/NdiayeS11} and
+\citet{DBLP:conf/cp/McCreeshNPS16} (CP-FC in the unlabelled cases, and CP-MAC
+in the labelled cases, using both branching and filtering for connected
+subgraphs), the clique encodings of \citet{DBLP:conf/cp/McCreeshNPS16}, and the
+$k{\downarrow}$ algorithm of \citet{UpcomingAAAIPaper} (which only supports
+unlabelled, undirected, unconnected instances).  Each of these comparator
+programs is an optimised, dedicated implementation and does not use a
+general-purpose constraint programming toolkit.  We used the original authors'
+code in each case.
+
+Our first set of experiments uses a database of randomly-generated maximum
+common subgraph instances
+\citep{DBLP:journals/prl/SantoFSV03,DBLP:journals/jgaa/ConteFV07}.  For
+unlabelled instances, we selected the first ten instances from each family
+whose members have no more than 50 vertices, for a total of 4,100 instances.
+For labelled instances, we selected the first ten instances from every family,
+for a total of 8,140 instances with up to 100 vertices; like
+\citet{DBLP:conf/cp/McCreeshNPS16}, we use the labelling scheme in which the
+number of distinct vertex labels and the number of distinct edge labels is
+approximately equal to 33 percent of the number of vertices in each graph.
+
+\begin{figure}[p]
+    \centering\subfiguretopcaptrue
+    \subfigure[][Unlabelled, undirected, not connected] {
+        \centering
+        \includegraphics*{gen-graph-plain-cumulative.pdf}
+        \label{figure:plain-cumulative}
+    }
+
+    \subfigure[][Vertex and edge labelled, directed, not connected] {
+        \centering
+        \includegraphics*{gen-graph-33ved-cumulative.pdf}
+        \label{figure:33ved-cumulative}
+    }
+
+    \subfigure[][Unlabelled, undirected, connected] {
+        \centering
+        \includegraphics*{gen-graph-plain-connected-cumulative.pdf}
+        \label{figure:plain-connected-cumulative}
+    }
+
+    \subfigure[][Vertex and edge labelled, undirected, connected] {
+        \centering
+        \includegraphics*{gen-graph-33ve-connected-cumulative.pdf}
+        \label{figure:33ve-connected-cumulative}
+    }
+    \caption{Cumulative numbers of instances solved over time for maximum
+    common subgraph problems.}\label{figure:mcs-cumulative}
+\end{figure}
+
+\paragraph{Unlabelled, undirected}
+\cref{figure:plain-cumulative} shows a plot of cumulative 
+number of instances solved against runtime.  We may compare
+the speed of two algorithms using the horizontal distance between their curves.
+For example, we could solve 2,000 of the 4,110 unlabelled undirected instances
+using the \McSplit\ algorithm if a time limit of 0.5 seconds per instance were
+imposed.  Its nearest competitor, CP-FC, would require a time limit of over 24
+seconds per instance to solve the same number of instances.  For any given
+number of instances, \McSplit\ is comfortably more than an order of magnitude
+faster than its nearest competitor.  Moreover, \McSplit\ is the fastest algorithm
+on 87\% of the 3,506 instances that
+could be solved by at least one of the four algorithms in less than than
+1,000 seconds.
+
+\paragraph{Vertex and edge labels, directed} Cumulative runtimes for this
+class of instances are in \cref{figure:33ved-cumulative}. Again, \McSplit\ is over
+an order of magnitude faster than the best existing CP algorithm, which is
+CP-MAC in this case. Matching the conclusions of
+\citet{DBLP:conf/cp/McCreeshNPS16}, we see that the clique encoding outperforms
+the other algorithms---including \McSplit---on these labelled instances, except
+in the very easy region of instances that can be solved in well under 100 ms.
+
+\paragraph{Unlabelled, undirected, connected} This class of instances is shown
+in \cref{figure:plain-connected-cumulative}.  These results are very similar to
+the corresponding experiment in \cref{figure:plain-cumulative} in which the
+subgraph is not required to be connected: \McSplit\ is the clear winner by more
+than an order of magnitude.
+
+\paragraph{Vertex and edge labels, undirected, connected} For the labelled,
+connected case, clique slightly outperforms \McSplit\ on harder instances
+(\cref{figure:33ve-connected-cumulative}). However, the gap between the two algorithms
+is very narrow, and is probably down to minor implementation details; indeed, the
+cumulative curve for \McSplit\ briefly rises above the curve for clique at a
+runtime just below 100 seconds. Additionally, \McSplit\ is the clear winner for
+easier instances, where the clique encoding is relatively expensive to
+construct but trivial to solve.
+
+\begin{figure}[b]
+    \centering
+    \includegraphics*{gen-graph-sip-cumulative.pdf}
+    \caption{Cumulative numbers of instances solved over time for the maximum
+    common connected subgraph problem on the large subgraph isomorphism benchmark
+    suite.} \label{figure:sip-cumulative}
+\end{figure}
+
+\paragraph{Large subgraph isomorphism instances} We also ran the algorithms on
+a set of 5,725 larger instances used in recent studies of subgraph
+isomorphism~\citep{DBLP:conf/lion/KotthoffMS16} and maximum common
+subgraph~\citep{UpcomingAAAIPaper}.  This benchmark set includes real-world
+graphs and graphs generated using random models.  Pattern graphs range from 4
+vertices to 900 with a median of 80; target graphs range from 10 vertices to
+6,671 with a median of 561. Cumulative runtimes on these instances are shown in
+\cref{figure:sip-cumulative}.  This is a challenging set of instances, and more
+than half of the instances cannot be solved within a timeout of 1,000 seconds by
+any solver. Furthermore, the CP-FC algorithm and the clique encoding run out of
+memory on many of the instances (these are treated as timeouts, following
+\citet{UpcomingAAAIPaper}).
+
+\begin{figure*}[t]
+    \centering\subfiguretopcaptrue
+    \subfigure[][Unlabelled, undirected instances] {\label{figure:prettyheatmaps1}
+    \includegraphics*{gen-graph-plain-james-versus-cp-fc-nodes-scatter.pdf}
+    }\subfigure[][Labelled, directed instances] {\label{figure:prettyheatmaps2}
+    \includegraphics*{gen-graph-33ved-james-versus-cp-fc-nodes-scatter.pdf}
+    }\subfigure[][Subgraph isomorphism instances]{\label{figure:prettyheatmaps3}
+    \includegraphics*{gen-graph-sip-james-versus-kdown-nodes-scatter.pdf}
+}
+    \caption{Relative search space sizes for instances which were solved by both algorithms within the timeout.}
+    \label{figure:prettyheatmaps}
+\end{figure*}
+
+The basic \McSplit\ is beaten by the $k{\downarrow}$ algorithm of
+\citet{UpcomingAAAIPaper} on this dataset. However, we can modify the \McSplit\
+algorithm to use a top-down strategy similar to that used by $k{\downarrow}$  by
+calling the main \FuncSty{McSplit} method once per goal size ($g, g-1, g-2,
+\dots$); we backtrack (\lineref{PruneSearch} of \cref{McSplitAlg}) when the
+bound is strictly less than the goal size, and terminate when a solution of the
+goal size is found. We expect that this could do well because in many cases the
+maximum common subgraph covers nearly all of the smaller graph---indeed,
+\cref{figure:sip-cumulative} shows that this approach is the strongest on these
+instances, and \McSplit{$\downarrow$} is the best algorithm for every choice of timeout.
+(By contrast, the optimal solutions for the instances in
+\cref{figure:mcs-cumulative} typically cover a smaller proportion of the
+input graphs, and \McSplit{$\downarrow$} is often more than a magnitude slower than
+the plain \McSplit\ algorithm for these instances; the \McSplit{$\downarrow$} results
+are not shown for these instances.)
+
+\bigskip
+
+Overall, we find that \McSplit\ improves on the
+previous state of the art by more than an order of magnitude for small,
+unlabelled graphs.  On a benchmark suite of larger instances, the
+\McSplit{$\downarrow$} variant of the algorithm comfortably outperforms the
+state of the art.  On labelled instances, the clique encoding remains the
+strongest solver, except on the most trivial instances---particularly where
+there is no requirement for the common subgraph to be connected.
+
+
+
+
+
+\section{Comparison with Existing Algorithms}\label{sec:comparison}
+
+Our experimental results suggest that \McSplit\ has broadly similar performance
+trends to the constraint programming, forward-checking (CP-FC) algorithm of
+\citet{DBLP:conf/cp/NdiayeS11}, but with much lower constant factors and memory usage. Indeed,
+in \cref{figure:prettyheatmaps1,figure:prettyheatmaps2} we plot the number of
+recursive calls made by our algorithm versus the number made by
+CP-FC, for the unlabelled and labelled, unconnected problem
+instances. (Rather than a simple scatter plot, we use darker colours to
+indicate a higher density of points around a location.) We see a close
+correlation: \McSplit\ typically does slightly less work, and sometimes does more, but
+instances with more than one order of magnitude difference in search tree size
+are rare.
+
+Why is this? We do not see a similar correlation between our search tree size
+and that of the clique approach. The key observation is that \McSplit\ may be
+considered to be a different version of the CP-FC algorithm, using
+an unconventional domain store and more efficient filtering algorithms. We now
+explore this relationship further.
+
+In the CP-FC algorithm, each vertex $v \in \V(\graphG)$ is represented by a
+variable, whose domain corresponds to the set of vertices in $\V(\graphH)$ to
+which $v$ may currently be mapped, with an additional special $\bot$ value
+representing an unmapped vertex.  Given a label class $\langle \setG,\setH
+\rangle$ in \McSplit\, the vertices in $\setG$ correspond to variables in
+CP-FC, and the vertices in $\setH$ to domain values. The label-class
+representation of domains is possible because throughout the CP-FC algorithm
+for maximum common subgraph, the domains of any two variables are either
+identical or disjoint (excluding $\bot$, which is either present in all domains or in none).
+To the best of our knowledge, this observation has not been made previously,
+and it is not exploited in other algorithms for maximum common subgraph.
+
+CP-FC uses a soft all-different constraint to compute a bound, which requires
+running a matching algorithm on a supporting compatibility graph.  We now
+show that \McSplit\ computes the same bound, but using a simple
+counting loop (\cref{McSplitAlg}, \lineref{CalcBound})---this is possible
+because of the disjoint nature of the domains.
+
+To illustrate the method used by CP-FC to calculate a bound, we consider the
+input graphs $\graphG$ and $\graphH$ in \cref{fig:alg1}. Suppose that the
+variable corresponding to vertex 1 has been matched to the value corresponding
+to vertex $a$, and that no other assignments have been made.  In the
+terminology of \McSplit, we now have two label classes: $\langle \{2,3\},
+\{d,f\} \rangle$ and $\langle \{4,5\}, \{b,c,e\} \rangle$.  CP-FC represents
+this state by storing the domain of each remaining variable: 2 and 3 each
+have the domain $\{d,f\}$; 4 and 5 each have the domain $\{b,c,e\}$.
+
+As described previously, the \McSplit\ algorithm finds the size of the smaller
+set in each label class, and adds these sizes to the size of the current
+mapping, giving a bound of 5.  CP-FC uses the compatibility graph $\graphB$ in
+\cref{fig:cpfc-bipartite} to calculate an upper bound; variables are
+represented by vertices on the left, values are represented by vertices on the
+right, and a variable may take a value if and only if the corresponding
+vertices are adjacent.  The upper bound is calculated by CP-FC by computing a
+maximum matching on this bipartite graph, and adding the size of this matching
+to the size of the current mapping.
+
+The vertices in the bipartite graph are coloured to emphasise how they
+correspond to the two label classes.  Each label class corresponds to a
+complete bipartite graph, and there are no edges between the components
+corresponding to different label classes.  Clearly, a maximum matching in
+$\graphB$ must be the union of the maximum matching in each complete bipartite
+subgraph, and each of these matchings in turn have the same size as the smaller
+of the left and right sets of vertices.  It follows that the CP-FC bound is
+identical to the \McSplit\ bound.
+
+\begin{figure}[tb]
+\centering
+% Bipartite graph TikZ based on code from
+% https://tex.stackexchange.com/a/15094/61367
+\definecolor{myblue}{RGB}{79.0, 18.0, 123.0}
+\definecolor{mygreen}{RGB}{251.0, 135.0, 97.0}
+\usetikzlibrary{positioning,chains,fit,shapes,calc}
+
+\begin{tikzpicture}[thick,
+  every node/.style={draw,circle},
+  class1node/.style={fill=myblue},
+  class2node/.style={fill=mygreen},
+  every fit/.style={ellipse,draw,inner sep=-2pt,text width=2cm}
+]
+
+\begin{scope}[start chain=going below,node distance=3mm]
+\foreach \i in {2,3}
+  \node[class1node,on chain] (f\i) [label=left: $\i$] {};
+\end{scope}
+
+\begin{scope}[yshift=-1.8cm,start chain=going below,node distance=3mm]
+\foreach \i in {4,5}
+  \node[class2node,on chain] (f\i) [label=left: $\i$] {};
+\end{scope}
+
+\begin{scope}[xshift=2.2cm,start chain=going below,node distance=3mm]
+\foreach \i in {d,f}
+  \node[class1node,on chain] (s\i) [label=right: $\i$] {};
+\end{scope}
+
+\begin{scope}[xshift=2.2cm,yshift=-1.5cm,start chain=going below,node distance=3mm]
+\foreach \i in {b,c,e}
+  \node[class2node,on chain] (s\i) [label=right: $\i$] {};
+\end{scope}
+
+% the edges
+\draw (f2) -- (sd);
+\draw (f3) -- (sd);
+\draw (f2) -- (sf);
+\draw (f3) -- (sf);
+
+\draw (f4) -- (sb);
+\draw (f4) -- (sc);
+\draw (f4) -- (se);
+\draw (f5) -- (sb);
+\draw (f5) -- (sc);
+\draw (f5) -- (se);
+\end{tikzpicture}
+
+\caption{A bipartite compatibility graph of the type used to calculate a bound in the CP-FC algorithm.}
+\label{fig:cpfc-bipartite}
+\end{figure}
+
+
+%%% This equivalence to CP-FC makes the correctness of \McSplit\ easy to establish:
+%%% if we replace the label-class representation of $\mathit{future}$ with
+%%% conventional domain stores, and replace \linerangeref{InnerLoop}{InnerLoopEnd}
+%%% of \cref{McSplitAlg} with \cref{cpAlg}.  The pruning of domains carried out in
+%%% these lines can be easily seen to be equivalent to the corresponding lines in
+%%% \cref{McSplitAlg}.
+%%% 
+%%% 
+%%% \begin{algorithm}
+%%% \DontPrintSemicolon
+%%% \nl    \For {$u \in \N(\graphG, b)$}{
+%%% \nl        remove $v$ from $D'_u$ \;
+%%% \nl        remove the inverse neighbourhood of $t$ from $D'_u$ \;
+%%%        }
+%%% \nl    \For {$u \in \invN(\graphG, b)$}{
+%%% \nl        remove $v$ from $D'_u$ \;
+%%% \nl        remove the neighbourhood of $t$ from $D'_u$ \;
+%%%        }
+%%% \caption{Replacement for \linerangeref{InnerLoop}{InnerLoopEnd} in CP algorithm ?? Not sure about this bit, maybe we don't need it}
+%%% \label{cpAlg}
+%%% \end{algorithm}
+
+This bound is incomparable to the clique bound, which is given by a greedy
+colouring of a microstructure-like graph \citep{DBLP:conf/cp/McCreeshNPS16}.
+The clique bound is potentially stronger, in that it can reason about
+compatibilities between individual variable-vertex assignments. The clique
+bound is also able to make use of edge label information, which CP-FC and our
+equivalent bound cannot---this comes at the expense of much higher memory
+requirements, and also longer calculation times for unlabelled graphs. The
+clique bound is also potentially weaker: it is not even guaranteed to be less
+than or equal to the number of remaining variables, in the CP-FC sense.
+
+A further advantage of our encoding is that it gives us efficient access to a
+better branching heuristic. The CP-FC algorithm uses smallest domain first,
+which in our algorithm corresponds to branching on a label class with smallest
+$|\setH|$. We instead branch on the label class with smallest $\max(|\setG|,|\setH|)$.
+This is empirically better, and accounts for much of the difference between
+the number of recursive calls made; branching on the smallest $|\setG| |\setH|$ gives
+very similar results. This can be viewed as exploiting both smallest domain first,
+and the dual viewpoint \citep{DBLP:conf/ecai/Geelen92} of smallest domain
+first, simultaneously, but we do not have the overheads of having to maintain
+and channel between the dual viewpoint that would be required when using a
+conventional domain store.
+
+What about our relationship to the $k{\downarrow}$ of
+\citet{UpcomingAAAIPaper}?  \Cref{figure:prettyheatmaps3} plots the number of
+recursive calls made by $k{\downarrow}$ and \McSplit{$\downarrow$} on each of the subgraph
+isomorphism instances. Although \McSplit{$\downarrow$} is the faster of the two algorithms overall, it
+explores more search nodes than $k{\downarrow}$ for most instances (even taking
+into account that $k{\downarrow}$ uses a unit propagation loop, and so measures
+the search tree slightly differently). This is the classic tradeoff between
+speed and cleverness. A hybrid algorithm could be beneficial here: it could use
+$k{\downarrow}$ initially, switching to \McSplit{$\downarrow$} when the extra filtering is
+ineffective, and finally switching to a clique encoding when fewer than some
+threshold number of vertices remain to be selected. This might deliver the
+benefits of the clique encoding for labelled graphs, while avoiding the high
+memory cost and colouring time of encoding the full instance.
+
+\section{Conclusion}
+
+We have introduced the \McSplit\ algorithm for maximum common subgraph
+problems.  This algorithm is more than an order of magnitude faster than the
+previous state of the art for unlabelled and undirected instances. We have
+shown how the algorithm can be extended for graphs with labels on edges, labels
+on vertices, loops, directed edges and the requirement that the resultant graph
+be connected.
+
+We believe there is more to be discovered about branching heuristics. There is
+also the potential to branch on both sides, that is instead of branching on
+vertices in $\V(\graphG)$, it would be equally valid to branch on a vertex in
+$\V(\graphH)$, since our data structure treats the two graphs symmetrically. More
+interestingly, we could choose which graph to branch on at each search node
+using some heuristic (perhaps choosing based on whether the $\setG$ or $\setH$ set is
+smaller).
+
+It would be interesting to see whether these techniques are more broadly
+applicable---we suspect that some other problems may have a similar branching
+structure which would also benefit from a partitioning domain store
+representation. Most obviously, we could solve the induced subgraph isomorphism
+problem in the same way (and with nearly no changes to the code), and our
+connected variant shows that certain side constraints can also be handled.
+However, we cannot solve non-induced subgraph isomorphism this way, nor can
+we handle certain richer labelling schemes such as those used in temporal
+subgraph isomorphism \citep{DBLP:conf/asunam/RedmondC13}.
+
+\bibliographystyle{named}
+\bibliography{paper}
+
+\end{document}
+
