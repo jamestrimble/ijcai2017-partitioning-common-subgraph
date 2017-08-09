@@ -103,17 +103,19 @@
 \begin{document}
 \maketitle
 
+\begin{columns}
+\column{1}
 {
     \colorlet{blockbodybgcolor}{uofgcobalt}
     \colorlet{blocktitlebgcolor}{uofgcobalt}
-    \block[bodyverticalshift=0cm, bodyinnersep=3mm]{}{
+    \block[bodyverticalshift=0.5cm, bodyinnersep=3mm]{}{
         \centering\begin{minipage}{0.94\textwidth}
-            We introduce a new branch and bound algorithm for the \textbf{maximum common
+            \Large We introduce a new branch and bound algorithm for the \textbf{maximum common
             subgraph} and \textbf{maximum common connected subgraph} problems which is based
             around vertex labelling and partitioning. Our method resembles
             a constraint programming approach, but uses a novel compact
             domain store to reduce
-            the memory and computation requirements during search.  Experiments
+            the memory and computation requirements.  Experiments
             show a speedup of more than an order of magnitude over the state of the
             art, and demonstrate that we can operate on much larger graphs without
             running out of memory.
@@ -126,15 +128,17 @@
 %            and value ordering} heuristics, and their relationship to the \textbf{expected number of
 %            solutions}.
         \end{minipage}
+        \vspace*{0.4cm}
     }
 }
+\end{columns}
 
 \begin{columns}
 \column{0.5}
 
 \block{The Maximum Common Subgraph Problem}{
-\begin{wrapfigure}[7]{r}{0.46\linewidth}
-    \begin{center}\begin{tikzpicture}[scale=1.4]%{{{
+\begin{wrapfigure}[7]{r}{0.48\linewidth}
+    \begin{flushright}\begin{tikzpicture}[scale=1.6]%{{{
         \node[draw, circle, fill=uofgrose, inner sep=5pt, font=\bfseries] (Na) at (1,  0)
         {\vphantom{0}};
         \node[draw, circle, fill=uofgrose, inner sep=5pt, font=\bfseries] (Nb) at (1, -2)
@@ -177,20 +181,18 @@
         \draw [ledge] (N5) -- (N9);
         \draw [ledge] (N7) -- (N8);
         \draw [ledge] (N8) -- (N9);
-    \end{tikzpicture}\end{center}
+    \end{tikzpicture}\end{flushright}
 
 \end{wrapfigure}
 
 The \textbf{maximum common subgraph} family of problems involves finding a large
-graph which is isomorphic to subgraphs of two given graphs simultaneously.
-Because graphs are widely used to model real-world phenomena, maximum common
-subgraph problems have arisen in molecular science (where graphs often represent
-molecules)
-and also in other domains including malware detection, source code analysis, and computer vision.
+graph which is isomorphic to subgraphs of two input graphs.
+Such problems have arisen in molecular science---where graphs often represent
+molecules---malware detection, source code analysis, and computer vision.
 
 \bigskip
 
-Maximum common subgraph problems are NP-hard, and remain challenging
+    Maximum common subgraph problems are \mbox{NP-hard}, and remain challenging
 computationally. Recent practical progress has been made by using constraint
 programming and
 mathematical programming, by reducing
@@ -202,143 +204,113 @@ special cases also have practical polynomial time algorithms.
 
 We consider the \textbf{maximum common induced subgraph} problem, in
 which the objective is to find a graph with as many vertices as possible which
-is an induced subgraph of each of two input graphs.  We introduce
-a new branch and bound algorithm which exploits special properties of the
-problem to allow a much faster exploration of the search space, whilst
-retaining the filtering and bounding benefits of the constraint programming
-approach. 
+is an induced subgraph of each of two input graphs.  The diagram shows a simple instance
+with an optimal solution highlighted.
 }
 
-\block{What goes here?}{
+\block{The \McSplit\ Algorithm}{
 
-%If we randomly generate a pattern graph with $p$ vertices and density $d_p$, and a target graph
-%with $t$ vertices and density $d_t$, the \textbf{expected number of solutions} to the non-induced
-%isomorphism problem is \[
-%    \mathsf{\langle Sol \rangle = t \cdot (t - 1) \cdot \ldots \cdot (t - p + 1)\cdot {d_t}^{d_p \cdot
-%    \binom{p}{2}} } \textnormal{.} \]
-
-Walkthrough?
+We introduce a branch and bound algorithm which exploits special properties of the
+problem to allow a much faster exploration of the search space, whilst
+retaining the filtering and bounding benefits of a constraint programming
+approach. 
 
 \bigskip
 
-Parallel version??
-
-%By considering when $\mathsf{\langle Sol \rangle = 1}$, we can \textbf{estimate the location} of the
-%satisfiable / unsatisfiable phase transition. (This is not entirely accurate due to variance,
-%particularly when the pattern is very sparse or very dense).
+Using depth-first search, the \McSplit\ algorithm builds up an injective mapping from a subset
+of vertices in the pattern graph to a subset of vertices in the target graph.  
+Remaining vertices are partitioned into \textbf{label classes} according to the set of mapped
+vertices to which they are adjacent; each pattern-graph vertex may only be mapped to target-graph
+vertices in the same label class.  We thus avoid
+the need for a conventional domain store in which the possible mappings for each
+vertex are stored explicitly.  
 
 \bigskip
 
-Extensions to labelled and connected cases???
+Straightforward extensions can be made to the algorithm to handle edge- and vertex-labelled graphs,
+and directed graphs.  We can also solve the problem where the subgraph must be connected,
+by branching only on vertices adjacent to at least one currently-mapped vertex.
+}
 
-%We can also use this formula to recover \textbf{variable} and \textbf{value ordering heuristics}: we
-%should make branching decisions which maximise the expected number of solutions during search. This
-%tells us to prefer small domains and pattern vertices of high degree, but target vertices of low
-%degree, which matches the empirically-determined heuristics used in state of the art solvers.
+\block{Relationship to Prior Constraint Programming Encodings}{
 
+    \bigskip
+
+    Our experimental results suggest that \McSplit\ has broadly
+    similar performance trends to the constraint programming,
+    forward-checking (CP-FC) algorithm of Ndiaye and Solnon
+    (2011), but with much lower constant factors and memory
+    usage.  In the figure below, we plot the number
+    of recursive calls made by our algorithm versus the number
+    made by CP-FC, for unlabelled, unconnected
+    problem instances. (Rather than a simple scatter plot,
+    darker colours are used to indicate a higher density of points around
+    a location.) We see a close correlation: \McSplit\ typically
+    does slightly less work, and sometimes does more, but instances with
+    more than one order of magnitude difference in
+    search tree size are rare.
+
+    Why is this?  The key
+    observation is that \McSplit\ may be considered to be a different version of the CP-FC algorithm,
+    using an unconventional domain store and more efficient filtering algorithms.
+    We explore this relationship in the paper.
+
+\begin{center}
+    \small\input{gen-graph-plain-james-versus-cp-fc-nodes-scatter}
+\end{center}
 }
 
 \column{0.5}
 
-\block{Horse Race}{
-We implemented \McSplit in C++. We compare against the best constraint
-programming implementations 
-(CP-FC in the unlabelled cases, and CP-MAC
-in the labelled cases, using both branching and filtering for connected
-subgraphs), the encodings, and the
-$k{\downarrow}$ algorithm (which only supports
-unlabelled, undirected, unconnected instances).  Each of these comparator
+\block{Experiments}{
+We compare our implementation of \McSplit\ against the best existing constraint
+programming implementations, clique encodings, and the
+$k{\downarrow}$ algorithm of McCreesh et al. (2017).  Each of these comparator
 programs is an optimised, dedicated implementation and does not use a
 general-purpose constraint programming toolkit.
 
-Our first set of experiments uses a database of randomly-generated maximum
-common subgraph instances.  For
-unlabelled instances, we selected the first ten instances from each family
-whose members have no more than 50 vertices, for a total of 4,100 instances.
-For labelled instances, we selected the first ten instances from every family,
-for a total of 8,140 instances with up to 100 vertices;
-we use the labelling scheme in which the
-number of distinct vertex labels and the number of distinct edge labels is
-approximately equal to 33 percent of the number of vertices in each graph.
+\bigskip
 
-    \vspace*{1em}
+For the unlabelled problem, we used 4,100 instances from a
+database of randomly-generated maximum common subgraph instances.  For
+the labelled variant, we used 8,140 instances from the same database.  \McSplit\ is
+more than an order of magnitude faster than its nearest competitor on unlabelled instances.
+On labelled instances, the clique encoding remains the single best solver.
+
+    \vspace*{2em}
 
     \begin{center}
         \small
         \input{gen-graph-plain-cumulative}
-        %\input{gen-graph-phase-transition}
     \end{center}
 
-%    We can also look at what happens if we vary both the pattern and the target density, for
-%    different orders of pattern. The top row shows satisfiability---the black lines show where
-%    $\mathsf{\langle Sol \rangle = 1}$. The bottom row shows the search cost for one of the three
-%    algorithms we consider in the paper. As expected, the ``really hard'' instances are near the
-%    phase transition.
-
-    \vspace*{0.9em}
+    \vspace*{2em}
 
     \begin{center}
         \small
-        %\input{gen-graph-non-induced}
+        \input{gen-graph-33ved-cumulative}
     \end{center}
+
+    \vspace*{3em}
+
+We also ran the algorithms on a set of 5,725 larger instances used in recent
+studies of subgraph isomorphism and maximum common subgraph; a modified version
+of \McSplit\ is the single best solver on this set of instances.
+
+    \vspace*{3em}
+
 }
 
 \end{columns}
-
-\block{Is this Just a Tweaked Version of CP-FC?}{
-\begin{wrapfigure}[24]{r}{0.64\linewidth}\begin{center}
-    %\small\input{gen-graph-plain-james-versus-cp-fc-nodes-scatter}
-\end{center}\end{wrapfigure}
-
-    Yes.
-
-    \bigskip
-
-    We show that here with a nice heatmap and a discussion of the soft all-diff propagator,
-    maybe with a bipartite graph figure.
-
-%    For induced isomorphisms, the behaviour is much richer. We can derive an expected number of
-%    solutions of \[
-%        \mathsf{\langle Sol \rangle = t \cdot (t - 1) \cdot \ldots \cdot (t - p + 1)\cdot
-%                    {d_t}^{d_p \cdot \binom{p}{2}} \cdot {(1 - d_{t})}^{(1 - d_{p}) \cdot \binom{p}{2}} } \textnormal{.} \]
-%
-%    \bigskip
-%
-%    Again this predicts a sharp phase transition. When the pattern is small, we see hard instances
-%    near the phase transition, and easy instances elsewhere. However, when the pattern is larger,
-%    the central unsatisfiable region \textbf{remains very hard}, even though it is no longer near a
-%    phase transition.
-%
-%    \bigskip
-%
-%    This is not just a weakness of current subgraph isomorphism algorithms: the region is also hard
-%    for pseudo-boolean and boolean satisfiability solvers, and under reduction to the clique
-%    problem.
-%
-%    \bigskip
-%
-%    The central hard region \emph{is} predicted correctly by \textbf{constrainedness}, as we
-%    show in the third row of plots. Although far from a phase transition, this region is only
-%    slightly overconstrained.
-%
-%    \bigskip
-%
-%    Looking to maximise $\mathsf{\langle Sol \rangle}$ derives existing variable and value ordering
-%    heuristics, in the case that both the pattern and target graphs are sparse. The formula suggests
-%    that algorithms should swap heuristics when the pattern and target are dense---empirically, this
-%    does indeed give an improvement. However, maximising the expected number of solutions is
-%    \textbf{not enough to select the best heuristic} in two eighths of the search space (and
-%    constrainedness does not help).
-}
 
 \begin{columns}
 \column{0.5}
 
 \block{See the Paper For\ldots}{
     \begin{itemize}
-        \item ~ How the algorithm can be (straightforwardly extended) to handle vertex and edge labels
-        \item ~ Experimental results for the labelled and connected cases
-        \item ~ ...???
+        \item ~ A walk-through of the algorithm
+        \item ~ How to extend the algorithm to handle vertex and edge labels
+        \item ~ Additional experimental results
     \end{itemize}
 }
 
@@ -347,9 +319,10 @@ approximately equal to 33 percent of the number of vertices in each graph.
 \block{Future Work}{
     \begin{itemize}
         \item ~ Better branching heuristics
-        \item ~ Branching on vertices in both graphs, not just the first one
+        \item ~ Branching on vertices in both graphs
         \item ~ Applying the partitioning data structure to other problems
     \end{itemize}
+    \vspace*{0.25em}
 }
 
 \end{columns}

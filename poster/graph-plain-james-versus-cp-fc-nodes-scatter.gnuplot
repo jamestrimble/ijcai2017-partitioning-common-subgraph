@@ -1,0 +1,32 @@
+# vim: set et ft=gnuplot sw=4 :
+
+set terminal tikz color size 8in,8in font '\large'
+set output "gen-graph-plain-james-versus-cp-fc-nodes-scatter.tex"
+
+set xlabel 'CP-FC Recursive Calls\vphantom{${\downarrow}$}' offset 0,-4,0
+set ylabel '\textproc{McSplit} Recursive Calls' offset -10,0,0
+set border 3
+set grid x y front
+set xtics nomirror offset 0,-2,0
+set ytics nomirror
+set tics front
+set size square
+set xrange [1:1e10]
+set yrange [1:1e10]
+set x2range [-0.5:50.5]
+set y2range [-0.5:50.5]
+set cbrange [1:100]
+set cbtics out nomirror offset character -1
+set logscale x
+set logscale y
+set format x '$10^{%T}$'
+set format y '$10^{%T}$'
+set logscale cb
+
+load "../paper/magmafromwhite-adjusted-for-heatmaps.pal"
+set palette negative
+
+plot \
+    "../paper/mcsplain-james-versus-cp-fc-heatmap.data.adjusted" u 2:1:3 matrix w image axes x2y2 notitle, \
+    x w l ls 0 notitle
+
