@@ -88,7 +88,7 @@
 
 \tikzposterlatexaffectionproofoff
 
-\useblockstyle[bodyverticalshift=-1cm, roundedcorners=1]{Default}
+\useblockstyle[bodyverticalshift=-1cm, roundedcorners=0]{Default}
 
 \renewcommand{\Huge}{\fontsize{77.2}{96}\selectfont}
 
@@ -110,14 +110,14 @@
     \colorlet{blocktitlebgcolor}{uofgcobalt}
     \block[bodyverticalshift=0.5cm, bodyinnersep=3mm]{}{
         \centering\begin{minipage}{0.94\textwidth}
-            \Large We introduce a new branch and bound algorithm for the \textbf{maximum common
+            \Large We introduce a new \textbf{branch and bound} algorithm for the \textbf{maximum common
             subgraph} and \textbf{maximum common connected subgraph} problems which is based
             around vertex labelling and partitioning. Our method resembles
             a constraint programming approach, but uses a novel compact
             domain store to reduce
             the memory and computation requirements.  Experiments
-            show a speedup of more than an order of magnitude over the state of the
-            art, and demonstrate that we can operate on much larger graphs without
+            show a \textbf{speedup of more than an order of magnitude} over the state of the
+            art, and demonstrate that we can operate on \textbf{much larger graphs} without
             running out of memory.
 %            We show how to generate \textbf{really hard} random instances for \textbf{subgraph
 %            isomorphism} problems. For the non-induced variant, we predict and observe a phase
@@ -137,17 +137,17 @@
 \column{0.5}
 
 \block{The Maximum Common Subgraph Problem}{
-\begin{wrapfigure}[7]{r}{0.48\linewidth}
+\begin{wrapfigure}[7]{r}{0.47\linewidth}
     \begin{flushright}\begin{tikzpicture}[scale=1.6]%{{{
-        \node[draw, circle, fill=uofgrose, inner sep=5pt, font=\bfseries] (Na) at (1,  0)
+        \node[draw, circle, fill=uofgrose, inner sep=8pt, font=\bfseries] (Na) at (1,  0)
         {\vphantom{0}};
-        \node[draw, circle, fill=uofgrose, inner sep=5pt, font=\bfseries] (Nb) at (1, -2)
+        \node[draw, circle, fill=uofgrose, inner sep=8pt, font=\bfseries] (Nb) at (1, -2)
         {\vphantom{0}};
-        \node[draw, circle, fill=uofgrose, inner sep=5pt, font=\bfseries] (Nc) at (1, -4)
+        \node[draw, circle, fill=uofgrose, inner sep=8pt, font=\bfseries] (Nc) at (1, -4)
         {\vphantom{0}};
-        \node[draw, circle, fill=uofgrose, inner sep=5pt, font=\bfseries] (Nd) at (3, -4)
+        \node[draw, circle, fill=uofgrose, inner sep=8pt, font=\bfseries] (Nd) at (3, -4)
         {\vphantom{0}};
-        \node[draw, circle, fill=white, inner sep=5pt, font=\bfseries] (Ne) at (3, -2)
+        \node[draw, circle, fill=white, inner sep=8pt, font=\bfseries] (Ne) at (3, -2)
         {\vphantom{0}};
 
         \draw [edge] (Na) -- (Nb);
@@ -158,15 +158,15 @@
         \draw [ledge] (Nb) -- (Ne);
         \draw [ledge] (Nd) -- (Ne);
 
-        \node[draw, circle, fill=uofgrose, inner sep=5pt, font=\bfseries] (N1) at (7.5,  0) {\vphantom{0}};
-        \node[draw, circle, fill=white, inner sep=5pt, font=\bfseries] (N2) at (9.5,  0) {\vphantom{0}};
-        \node[draw, circle, fill=uofgrose, inner sep=5pt, font=\bfseries] (N3) at (7.5, -2) {\vphantom{0}};
-        \node[draw, circle, fill=white, inner sep=5pt, font=\bfseries] (N4) at (9.5, -2) {\vphantom{0}};
-        \node[draw, circle, fill=uofgrose, inner sep=5pt, font=\bfseries] (N5) at (7.5, -4) {\vphantom{0}};
-        \node[draw, circle, fill=uofgrose, inner sep=5pt, font=\bfseries] (N6) at (9.5, -4) {\vphantom{0}};
-        \node[draw, circle, fill=white, inner sep=5pt, font=\bfseries] (N7) at (5.5,  0) {\vphantom{0}};
-        \node[draw, circle, fill=white, inner sep=5pt, font=\bfseries] (N8) at (5.5, -2) {\vphantom{0}};
-        \node[draw, circle, fill=white, inner sep=5pt, font=\bfseries] (N9) at (5.5, -4) {\vphantom{0}};
+        \node[draw, circle, fill=uofgrose, inner sep=8pt, font=\bfseries] (N1) at (7.5,  0) {\vphantom{0}};
+        \node[draw, circle, fill=white, inner sep=8pt, font=\bfseries] (N2) at (9.5,  0) {\vphantom{0}};
+        \node[draw, circle, fill=uofgrose, inner sep=8pt, font=\bfseries] (N3) at (7.5, -2) {\vphantom{0}};
+        \node[draw, circle, fill=white, inner sep=8pt, font=\bfseries] (N4) at (9.5, -2) {\vphantom{0}};
+        \node[draw, circle, fill=uofgrose, inner sep=8pt, font=\bfseries] (N5) at (7.5, -4) {\vphantom{0}};
+        \node[draw, circle, fill=uofgrose, inner sep=8pt, font=\bfseries] (N6) at (9.5, -4) {\vphantom{0}};
+        \node[draw, circle, fill=white, inner sep=8pt, font=\bfseries] (N7) at (5.5,  0) {\vphantom{0}};
+        \node[draw, circle, fill=white, inner sep=8pt, font=\bfseries] (N8) at (5.5, -2) {\vphantom{0}};
+        \node[draw, circle, fill=white, inner sep=8pt, font=\bfseries] (N9) at (5.5, -4) {\vphantom{0}};
 
         \draw [ledge] (N1) -- (N2);
         \draw [edge] (N1) -- (N3);
@@ -186,7 +186,7 @@
 \end{wrapfigure}
 
 The \textbf{maximum common subgraph} family of problems involves finding a large
-graph which is isomorphic to subgraphs of two input graphs.
+graph that appears in each of two input graphs.
 Such problems have arisen in molecular science---where graphs often represent
 molecules---malware detection, source code analysis, and computer vision.
 
@@ -224,15 +224,9 @@ vertices to which they are adjacent; each pattern-graph vertex may only be mappe
 vertices in the same label class.  We thus avoid
 the need for a conventional domain store in which the possible mappings for each
 vertex are stored explicitly.  
-
-\bigskip
-
-Straightforward extensions can be made to the algorithm to handle edge- and vertex-labelled graphs,
-and directed graphs.  We can also solve the problem where the subgraph must be connected,
-by branching only on vertices adjacent to at least one currently-mapped vertex.
 }
 
-\block{Relationship to Prior Constraint Programming Encodings}{
+\block{The Relationship to Constraint Programming}{
 
     \bigskip
 
@@ -253,11 +247,21 @@ by branching only on vertices adjacent to at least one currently-mapped vertex.
     Why is this?  The key
     observation is that \McSplit\ may be considered to be a different version of the CP-FC algorithm,
     using an unconventional domain store and more efficient filtering algorithms.
-    We explore this relationship in the paper.
+    This is possible because in the CP model, \textbf{any two domains are either identical
+    or disjoint}, excluding $\bot$.  We explore this relationship further in the paper.
+
+    \vspace*{1em}
 
 \begin{center}
     \small\input{gen-graph-plain-james-versus-cp-fc-nodes-scatter}
 \end{center}
+}
+
+\block{See the Paper For\ldots}{
+    \begin{itemize}
+        \item ~ How to extend the algorithm to handle vertex and edge labels
+        \item ~ Additional experimental results
+    \end{itemize}
 }
 
 \column{0.5}
@@ -291,48 +295,43 @@ On labelled instances, the clique encoding remains the single best solver.
         \input{gen-graph-33ved-cumulative}
     \end{center}
 
-    \vspace*{3em}
+    \vspace*{2em}
 
 We also ran the algorithms on a set of 5,725 larger instances used in recent
 studies of subgraph isomorphism and maximum common subgraph; a modified version
 of \McSplit\ is the single best solver on this set of instances.
 
-    \vspace*{3em}
+    \vspace*{2em}
 
+    \begin{center}
+        \small
+        \input{gen-graph-sip-cumulative}
+    \end{center}
 }
 
 \end{columns}
 
-\begin{columns}
-\column{0.5}
-
-\block{See the Paper For\ldots}{
-    \begin{itemize}
-        \item ~ A walk-through of the algorithm
-        \item ~ How to extend the algorithm to handle vertex and edge labels
-        \item ~ Additional experimental results
-    \end{itemize}
-}
-
-\column{0.5}
-
-\block{Future Work}{
-    \begin{itemize}
-        \item ~ Better branching heuristics
-        \item ~ Branching on vertices in both graphs
-        \item ~ Applying the partitioning data structure to other problems
-    \end{itemize}
-    \vspace*{0.25em}
-}
-
-\end{columns}
+%\begin{columns}
+%\column{0.5}
+%
+%\column{0.5}
+%
+%%\block{Future Work}{
+%%    \begin{itemize}
+%%        \item ~ Branching on vertices in both graphs
+%%        \item ~ Applying the partitioning data structure to other problems
+%%    \end{itemize}
+%%    \vspace*{0.25em}
+%%}
+%
+%\end{columns}
 
 {
     \colorlet{blockbodybgcolor}{uofgsandstone!80!white}
     \colorlet{blocktitlebgcolor}{uofgsandstone!80!white}
     \block[bodyverticalshift=-0.5cm]{}{
-        This work was supported by the Engineering and Physical Sciences Research Council [grant
-        number EP/K503058/1]. \hfill \texttt{\textcolor{white}{c.mccreesh.1@research.gla.ac.uk}}
+        This work was supported by the Engineering and Physical Sciences Research Council [grant numbers EP/K503058/1 and
+        EP/M508056/1]. \hfill \texttt{\textcolor{white}{j.trimble.1@research.gla.ac.uk}}
     }
 }
 

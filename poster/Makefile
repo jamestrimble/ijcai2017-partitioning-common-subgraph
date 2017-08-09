@@ -3,7 +3,8 @@ all : tables graphs poster.tex
 
 TABLES =
 
-GRAPHS = gen-graph-plain-cumulative.tex gen-graph-33ved-cumulative.tex gen-graph-plain-james-versus-cp-fc-nodes-scatter.tex
+GRAPHS = gen-graph-plain-cumulative.tex gen-graph-33ved-cumulative.tex gen-graph-sip-cumulative.tex \
+		 gen-graph-plain-james-versus-cp-fc-nodes-scatter.tex
 
 tables : $(TABLES)
 

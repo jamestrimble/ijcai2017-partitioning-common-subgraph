@@ -1,6 +1,6 @@
 # vim: set et ft=gnuplot sw=4 :
 
-set terminal tikz color size 8in,8in font '\large'
+set terminal tikz color size 9.35in,9.35in font '\large'
 set output "gen-graph-plain-james-versus-cp-fc-nodes-scatter.tex"
 
 set xlabel 'CP-FC Recursive Calls\vphantom{${\downarrow}$}' offset 0,-4,0
@@ -19,8 +19,9 @@ set cbrange [1:100]
 set cbtics out nomirror offset character -1
 set logscale x
 set logscale y
-set format x '$10^{%T}$'
-set format y '$10^{%T}$'
+set format x '$\mathsf{10^{%T}}$'
+set format y '$\mathsf{10^{%T}}$'
+set format cb '$\mathsf{%h}$'
 set logscale cb
 
 load "../paper/magmafromwhite-adjusted-for-heatmaps.pal"
