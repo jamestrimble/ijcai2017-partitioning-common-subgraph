@@ -59,6 +59,8 @@
 \definecolor{uofgburgundy}{rgb}{0.490196, 0.133333, 0.223529}
 \definecolor{uofgrust}{rgb}{0.603922, 0.227451, 0.023529}
 
+\definecolor{magmamagenta}{rgb}{0.709804,0.211765,0.478431}
+
 \definecolorstyle{UofG}{
 }{
     % Background Colors
@@ -119,14 +121,6 @@
             show a \textbf{speedup of more than an order of magnitude} over the state of the
             art, and demonstrate that we can operate on \textbf{much larger graphs} without
             running out of memory.
-%            We show how to generate \textbf{really hard} random instances for \textbf{subgraph
-%            isomorphism} problems. For the non-induced variant, we predict and observe a phase
-%            transition between satisfiable and unsatisfiable instances, with a corresponding
-%            complexity peak seen in \textbf{three different solvers}. For the induced variant, much
-%            richer behaviour is observed, and \textbf{constrainedness} gives a better measure of
-%            difficulty than does proximity to a phase transition. We also discuss \textbf{variable
-%            and value ordering} heuristics, and their relationship to the \textbf{expected number of
-%            solutions}.
         \end{minipage}
         \vspace*{0.4cm}
     }
@@ -139,13 +133,13 @@
 \block{The Maximum Common Subgraph Problem}{
 \begin{wrapfigure}[7]{r}{0.47\linewidth}
     \begin{flushright}\begin{tikzpicture}[scale=1.6]%{{{
-        \node[draw, circle, fill=uofgrose, inner sep=8pt, font=\bfseries] (Na) at (1,  0)
+        \node[draw, circle, fill=magmamagenta, inner sep=8pt, font=\bfseries] (Na) at (1,  0)
         {\vphantom{0}};
-        \node[draw, circle, fill=uofgrose, inner sep=8pt, font=\bfseries] (Nb) at (1, -2)
+        \node[draw, circle, fill=magmamagenta, inner sep=8pt, font=\bfseries] (Nb) at (1, -2)
         {\vphantom{0}};
-        \node[draw, circle, fill=uofgrose, inner sep=8pt, font=\bfseries] (Nc) at (1, -4)
+        \node[draw, circle, fill=magmamagenta, inner sep=8pt, font=\bfseries] (Nc) at (1, -4)
         {\vphantom{0}};
-        \node[draw, circle, fill=uofgrose, inner sep=8pt, font=\bfseries] (Nd) at (3, -4)
+        \node[draw, circle, fill=magmamagenta, inner sep=8pt, font=\bfseries] (Nd) at (3, -4)
         {\vphantom{0}};
         \node[draw, circle, fill=white, inner sep=8pt, font=\bfseries] (Ne) at (3, -2)
         {\vphantom{0}};
@@ -158,12 +152,12 @@
         \draw [ledge] (Nb) -- (Ne);
         \draw [ledge] (Nd) -- (Ne);
 
-        \node[draw, circle, fill=uofgrose, inner sep=8pt, font=\bfseries] (N1) at (7.5,  0) {\vphantom{0}};
+        \node[draw, circle, fill=magmamagenta, inner sep=8pt, font=\bfseries] (N1) at (7.5,  0) {\vphantom{0}};
         \node[draw, circle, fill=white, inner sep=8pt, font=\bfseries] (N2) at (9.5,  0) {\vphantom{0}};
-        \node[draw, circle, fill=uofgrose, inner sep=8pt, font=\bfseries] (N3) at (7.5, -2) {\vphantom{0}};
+        \node[draw, circle, fill=magmamagenta, inner sep=8pt, font=\bfseries] (N3) at (7.5, -2) {\vphantom{0}};
         \node[draw, circle, fill=white, inner sep=8pt, font=\bfseries] (N4) at (9.5, -2) {\vphantom{0}};
-        \node[draw, circle, fill=uofgrose, inner sep=8pt, font=\bfseries] (N5) at (7.5, -4) {\vphantom{0}};
-        \node[draw, circle, fill=uofgrose, inner sep=8pt, font=\bfseries] (N6) at (9.5, -4) {\vphantom{0}};
+        \node[draw, circle, fill=magmamagenta, inner sep=8pt, font=\bfseries] (N5) at (7.5, -4) {\vphantom{0}};
+        \node[draw, circle, fill=magmamagenta, inner sep=8pt, font=\bfseries] (N6) at (9.5, -4) {\vphantom{0}};
         \node[draw, circle, fill=white, inner sep=8pt, font=\bfseries] (N7) at (5.5,  0) {\vphantom{0}};
         \node[draw, circle, fill=white, inner sep=8pt, font=\bfseries] (N8) at (5.5, -2) {\vphantom{0}};
         \node[draw, circle, fill=white, inner sep=8pt, font=\bfseries] (N9) at (5.5, -4) {\vphantom{0}};
@@ -259,7 +253,7 @@ vertex are stored explicitly.
 
 \block{See the Paper For\ldots}{
     \begin{itemize}
-        \item ~ How to extend the algorithm to handle vertex and edge labels
+        \item ~ The algorithm in all its magnificent glory
         \item ~ Additional experimental results
     \end{itemize}
 }
