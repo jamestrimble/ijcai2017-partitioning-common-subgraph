@@ -78,8 +78,8 @@
             \end{tikzpicture}
         };
 
-        \node (logo) [anchor=north east, shift={(-0.6cm,-0.6cm)}] at (current page.north east) {
-            \includegraphics*[keepaspectratio=true,scale=0.7]{UoG_keyline.pdf}
+        \node (logo) [anchor=north east, shift={(-0.3cm,-0.6cm)}] at (current page.north east) {
+            \includegraphics*[keepaspectratio=true,scale=0.65]{UoG_keyline.pdf}
         };
 
         \node [anchor=west, xshift=0.2cm] at (current page.west |- logo.west) {
@@ -260,6 +260,15 @@ Prosser and \\ James Trimble}
 
 \end{frame}
 
+\begin{frame}{The McSplit Algorithm}
+    \begin{itemize}
+        \item We can use a compact backtrackable data structure which splits vertices into
+            partitions
+        \item Propagation is just refining partitions
+        \item Soft all-different can be calculated by counting rather than matching
+    \end{itemize}
+\end{frame}
+
 \begin{frame}{Experiments}
 
     \begin{itemize}
@@ -302,7 +311,7 @@ Prosser and \\ James Trimble}
         \vspace*{4em}
         \url{http://www.dcs.gla.ac.uk/~ciaran} \\
         \vspace{1em}
-        \href{mailto:ciaran.mccreesh@gla.ac.uk}{\nolinkurl{ciaran.mccreesh@gla.ac.uk}} \\
+        \href{mailto:ciaran.mccreesh@glasgow.ac.uk}{\nolinkurl{ciaran.mccreesh@glasgow.ac.uk}} \\
     \end{center}
 
     \begin{tikzpicture}[remember picture, overlay]
