@@ -18,6 +18,7 @@ GRAPHS = \
 ADJUSTED_HEATMAP_DATA = \
 	mcs33ved-james-versus-cp-fc-heatmap.data.adjusted \
 	mcsplain-james-versus-cp-fc-heatmap.data.adjusted \
+	mcsplain-james-versus-cp-fc-runtimes-heatmap.data.adjusted \
 	sip-james-versus-kdown-heatmap.data.adjusted
 
 .SECONDARY: $(ADJUSTED_HEATMAP_DATA)

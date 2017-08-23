@@ -275,7 +275,8 @@ Prosser and \\ James Trimble}
         \item Unlabelled variant: 4,100 instances from a
           database of randomly-generated maximum common subgraph instances (up~to 50 vertices)
         \item Labelled variant: 8,140 instances from the same database (up~to 100 vertices)
-        \item We also ran the algorithms on a set of 5,725 larger instances (up~to 6,671 vertices)
+        \item We also ran the algorithms on a set of 5,725 larger instances (up~to 6,671 vertices,
+            one graph is often smaller than the other)
     \end{itemize}
 
 \end{frame}
@@ -290,6 +291,11 @@ Prosser and \\ James Trimble}
         \input{gen-graph-plain-james-versus-cp-fc-nodes-scatter}
 \end{nearlyplainframe}
 
+\begin{nearlyplainframe}[t]{}
+    \centering
+        \input{gen-graph-plain-james-versus-cp-fc-runtimes-scatter}
+\end{nearlyplainframe}
+
 \begin{nearlyplainframe}[t]{Labelled, Directed Instances}
     \centering
         \input{gen-graph-33ved-cumulative}
@@ -298,6 +304,11 @@ Prosser and \\ James Trimble}
 \begin{nearlyplainframe}[t]{Large Instances}
     \centering
         \input{gen-graph-sip-cumulative}
+\end{nearlyplainframe}
+
+\begin{nearlyplainframe}[t]{}
+    \centering
+        \input{gen-graph-sip-james-versus-kdown-nodes-scatter}
 \end{nearlyplainframe}
 
 \begin{frame}{In the Paper}
